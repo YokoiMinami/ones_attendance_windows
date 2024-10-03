@@ -26,8 +26,6 @@ const NewAccountAfter = () => {
         setUserData(data);
         if (data.authority === true) {
           setAuthorityData('あり');
-        }else{
-          setAuthorityData('なし');
         }
       })
       .catch(err => console.log(err));
@@ -36,6 +34,15 @@ const NewAccountAfter = () => {
   if (!userData) {
     return <div>Loading...</div>;
   }
+
+  // 日付をフォーマットする関数
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  };
 
   return (
     <div id='new_account_after'>
@@ -77,7 +84,7 @@ const NewAccountAfter = () => {
         </div>
         <div className="new_row">
           <div className="label">登録日:</div>
-          <div className="value">{userData.date}</div>
+          <div className="value">{formatDate(userData.date)}</div>
         </div>
         <Button onClick={handleClick1} className='after_button'>ログインページ</Button>
       </div>
