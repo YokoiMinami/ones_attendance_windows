@@ -20,6 +20,9 @@ const AttendanceTablePage = ( ) => {
   const [remainingTime, setRemainingTime] = useState('');
   const [userTotal, setUserTotal] = useState(0);
   const [isOvertime, setIsOvertime] = useState(false);
+  const [projects, setProjects] = useState('');
+  const [company, setCompany] = useState('');
+  const [name, setName] = useState('');
 
   //ユーザー情報を取得
   useEffect(() => {
@@ -29,9 +32,9 @@ const AttendanceTablePage = ( ) => {
         'Content-Type': 'application/json'
       }
     })
-      .then(response => response.json())
-      .then(data => setUserData(data))
-      .catch(err => console.log(err));
+    .then(response => response.json())
+    .then(data => setUserData(data))
+    .catch(err => console.log(err));
   }, [id]);
 
   //ユーザーの勤怠情報を取得
@@ -144,14 +147,14 @@ const AttendanceTablePage = ( ) => {
         'Content-Type': 'application/json'
       }
     })
-      .then(response => response.json())
-      .then(data => {
-        setOverData(data);
-        if (data.start_time) setStartTime(data.start_time);
-        if (data.end_time) setEndTime(data.end_time);
-        if (data.break_time) setBreakTime(data.break_time);
-      })
-      .catch(err => console.log(err));
+    .then(response => response.json())
+    .then(data => {
+      setOverData(data);
+      if (data.start_time) setStartTime(data.start_time);
+      if (data.end_time) setEndTime(data.end_time);
+      if (data.break_time) setBreakTime(data.break_time);
+    })
+    .catch(err => console.log(err));
   }, [id]);
 
   const calculateWorkHours = (start, end) => {
@@ -302,6 +305,34 @@ const AttendanceTablePage = ( ) => {
       alert('データの保存に失敗しました');
     }
   };
+
+  const submitFormAdd = async (e) => {
+    e.preventDefault();
+    const accounts_id = localStorage.getItem('user');
+    const data = {
+      accounts_id,
+      project: projects,
+      company: company,
+      name: name
+    };
+  try {
+    const response = await fetch('http://localhost:3000/projects', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    if (response.ok) {
+      alert('データが保存されました');
+    } else {
+      alert('データの保存に失敗しました');
+    }
+  } catch (error) {
+    console.error('Error saving data:', error);
+    alert('データの保存に失敗しました');
+  }
+};
   
   return (
     <div id='table_flex'>
@@ -381,6 +412,25 @@ const AttendanceTablePage = ( ) => {
             />
           </div>
         </div>
+        <form onSubmit={submitFormAdd}>
+            <div id='projects_area'>
+              <div>
+                <label>プロジェクト名 : </label>
+                <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
+              </div>
+              <div>
+                <label>所属会社 : </label>
+                <input type='text' className='projects_input' value={company} onChange={(e) => setCompany(e.target.value)} />
+              </div>
+              <div>
+                <label>氏名 : </label>
+                <input type='text' className='projects_input' value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div id='projects_bt'>
+                <button type='submit' id='projects_button'>保存</button>
+              </div>
+            </div>
+          </form>
         <h2>{year}年 {month}月</h2>
         <div id='atTable'>
           <table className='atTop'>

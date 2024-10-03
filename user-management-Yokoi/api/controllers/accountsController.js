@@ -242,6 +242,30 @@ const overData = async (req, res, db) => {
   }
 }
 
+const projectsData = async (req, res, db) => {
+  const { accounts_id, project, company, name } = req.body;
+  const projectUser = await db('projectdata').where({ accounts_id }).first();
+  if(projectUser){
+    await db('projectdata').where({ accounts_id }).update({ project, company, name })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    await db('projectdata').insert({accounts_id, project, company, name})
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
+
 module.exports = {
   getData,
   postData,
@@ -254,6 +278,7 @@ module.exports = {
   checkIn,
   monthData,
   overData,
-  overUser
+  overUser,
+  projectsData
 }
   

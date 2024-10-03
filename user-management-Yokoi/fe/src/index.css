@@ -338,6 +338,7 @@ html {
 .at_left_input {
   width: 100px;
   height: 25px;
+  margin-left: 5px;
   outline: none;
   border: 1px solid white;
 }
@@ -412,6 +413,37 @@ html {
   margin-left: 5px;
   outline: none;
   border: 1px solid white;
+}
+
+#projects_area {
+  width: 80%;
+  display: flex;
+  justify-content: space-between;
+  margin: auto;
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
+.projects_input {
+  margin-left: 5px;
+}
+
+#projects_bt {
+  background-color: beige;
+}
+
+#projects_button {
+  margin-top: 20px;
+  background-color: #266ebd;
+  color: white;
+  width: 100px;
+  height: 30px;
+  border: 1px solid #266ebd;
+  margin: auto;
+}
+
+#projects_button:hover {
+  background-color: #023e8a;
 }
 
 #atTable {
