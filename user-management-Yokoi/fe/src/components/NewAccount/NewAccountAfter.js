@@ -43,22 +43,18 @@ const NewAccountAfter = () => {
         <img src={AccountLogo} alt="Account" style={{ width: '200px', height: '200px', objectFit: 'cover' }} />
       </div>
       <p id='account_after_text'> アカウント登録が完了しました！</p>
-        <div class="new_container">
-          <div class="new_row">
-              <div class="label">ID:</div>
-              <div class="value">{userData.id}</div>
+        <div className="new_container">
+          <div className="new_row">
+              <div className="label">ID:</div>
+              <div className="value">{userData.id}</div>
           </div>
-          <div class="new_row">
-              <div class="label">氏名:</div>
-              <div class="value">{userData.fullname}</div>
+          <div className="new_row">
+              <div className="label">氏名:</div>
+              <div className="value">{userData.fullname}</div>
           </div>
-          <div class="new_row">
-              <div class="label">Email:</div>
-              <div class="value">{userData.email}</div>
-          </div>
-          <div class="new_row">
-              <div class="label">電話番号:</div>
-              <div class="value">{userData.phone}</div>
+          <div className="new_row">
+              <div className="label">Email:</div>
+              <div className="value">{userData.email}</div>
           </div>
             <Button onClick={handleClick1} className='after_button'>ログインページ</Button>
       </div>

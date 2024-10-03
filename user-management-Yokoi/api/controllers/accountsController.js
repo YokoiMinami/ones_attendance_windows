@@ -9,14 +9,10 @@ const postData = async (req, res, db) => {
 
   // メールアドレスが既に存在するか確認
   const emailUser = await db('accounts').where({ email }).first();
-  // 電話番号が既に存在するか確認
-  const phoneUser = await db('accounts').where({ phone }).first();
+
   if (emailUser) {
     return res.status(400).json({ dbError: 'このメールアドレスは既に登録されています' });
-  }else if (phoneUser) {
-    return res.status(400).json({ dbError: 'この電話番号は既に登録されています' });
   }
-
   await db('accounts').insert({ company, fullname, kananame, email, team, date, password: hashedPassword, authority })
   .returning('*')
   .then(item => {

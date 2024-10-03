@@ -131,6 +131,10 @@ html {
   margin-right: 20px;
 }
 
+#team_error {
+  margin-left: 50px;
+}
+
 #email_error {
   margin-right: 10px;
 }

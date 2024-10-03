@@ -9,20 +9,27 @@ import { TextField, Autocomplete } from '@mui/material';
 const NewAccountPage = (props) => {
 
   const options = [
-    { label: 'Option 1', value: '1' },
-    { label: 'Option 2', value: '2' },
-    { label: 'Option 3', value: '3' },
+    { label: 'OBM', value: 'OBM' },
+    { label: 'OCF', value: 'OCF' },
+    { label: 'QFW', value: 'QFW' },
+    { label: 'QAT', value: 'QAT' },
+    { label: 'QTR', value: 'QTR' },
+    { label: 'QRL', value: 'QRL' },
+    { label: 'VQT', value: 'VQT' },
+    { label: 'QON', value: 'QON' },
+    { label: 'QFL', value: 'QFL' },
+    { label: 'QCT', value: 'QCT' },
   ];
 
   const [company_state, setCompanyState] = React.useState({ company: '' });
 
-  const companyOnChange = (event) => {
-    setState({ ...state, [event.target.name]: event.target.value });
+  const companyOnChange = (event, value) => {
+    setCompanyState({ company: value ? value.label : '' });
   };
-
+  
   const [state, setState] = useState({
     id: 0,
-    company: '',
+    // company: '',
     fullname: '',
     kananame: '',
     email: '',
@@ -40,7 +47,7 @@ const NewAccountPage = (props) => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!state.company) newErrors.company = '会社名を入力してください';
+    if (!company_state.company) newErrors.company = '会社名を入力してください';
     if (!state.fullname) newErrors.fullname = '氏名を入力してください';
     if (!state.kananame) newErrors.kananame = 'ヨミガナを入力してください';
     if (!state.email) {
@@ -48,7 +55,7 @@ const NewAccountPage = (props) => {
     } else if (!/\S+@\S+\.\S+/.test(state.email)) {
       newErrors.email = '有効なEmailを入力してください';
     }
-    if (!state.team) newErrors.phone = '所属するチームを入力してください';
+    if (!state.team) newErrors.team = '所属するチームを入力してください';
     if (!state.password) newErrors.password = 'パスワードを入力してください';
     return newErrors;
   };
@@ -66,10 +73,13 @@ const NewAccountPage = (props) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        company: company_state.company,
         fullname: state.fullname,
+        kananame: state.kananame,
         email: state.email,
-        phone: state.phone,
-        password: state.password
+        team: state.team,
+        password: state.password,
+        authority:state.authority
       })
     })
       .then(response => response.json())
@@ -95,46 +105,60 @@ const NewAccountPage = (props) => {
         <img src={OnesLogo} alt="Ones" style={{ width: '150px', height: '150px', objectFit: 'cover' }} />
       </div>
       <div id='new_account_logo'>
-        <img src={AccountLogo} alt="Account" style={{ width: '200px', height: '200px', objectFit: 'cover' }} />
+        <img src={AccountLogo} alt="Account" style={{ width: '180px', height: '180px', objectFit: 'cover' }} />
       </div>
       <Form onSubmit={submitFormAdd} className='new_account_form'>
         <FormGroup>
-          <label htmlFor="company" className='new_account_label'>会社名</label>
-          <Autocomplete
-      options={options}
-      getOptionLabel={(option) => option.label}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="選択肢"
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              '& fieldset': {
-                borderColor: 'white',
-              },
-              '&:hover fieldset': {
-                borderColor: 'white',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: 'white',
-              },
-              height: '50px', // ここで高さを指定
-            },
-          }}
-        />
-      )}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
+      <label htmlFor="company" className='new_account_label' style={{ marginRight: '5px' }}>会社名</label>
+      <Autocomplete
+  options={options}
+  getOptionLabel={(option) => option.label}
+  onChange={companyOnChange}
+  value={options.find(option => option.label === company_state.company) || null}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      name="company"
+      id="company"
+      className='new_account_input'
+      label="その他の場合はテキストを入力"
+      onChange={onChange}
       sx={{
-        width: 300,
-        backgroundColor: 'white',
-        borderRadius: '5px',
-        '& .MuiInputBase-root': {
-          padding: '10px',
-          height: '45px', // ここで高さを指定
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: 'transparent', // ボーダーを透明に設定
+          },
+          '&:hover fieldset': {
+            borderColor: 'transparent', // ホバー時のボーダーを透明に設定
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: 'transparent', // フォーカス時のボーダーを透明に設定
+          },
+          height: '50px',
+          borderRadius: '0px', // 角を丸くしない
+        },
+        '& .MuiAutocomplete-endAdornment': {
+          display: 'none', // ドロップダウンアイコンを非表示
         },
       }}
     />
-          <input type="text" name="company" id="company" className='new_account_input' onChange={onChange} value={state.company || ''} />
-          <div className='new_error' id='name_error'>
+  )}
+  sx={{
+    width: 300,
+    backgroundColor: 'white',
+    borderRadius: '0px', // 角を丸くしない
+    '& .MuiInputBase-root': {
+      height: '40px',
+      borderBottom: 'none', // 下部のボーダーを削除
+    },
+  }}
+/>
+
+    </div>
+
+          {/* <input type="text" name="company" id="company" className='new_account_input' onChange={onChange} value={state.company || ''} /> */}
+          <div className='new_error' id='company_error'>
           {errors.company && <p className="error">{errors.company}</p>}
           </div>
         </FormGroup>
@@ -148,7 +172,7 @@ const NewAccountPage = (props) => {
         <FormGroup>
           <label htmlFor="kananame" className='new_account_label'>ヨミガナ</label>
           <input type="text" name="kananame" id="kananame" className='new_account_input' onChange={onChange} value={state.kananame || ''} />
-          <div className='new_error' id='name_error'>
+          <div className='new_error' id='kananame_error'>
           {errors.kananame && <p className="error">{errors.kananame}</p>}
           </div>
         </FormGroup>
