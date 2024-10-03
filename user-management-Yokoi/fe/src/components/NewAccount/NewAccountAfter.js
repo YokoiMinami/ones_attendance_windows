@@ -5,14 +5,12 @@ import AccountLogo from '../../images/account-logo.png';
 import { Button } from 'reactstrap';
 import { BrowserRouter as Router, useNavigate } from 'react-router-dom';
 
-
 const NewAccountAfter = () => {
   const navigate = useNavigate();
 
   const handleClick1 = () => {
     navigate('/login');
   };
-
 
   const { id } = useParams();
   const [userData, setUserData] = useState(null);
@@ -33,7 +31,6 @@ const NewAccountAfter = () => {
     return <div>Loading...</div>;
   }
 
-  
   return (
     <div id='new_account_after'>
       <div id='new_account_ones'>
@@ -44,17 +41,37 @@ const NewAccountAfter = () => {
       </div>
       <p id='account_after_text'> アカウント登録が完了しました！</p>
         <div className="new_container">
-          <div className="new_row">
+        <div className="new_row">
               <div className="label">ID:</div>
               <div className="value">{userData.id}</div>
+          </div>
+          <div className="new_row">
+              <div className="label">会社名:</div>
+              <div className="value">{userData.company}</div>
           </div>
           <div className="new_row">
               <div className="label">氏名:</div>
               <div className="value">{userData.fullname}</div>
           </div>
           <div className="new_row">
+              <div className="label">ヨミガナ:</div>
+              <div className="value">{userData.kananame}</div>
+          </div>
+          <div className="new_row">
               <div className="label">Email:</div>
               <div className="value">{userData.email}</div>
+          </div>
+          <div className="new_row">
+              <div className="label">所属チーム:</div>
+              <div className="value">{userData.team}</div>
+          </div>
+          <div className="new_row">
+              <div className="label">権限:</div>
+              <div className="value">{userData.authority}</div>
+          </div>
+          <div className="new_row">
+              <div className="label">登録日:</div>
+              <div className="value">{userData.date}</div>
           </div>
             <Button onClick={handleClick1} className='after_button'>ログインページ</Button>
       </div>

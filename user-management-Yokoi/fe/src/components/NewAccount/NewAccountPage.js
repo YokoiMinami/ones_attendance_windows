@@ -21,21 +21,38 @@ const NewAccountPage = (props) => {
     { label: 'QCT', value: 'QCT' },
   ];
 
+  const teanOptions = [
+    { label: 'ST/FT管理', value: 'ST/FT管理' },
+    { label: '総務/営業', value: '総務/営業' },
+    { label: 'FT実施', value: 'FT実施' },
+    { label: 'アフター', value: 'アフター' },
+    { label: '取説', value: '取説' },
+    { label: 'CTS', value: 'CTS' },
+    { label: '使い込み', value: '使い込み' },
+    { label: 'ST主管', value: 'ST主管' },
+    { label: 'ST実施', value: 'ST実施' },
+    { label: 'SI', value: 'SI' },
+    { label: '開発', value: '開発' },
+    { label: '構成管理', value: '構成管理' },
+    { label: '作業効率化', value: '作業効率化' },
+  ];
+
   const [company_state, setCompanyState] = React.useState({ company: '' });
+  const [team_state, setTeamState] = React.useState({ team: '' });
 
   const companyOnChange = (event, value) => {
     setCompanyState({ company: value ? value.label : '' });
   };
-  
+  const teamOnChange = (event, value) => {
+    setTeamState({ team: value ? value.label : '' });
+  };
   const [state, setState] = useState({
     id: 0,
-    // company: '',
     fullname: '',
     kananame: '',
     email: '',
-    team: '',
     password: '',
-    authority: 'false'
+    authority: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -55,7 +72,7 @@ const NewAccountPage = (props) => {
     } else if (!/\S+@\S+\.\S+/.test(state.email)) {
       newErrors.email = '有効なEmailを入力してください';
     }
-    if (!state.team) newErrors.team = '所属するチームを入力してください';
+    if (!team_state.team) newErrors.team = '所属するチームを入力してください';
     if (!state.password) newErrors.password = 'パスワードを入力してください';
     return newErrors;
   };
@@ -77,7 +94,7 @@ const NewAccountPage = (props) => {
         fullname: state.fullname,
         kananame: state.kananame,
         email: state.email,
-        team: state.team,
+        team: team_state.team,
         password: state.password,
         authority:state.authority
       })
@@ -109,57 +126,30 @@ const NewAccountPage = (props) => {
       </div>
       <Form onSubmit={submitFormAdd} className='new_account_form'>
         <FormGroup>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
-      <label htmlFor="company" className='new_account_label' style={{ marginRight: '5px' }}>会社名</label>
-      <Autocomplete
-  options={options}
-  getOptionLabel={(option) => option.label}
-  onChange={companyOnChange}
-  value={options.find(option => option.label === company_state.company) || null}
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      name="company"
-      id="company"
-      className='new_account_input'
-      label="その他の場合はテキストを入力"
-      onChange={onChange}
-      sx={{
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: 'transparent', // ボーダーを透明に設定
-          },
-          '&:hover fieldset': {
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
+            <label htmlFor="company" className='new_account_label' style={{ marginRight: '5px' }}>会社名</label>
+            <Autocomplete options={options} getOptionLabel={(option) => option.label} onChange={companyOnChange} value={options.find(option => option.label === company_state.company) || null}
+            renderInput={(params) => (
+            <TextField {...params} name="company" id="company" className='new_account_input' label="その他の場合はテキストを入力" onChange={onChange}
+            sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'transparent', // ボーダーを透明に設定
+            },'&:hover fieldset': {
             borderColor: 'transparent', // ホバー時のボーダーを透明に設定
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: 'transparent', // フォーカス時のボーダーを透明に設定
-          },
-          height: '50px',
-          borderRadius: '0px', // 角を丸くしない
-        },
-        '& .MuiAutocomplete-endAdornment': {
-          display: 'none', // ドロップダウンアイコンを非表示
-        },
-      }}
-    />
-  )}
-  sx={{
-    width: 300,
-    backgroundColor: 'white',
-    borderRadius: '0px', // 角を丸くしない
-    '& .MuiInputBase-root': {
-      height: '40px',
-      borderBottom: 'none', // 下部のボーダーを削除
-    },
-  }}
-/>
-
-    </div>
-
-          {/* <input type="text" name="company" id="company" className='new_account_input' onChange={onChange} value={state.company || ''} /> */}
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: 'transparent', // フォーカス時のボーダーを透明に設定
+            },
+            height: '50px',
+            borderRadius: '0px', // 角を丸くしない
+            },'& .MuiAutocomplete-endAdornment': {
+            display: 'none', // ドロップダウンアイコンを非表示
+            },}}/>)}
+            sx={{width: 300, backgroundColor: 'white', borderRadius: '0px', // 角を丸くしない
+            '& .MuiInputBase-root': { height: '40px',
+            borderBottom: 'none', // 下部のボーダーを削除
+            },}}/>
+          </div>
           <div className='new_error' id='company_error'>
-          {errors.company && <p className="error">{errors.company}</p>}
+            {errors.company && <p className="error">{errors.company}</p>}
           </div>
         </FormGroup>
         <FormGroup>
@@ -184,10 +174,30 @@ const NewAccountPage = (props) => {
           </div>
         </FormGroup>
         <FormGroup>
-          <label htmlFor="team" className='new_account_label'>所属チーム</label>
-          <input type="text" name="team" id="team" className='new_account_input' onChange={onChange} value={state.team || ''} />
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
+            <label htmlFor="team" className='new_account_label' style={{ marginRight: '5px' }}>所属チーム</label>
+            <Autocomplete options={teanOptions} getOptionLabel={(option) => option.label} onChange={teamOnChange} value={teanOptions.find(option => option.label === team_state.team) || null}
+            renderInput={(params) => (
+            <TextField {...params} name="team" id="team" className='new_account_input' label="その他の場合はテキストを入力" onChange={onChange}
+            sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'transparent', // ボーダーを透明に設定
+            },'&:hover fieldset': {
+            borderColor: 'transparent', // ホバー時のボーダーを透明に設定
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: 'transparent', // フォーカス時のボーダーを透明に設定
+            },
+            height: '50px',
+            borderRadius: '0px', // 角を丸くしない
+            },'& .MuiAutocomplete-endAdornment': {
+            display: 'none', // ドロップダウンアイコンを非表示
+            },}}/>)}
+            sx={{width: 300, backgroundColor: 'white', borderRadius: '0px', // 角を丸くしない
+            '& .MuiInputBase-root': { height: '40px',
+            borderBottom: 'none', // 下部のボーダーを削除
+            },}}/>
+          </div>
           <div className='new_error' id='team_error'>
-          {errors.team && <p className="error">{errors.team}</p>}
+            {errors.team && <p className="error">{errors.team}</p>}
           </div>
         </FormGroup>
         <FormGroup>

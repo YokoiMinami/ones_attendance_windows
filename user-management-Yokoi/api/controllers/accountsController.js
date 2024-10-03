@@ -12,15 +12,27 @@ const postData = async (req, res, db) => {
 
   if (emailUser) {
     return res.status(400).json({ dbError: 'このメールアドレスは既に登録されています' });
+  }else if(authority === 'true'){
+    const authorityTrue = true;
+    await db('accounts').insert({ company, fullname, kananame, email, team, date, password: hashedPassword, authority:authority })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+        dbError: 'error'
+    }));
+  }else{
+    const authorityFalse = false;
+    await db('accounts').insert({ company, fullname, kananame, email, team, date, password: hashedPassword, authority:authorityFalse })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+        dbError: 'error'
+    }));
   }
-  await db('accounts').insert({ company, fullname, kananame, email, team, date, password: hashedPassword, authority })
-  .returning('*')
-  .then(item => {
-  res.json(item);
-  })
-  .catch(err => res.status(400).json({
-      dbError: 'error'
-  }));
 }
 
 const putData = async (req, res, db) => {
