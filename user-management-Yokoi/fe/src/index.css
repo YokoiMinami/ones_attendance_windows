@@ -421,15 +421,11 @@ html {
   justify-content: space-between;
   margin: auto;
   margin-top: 50px;
-  margin-bottom: 50px;
+  margin-bottom: 100px;
 }
 
 .projects_input {
   margin-left: 5px;
-}
-
-#projects_bt {
-  background-color: beige;
 }
 
 #projects_button {
@@ -444,6 +440,10 @@ html {
 
 #projects_button:hover {
   background-color: #023e8a;
+}
+
+#atH2 {
+  margin-bottom: 50px;
 }
 
 #atTable {
@@ -507,9 +507,9 @@ html {
 }
 
 #attendance_link_area {
-  margin-left: 10px;
-  margin-top: 100px;
+  margin-top: 80px;
   text-align: left;
+  margin-left: -22%;
 }
 
 /* メンバー管理 */

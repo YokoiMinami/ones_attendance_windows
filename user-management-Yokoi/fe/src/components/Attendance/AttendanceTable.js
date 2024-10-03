@@ -368,9 +368,6 @@ const AttendanceTablePage = ( ) => {
             </form>
           </div>
         </div>
-        <div id='attendance_link_area'>
-          <Link to="/" id='account_top_link'>← 勤怠一覧ページ</Link>
-        </div>
       </div>
       <div id='table_box2'>
         <h1 id='atH1'>勤怠一覧</h1>
@@ -431,7 +428,7 @@ const AttendanceTablePage = ( ) => {
               </div>
             </div>
           </form>
-        <h2>{year}年 {month}月</h2>
+        <h2 id='atH2'>{year}年 {month}月</h2>
         <div id='atTable'>
           <table className='atTop'>
             <thead className='atTh'>
@@ -468,6 +465,9 @@ const AttendanceTablePage = ( ) => {
               })}
             </tbody>
           </table>
+        </div>
+        <div id='attendance_link_area'>
+            <Link to="/" id='account_top_link'>← 勤怠一覧ページ</Link>
         </div>
       </div>
     </div>
