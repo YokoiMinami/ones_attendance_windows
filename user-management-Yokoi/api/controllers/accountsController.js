@@ -266,6 +266,21 @@ const projectsData = async (req, res, db) => {
   }
 }
 
+const projectUser = async (req, res, db) => {
+  const { accounts_id } = req.params;
+  try {
+    const item = await db('projectdata').where({ accounts_id }).first();
+    if (item) {
+      res.json( item );
+    } else {
+      res.status(404).send('保存データが見つかりません。');
+    }
+  } catch (error) {
+    console.error('Error fetching check-in time:', error);
+    res.status(500).send('サーバーエラー');
+  }
+}
+
 module.exports = {
   getData,
   postData,
@@ -279,6 +294,7 @@ module.exports = {
   monthData,
   overData,
   overUser,
-  projectsData
+  projectsData,
+  projectUser
 }
   

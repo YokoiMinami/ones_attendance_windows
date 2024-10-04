@@ -23,6 +23,8 @@ const AttendanceTablePage = ( ) => {
   const [remainingTime, setRemainingTime] = useState('');
   const [userTotal, setUserTotal] = useState(0);
   const [isOvertime, setIsOvertime] = useState(false);
+
+  const [projectsData, setProjectsData] = useState({});
   const [projects, setProjects] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
@@ -339,7 +341,7 @@ const AttendanceTablePage = ( ) => {
 
   useEffect(() => {
     const accounts_id = localStorage.getItem('user');
-    fetch(`http://localhost:3000/overuser/${accounts_id}`, {
+    fetch(`http://localhost:3000/projects/${accounts_id}`, {
       method: 'get',
       headers: {
         'Content-Type': 'application/json'
@@ -347,10 +349,10 @@ const AttendanceTablePage = ( ) => {
     })
     .then(response => response.json())
     .then(data => {
-      setOverData(data);
-      if (data.start_time) setStartTime(data.start_time);
-      if (data.end_time) setEndTime(data.end_time);
-      if (data.break_time) setBreakTime(data.break_time);
+      setProjectsData(data);
+      if (data.project ) setProjects(data.project);
+      if (data.company) setCompany(data.company);
+      if (data.name) setName(data.name);
     })
     .catch(err => console.log(err));
   }, [id]);
@@ -448,33 +450,59 @@ const AttendanceTablePage = ( ) => {
         {userData && <p id='atUser'>ユーザー名: {userData.fullname} さん</p>}
         </div>
         <div id='at_all_left'>
+          <div id='excel_button_area'>
+            <button className='all_button' id='excel_button' onClick={exportToExcel}>Excel 出力</button>
+          </div>
           <div id='at_h3'>
-            <h3>標準勤務時間</h3>
+            <h3>ユーザー情報</h3>
           </div>
-          <div>
-            <form onSubmit={handleSubmit}>
+          <form onSubmit={submitFormAdd}>
+            <div id='projects_area'>
               <div>
-                <label>出勤開始時間 : </label>
-                  <input type='time' className='at_left_input' value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                <label>プロジェクト名 : </label>
+                <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
               </div>
-              <div className='at_left'>
-                <label>退勤時間 : </label>
-                <input type='time' className='at_left_input' value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              <div>
+                <label>所属会社 : </label>
+                <input type='text' className='projects_input' value={company} onChange={(e) => setCompany(e.target.value)} />
               </div>
-              <div className='at_left'>
-                <label>休憩時間 : </label>
-                <input type='time' className='at_left_input' value={breakTime} onChange={(e) => setBreakTime(e.target.value)} />
+              <div>
+                <label>氏名 : </label>
+                <input type='text' className='projects_input' value={name} onChange={(e) => setName(e.target.value)} />
               </div>
-              <div className='at_left'>
-                <label>勤務時間 : </label>
-                <input type='time' className='at_left_input' value={workHours} onChange={(e) => setWorkHours(e.target.value)} />
+              <div id='projects_bt'>
+                <button type='submit' id='projects_button'>保存</button>
               </div>
-              <div id='at_left_bt'>
-                <button type='submit' id='at_left_button'>保存</button>
-              </div>
-            </form>
+            </div>
+          </form>
+          <div id='at_left_at'>
+            <div id='at_h3'>
+              <h3>標準勤務時間</h3>
+            </div>
+            <div id='at_left_input'>
+              <form onSubmit={handleSubmit}>
+                <div>
+                  <label>出勤開始時間 : </label>
+                    <input type='time' className='at_left_input' value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                </div>
+                <div className='at_left'>
+                  <label>退勤時間 : </label>
+                  <input type='time' className='at_left_input' value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                </div>
+                <div className='at_left'>
+                  <label>休憩時間 : </label>
+                  <input type='time' className='at_left_input' value={breakTime} onChange={(e) => setBreakTime(e.target.value)} />
+                </div>
+                <div className='at_left'>
+                  <label>勤務時間 : </label>
+                  <input type='time' className='at_left_input' value={workHours} onChange={(e) => setWorkHours(e.target.value)} />
+                </div>
+                <div id='at_left_bt'>
+                  <button type='submit' id='at_left_button'>保存</button>
+                </div>
+              </form>
+            </div>
           </div>
-          <button onClick={exportToExcel}>エクセルに出力</button>
         </div>
       </div>
       <div id='table_box2'>
@@ -517,26 +545,9 @@ const AttendanceTablePage = ( ) => {
             />
           </div>
         </div>
-        <form onSubmit={submitFormAdd}>
-            <div id='projects_area'>
-              <div>
-                <label>プロジェクト名 : </label>
-                <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
-              </div>
-              <div>
-                <label>所属会社 : </label>
-                <input type='text' className='projects_input' value={company} onChange={(e) => setCompany(e.target.value)} />
-              </div>
-              <div>
-                <label>氏名 : </label>
-                <input type='text' className='projects_input' value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div id='projects_bt'>
-                <button type='submit' id='projects_button'>保存</button>
-              </div>
-            </div>
-          </form>
-        <h2 id='atH2'>{year}年 {month}月</h2>
+        <div id='atH2_area'>
+          <h2 id='atH2'>{year}年 {month}月</h2>
+        </div>
         <div id='atTable'>
           <table className='atTop'>
             <thead className='atTh'>

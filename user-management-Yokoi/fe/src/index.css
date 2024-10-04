@@ -327,8 +327,19 @@ html {
 }
 
 #at_all_left {
+  width: 100%;
   margin-top: 100px;
-  margin-left: 30px;
+}
+
+#at_h3 {
+  margin-bottom: 20px;
+  text-align: left;
+  margin-left: 10px;
+}
+
+#at_left_at {
+  margin-top: 100px;
+  text-align: center;
 }
 
 .at_left {
@@ -344,13 +355,25 @@ html {
   border: 1px solid white;
 }
 
-#at_left_bt {
-  text-align: center;
-  width: 70%;
+.projects_input {
+  margin-bottom: 5px;
+  outline: none;
+  width: 220px;
+  height: 25px;
+  border: 1px solid white
 }
 
-#at_left_button {
-  margin-top: 20px;
+.projects_input:focus {
+  border: 1px solid #808080
+}
+
+#at_left_bt, #projects_bt {
+  text-align: center;
+  width: 100%;
+}
+
+#at_left_button, #projects_button {
+  margin-top: 50px;
   background-color: #266ebd;
   color: white;
   width: 100px;
@@ -358,8 +381,15 @@ html {
   border: 1px solid #266ebd;
 }
 
-#at_left_button:hover {
+#at_left_button:hover, #projects_button:hover {
   background-color: #023e8a;
+}
+
+#excel_button_area {
+  width: 100%;
+  text-align: center;
+  margin-top: 50px;
+  margin-bottom: 100px;
 }
 
 #table_box2 {
@@ -416,31 +446,24 @@ html {
   border: 1px solid white;
 }
 
-#projects_area {
-  width: 80%;
-  display: flex;
-  justify-content: space-between;
+#atH2_area {
   margin: auto;
+  text-align: right;
+  width: 80%;
+}
+
+#projects_area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  /* margin: auto;
   margin-top: 50px;
-  margin-bottom: 100px;
+  margin-bottom: 100px; */
 }
 
 .projects_input {
   margin-left: 5px;
-}
-
-#projects_button {
-  margin-top: 20px;
-  background-color: #266ebd;
-  color: white;
-  width: 100px;
-  height: 30px;
-  border: 1px solid #266ebd;
-  margin: auto;
-}
-
-#projects_button:hover {
-  background-color: #023e8a;
 }
 
 #atH2 {

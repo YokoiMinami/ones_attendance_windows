@@ -52,6 +52,7 @@ app.get('/attendance/:accounts_id/:month', (req, res) => accountsController.mont
 app.post('/overtime', (req, res) => accountsController.overData(req, res, db));
 app.get('/overuser/:accounts_id', (req, res) => accountsController.overUser(req, res, db));
 app.post('/projects', (req, res) => accountsController.projectsData(req, res, db));
+app.get('/projects/:accounts_id', (req, res) => accountsController.projectUser(req, res, db));
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {
