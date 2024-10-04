@@ -367,19 +367,29 @@ const AttendanceTablePage = ( ) => {
     const workbook = new ExcelJS.Workbook();
     const worksheetName = `${year}年${month}月`;
     const worksheet = workbook.addWorksheet(worksheetName);
-  
-    // データの追加
+    // タイトルを追加
+    worksheet.mergeCells('A1:J1'); // セルを結合
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = worksheetName;
+    titleCell.font = { size: 20, bold: true };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // 空行を追加
+    worksheet.addRow([]);
+
+    // ヘッダーを手動で追加
+    worksheet.addRow(['日付', '曜日', '出勤時間', '特記', '出勤備考', '退勤時間', '特記', '退勤備考', '休憩時間', '勤務時間']);
     worksheet.columns = [
-      { header: '日付', key: 'date', width: 15 },
-      { header: '曜日', key: 'day', width: 10 },
-      { header: '出勤時間', key: 'check_in', width: 10 },
-      { header: '特記', key: 'remarks1', width: 15 },
-      { header: '出勤備考', key: 'remarks2', width: 20 },
-      { header: '退勤時間', key: 'check_out', width: 10 },
-      { header: '特記', key: 'out_remarks1', width: 15 },
-      { header: '退勤備考', key: 'out_remarks2', width: 20 },
-      { header: '休憩時間', key: 'break_time', width: 10 },
-      { header: '勤務時間', key: 'work_hours', width: 10 }
+      { key: 'date', width: 15 },
+      { key: 'day', width: 10 },
+      { key: 'check_in', width: 15 },
+      { key: 'remarks1', width: 15 },
+      { key: 'remarks2', width: 30 },
+      { key: 'check_out', width: 15 },
+      { key: 'out_remarks1', width: 15 },
+      { key: 'out_remarks2', width: 30 },
+      { key: 'break_time', width: 15 },
+      { key: 'work_hours', width: 15 }
     ];
   
     allDates.forEach(date => {
@@ -398,6 +408,7 @@ const AttendanceTablePage = ( ) => {
       });
     });
   
+    
     // スタイルの適用
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell((cell, colNumber) => {
@@ -407,13 +418,17 @@ const AttendanceTablePage = ( ) => {
           bottom: { style: 'thin' },
           right: { style: 'thin' }
         };
-        if (rowNumber === 1) {
+        if (rowNumber === 3) {
           cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
           cell.fill = {
             type: 'pattern',
             pattern: 'solid',
             fgColor: { argb: 'FF266EBD' }
           };
+          cell.alignment = { horizontal: 'center' };
+        }
+        if (rowNumber === 2) {
+          cell.font = { bold: true };
           cell.alignment = { horizontal: 'center' };
         }
       });
@@ -425,7 +440,6 @@ const AttendanceTablePage = ( ) => {
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
   };
-  
 
   return (
     <div id='table_flex'>
