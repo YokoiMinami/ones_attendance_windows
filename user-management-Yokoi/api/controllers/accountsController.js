@@ -123,7 +123,7 @@ const attData = async (req, res, db) => {
     const userAttendance = await db('attendance').where({ accounts_id, date }).first();
 
     if (userAttendance) {
-      if (userAttendance.is_checked_in) {
+      if (userAttendance) {
         // 退勤登録
         await db('attendance')
           .where({ accounts_id, date })
@@ -133,7 +133,7 @@ const attData = async (req, res, db) => {
             work_hours,
             out_remarks1,
             out_remarks2,
-            is_checked_in: false
+            // is_checked_in: false
           });
         res.status(200).send('退勤登録完了');
       } else {

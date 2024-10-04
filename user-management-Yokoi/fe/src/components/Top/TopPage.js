@@ -198,7 +198,7 @@ const TopPage = () => {
   
       const message = await response.text();
       alert(message);
-      setIsCheckedIn(false); // 出勤状態を更新
+      // setIsCheckedIn(false); // 出勤状態を更新
     } catch (error) {
       console.error('Error recording attendance:', error);
     }

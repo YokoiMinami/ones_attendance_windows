@@ -133,7 +133,9 @@ const AttendanceTablePage = ( ) => {
   const formatTime = (timeString) => {
     if (!timeString) return '-';
     const [hours, minutes] = timeString.split(':');
-    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    const formattedHours = hours ? hours.padStart(2, '0') : '';
+    const formattedMinutes = minutes ? minutes.padStart(2, '0') : '';
+    return `${formattedHours}:${formattedMinutes}`;
   };
 
   // 「。」を改行タグに置き換える関数
@@ -586,26 +588,26 @@ const holidays = getHolidaysInMonth(year, month);
               </tr>
             </thead>
             <tbody id='at_tbody'>
-              {daysInMonth.map((date) => {
-                const record = findAttendanceRecord(date);
-                const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
-                const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
-                return (
-                  <tr key={date.toISOString()} className={dayClass}>
-                    <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
-                    <td>{getDayOfWeek(date)}</td>
-                    <td>{record ? formatTime(record.check_in_time) : '-'}</td>
-                    <td>{record ? record.remarks1 : '-'}</td>
-                    <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '-' }}></td>
-                    <td>{record ? formatTime(record.check_out_time) : '-'}</td>
-                    <td>{record ? record.out_remarks1 : '-'}</td>
-                    <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '-' }}></td>
-                    <td>{record ? formatTime(record.break_time) : '-'}</td>
-                    <td>{record ? formatTime(record.work_hours) : '-'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
+            {daysInMonth.map((date) => {
+              const record = findAttendanceRecord(date);
+              const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
+              const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
+              return (
+                <tr key={date.toISOString()} className={dayClass}>
+                  <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
+                  <td>{getDayOfWeek(date)}</td>
+                  <td>{record ? formatTime(record.check_in_time) : '-'}</td>
+                  <td>{record ? record.remarks1 : '-'}</td>
+                  <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '-' }}></td>
+                  <td>{record ? formatTime(record.check_out_time) : '-'}</td>
+                  <td>{record ? record.out_remarks1 : '-'}</td>
+                  <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '-' }}></td>
+                  <td>{record ? formatTime(record.break_time) : '-'}</td>
+                  <td>{record ? formatTime(record.work_hours) : '-'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
           </table>
         </div>
         <div id='attendance_link_area'>

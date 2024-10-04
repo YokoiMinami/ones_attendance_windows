@@ -2,6 +2,7 @@ const express = require('express'); //ウェブフレームワーク
 const app = express();
 const accountsController = require('./controllers/accountsController'); //dbクエリ
 require('dotenv').config();
+const cron = require('cron');
 
 //ミドルウェアを設定する
 const cors = require('cors'); //CORS(Cross-Origin Resource Sharing)を有効にする
@@ -35,6 +36,19 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(morgan('combined'));
+
+const resetCheckInFlags = async () => {
+  try {
+    await db('attendance').update({ is_checked_in: false });
+    console.log('is_checked_in flags reset successfully');
+  } catch (error) {
+    console.error('Error resetting is_checked_in flags:', error);
+  }
+};
+
+// 毎日深夜3時に実行
+const job = new cron.CronJob('0 3 * * *', resetCheckInFlags, null, true, 'Asia/Tokyo');
+job.start();
 
 //ルーター
 app.get('/', (req, res) => res.send('サーバーが実行中です!'));
