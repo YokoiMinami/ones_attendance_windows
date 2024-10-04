@@ -178,7 +178,7 @@ const NewAccountPage = (props) => {
             <label htmlFor="team" className='new_account_label' style={{ marginRight: '5px' }}>所属チーム</label>
             <Autocomplete options={teanOptions} getOptionLabel={(option) => option.label} onChange={teamOnChange} value={teanOptions.find(option => option.label === team_state.team) || null}
             renderInput={(params) => (
-            <TextField {...params} name="team" id="team" className='new_account_input' label="その他の場合はテキストを入力" onChange={onChange}
+            <TextField {...params} name="team" id="team" className='new_account_input' label="その他の場合はテキストを入力" onChange={onChange} 
             sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'transparent', // ボーダーを透明に設定
             },'&:hover fieldset': {
             borderColor: 'transparent', // ホバー時のボーダーを透明に設定
@@ -209,7 +209,7 @@ const NewAccountPage = (props) => {
         </FormGroup>
         <FormGroup>
           <label htmlFor="authority" className='new_account_label'>利用権限</label>
-          <input type="text" name="authority" id="authority" className='new_account_input' onChange={onChange} value={state.authority || ''} />
+          <input type="text" name="authority" placeholder='管理者のみ入力' id="authority" className='new_account_input' onChange={onChange} value={state.authority || ''} />
           <div className='new_error' id='authority_error'>
           {errors.authority && <p className="error">{errors.authority}</p>}
           </div>

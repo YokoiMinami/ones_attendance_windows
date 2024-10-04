@@ -91,6 +91,7 @@ html {
   vertical-align: middle; 
   border: 1px solid white;
   outline: none;
+  padding-left: 10px;
 }
 
 .new_account_input:focus {

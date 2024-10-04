@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 
 const AttendanceTablePage = ( ) => {
   const id = localStorage.getItem('user');
@@ -190,6 +191,7 @@ const AttendanceTablePage = ( ) => {
   //残業時間を計算
   //日数計算するために分単位に変換
   const convertTimeToMinutes = (timeString) => {
+    if (!timeString) return 0; // または適切なデフォルト値
     const [hours, minutes] = timeString.split(':').map(Number);
     return hours * 60 + minutes;
   };
@@ -261,7 +263,6 @@ const AttendanceTablePage = ( ) => {
   };
 
   useEffect(() => {
-
     const minus = isNegativeTime(remainingTime);
     if(minus){
       const remove = removeNegativeSign(remainingTime);
@@ -315,24 +316,126 @@ const AttendanceTablePage = ( ) => {
       company: company,
       name: name
     };
-  try {
-    const response = await fetch('http://localhost:3000/projects', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-    if (response.ok) {
-      alert('データが保存されました');
-    } else {
+    try {
+      const response = await fetch('http://localhost:3000/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        alert('データが保存されました');
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
-  } catch (error) {
-    console.error('Error saving data:', error);
-    alert('データの保存に失敗しました');
-  }
-};
+  };
+
+  useEffect(() => {
+    const accounts_id = localStorage.getItem('user');
+    fetch(`http://localhost:3000/overuser/${accounts_id}`, {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      setOverData(data);
+      if (data.start_time) setStartTime(data.start_time);
+      if (data.end_time) setEndTime(data.end_time);
+      if (data.break_time) setBreakTime(data.break_time);
+    })
+    .catch(err => console.log(err));
+  }, [id]);
+
+  const exportToExcel = () => {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    const allDates = [];
+  
+    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+      allDates.push(new Date(d));
+    }
+  
+    const fullData = allDates.map(date => {
+      const record = attendanceData.find(record => new Date(record.date).toLocaleDateString('ja-JP') === date.toLocaleDateString('ja-JP'));
+      return {
+        '日付': date.toLocaleDateString('ja-JP').replace(/\//g, '/'),
+        '曜日': getDayOfWeek(date),
+        '出勤時間': record ? formatTime(record.check_in_time) : '',
+        '特記 (出勤)': record ? record.remarks1 : '',
+        '出勤備考': record ? record.remarks2 : '',
+        '退勤時間': record ? formatTime(record.check_out_time) : '',
+        '特記 (退勤)': record ? record.out_remarks1 : '',
+        '退勤備考': record ? record.out_remarks2 : '',
+        '休憩時間': record ? formatTime(record.break_time) : '',
+        '勤務時間': record ? formatTime(record.work_hours) : ''
+      };
+    });
+  
+    const ws = XLSX.utils.json_to_sheet(fullData);
+  
+    const borderStyle = {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" }
+    };
+  
+    // ヘッダー行のスタイルを定義
+    const headerStyle = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4F81BD" } },
+      alignment: { horizontal: "center" },
+      border: borderStyle
+    };
+  
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + "1"; // 1行目（ヘッダー行）
+      if (!ws[address]) continue;
+      if (!ws[address].s) ws[address].s = {};
+      ws[address].s = headerStyle;
+    }
+  
+    // すべてのセルに罫線スタイルを適用
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[cell_address]) continue;
+        if (!ws[cell_address].s) ws[cell_address].s = {};
+        ws[cell_address].s.border = borderStyle;
+      }
+    }
+  
+    // 列幅を設定
+    const colWidths = [
+      { wch: 15 }, // 日付
+      { wch: 10 }, // 曜日
+      { wch: 10 }, // 出勤時間
+      { wch: 15 }, // 特記
+      { wch: 20 }, // 出勤備考
+      { wch: 10 }, // 退勤時間
+      { wch: 15 }, // 特記
+      { wch: 20 }, // 退勤備考
+      { wch: 10 }, // 休憩時間
+      { wch: 10 }  // 勤務時間
+    ];
+    ws['!cols'] = colWidths;
+  
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${year}年${month}月`);
+  
+    XLSX.writeFile(wb, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
+  };
+  
+  
+  
   
   return (
     <div id='table_flex'>
@@ -367,6 +470,7 @@ const AttendanceTablePage = ( ) => {
               </div>
             </form>
           </div>
+          <button onClick={exportToExcel}>エクセルに出力</button>
         </div>
       </div>
       <div id='table_box2'>
