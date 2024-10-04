@@ -369,15 +369,37 @@ const AttendanceTablePage = ( ) => {
     const workbook = new ExcelJS.Workbook();
     const worksheetName = `${year}年${month}月`;
     const worksheet = workbook.addWorksheet(worksheetName);
+    
     // タイトルを追加
     worksheet.mergeCells('A1:J1'); // セルを結合
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = worksheetName;
+    titleCell.value = '勤務表';
     titleCell.font = { size: 20, bold: true };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // 空行を追加
-    worksheet.addRow([]);
+    worksheet.mergeCells('H2:J2'); 
+    const workMonth = worksheet.getCell('H2');
+    workMonth.value = `${year}年${month}月`;
+    workMonth.font = { size: 18 };
+    workMonth.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    worksheet.mergeCells('A3:D3'); 
+    const workName = worksheet.getCell('A3');
+    workName.value = `プロジェクト名 : ${projects}`;
+    workName.font = { size: 18 };
+    workName.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    worksheet.mergeCells('H4:J4'); 
+    const companyName = worksheet.getCell('H4');
+    companyName.value = `所属会社 : ${company}`;
+    companyName.font = { size: 18 };
+    companyName.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    worksheet.mergeCells('H5:J5'); 
+    const userName = worksheet.getCell('H5');
+    userName.value = `作業者氏名 : ${name}`;
+    userName.font = { size: 18 };
+    userName.alignment = { vertical: 'middle', horizontal: 'left' };
 
     // ヘッダーを手動で追加
     worksheet.addRow(['日付', '曜日', '出勤時間', '特記', '出勤備考', '退勤時間', '特記', '退勤備考', '休憩時間', '勤務時間']);
@@ -410,38 +432,37 @@ const AttendanceTablePage = ( ) => {
       });
     });
   
-    
     // スタイルの適用
     worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell, colNumber) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
-        if (rowNumber === 3) {
-          cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FF266EBD' }
+      if (rowNumber >= 6) { // 6行目から罫線を適用
+        row.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
           };
-          cell.alignment = { horizontal: 'center' };
-        }
-        if (rowNumber === 2) {
-          cell.font = { bold: true };
-          cell.alignment = { horizontal: 'center' };
-        }
-      });
-      row.height = 25;
+          if (rowNumber === 6) {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FF266EBD' }
+            };
+            cell.alignment = { horizontal: 'center' };
+          }
+        });
+        row.height = 25;
+      }
     });
   
     // バッファを生成してBlobとして保存
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
-  };
+};
+
+
 
   return (
     <div id='table_flex'>
