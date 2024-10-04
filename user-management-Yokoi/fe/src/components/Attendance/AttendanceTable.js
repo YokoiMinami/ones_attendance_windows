@@ -462,7 +462,7 @@ const AttendanceTablePage = ( ) => {
     saveAs(blob, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
 };
 
-
+const holidays = getHolidaysInMonth(year, month);
 
   return (
     <div id='table_flex'>
@@ -588,8 +588,10 @@ const AttendanceTablePage = ( ) => {
             <tbody id='at_tbody'>
               {daysInMonth.map((date) => {
                 const record = findAttendanceRecord(date);
+                const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
+                const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
                 return (
-                  <tr key={date.toISOString()}>
+                  <tr key={date.toISOString()} className={dayClass}>
                     <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
                     <td>{getDayOfWeek(date)}</td>
                     <td>{record ? formatTime(record.check_in_time) : '-'}</td>

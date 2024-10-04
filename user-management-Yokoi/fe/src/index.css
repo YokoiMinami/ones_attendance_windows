@@ -536,6 +536,16 @@ html {
   margin-left: -22%;
 }
 
+.saturday {
+  background-color: #B0E0E6;
+}
+.sunday {
+  background-color: #FFF0F5;
+}
+.holiday {
+  background-color: #FFF1AB;
+}
+
 /* メンバー管理 */
 #accout_page {
   background-color: #eeeeee;
