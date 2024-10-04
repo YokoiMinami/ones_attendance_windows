@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link } from 'react-router-dom';
-import * as XLSX from 'xlsx';
+// import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 const AttendanceTablePage = ( ) => {
   const id = localStorage.getItem('user');
@@ -353,7 +355,7 @@ const AttendanceTablePage = ( ) => {
     .catch(err => console.log(err));
   }, [id]);
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
     const allDates = [];
@@ -362,81 +364,69 @@ const AttendanceTablePage = ( ) => {
       allDates.push(new Date(d));
     }
   
-    const fullData = allDates.map(date => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheetName = `${year}年${month}月`;
+    const worksheet = workbook.addWorksheet(worksheetName);
+  
+    // データの追加
+    worksheet.columns = [
+      { header: '日付', key: 'date', width: 15 },
+      { header: '曜日', key: 'day', width: 10 },
+      { header: '出勤時間', key: 'check_in', width: 10 },
+      { header: '特記', key: 'remarks1', width: 15 },
+      { header: '出勤備考', key: 'remarks2', width: 20 },
+      { header: '退勤時間', key: 'check_out', width: 10 },
+      { header: '特記', key: 'out_remarks1', width: 15 },
+      { header: '退勤備考', key: 'out_remarks2', width: 20 },
+      { header: '休憩時間', key: 'break_time', width: 10 },
+      { header: '勤務時間', key: 'work_hours', width: 10 }
+    ];
+  
+    allDates.forEach(date => {
       const record = attendanceData.find(record => new Date(record.date).toLocaleDateString('ja-JP') === date.toLocaleDateString('ja-JP'));
-      return {
-        '日付': date.toLocaleDateString('ja-JP').replace(/\//g, '/'),
-        '曜日': getDayOfWeek(date),
-        '出勤時間': record ? formatTime(record.check_in_time) : '',
-        '特記 (出勤)': record ? record.remarks1 : '',
-        '出勤備考': record ? record.remarks2 : '',
-        '退勤時間': record ? formatTime(record.check_out_time) : '',
-        '特記 (退勤)': record ? record.out_remarks1 : '',
-        '退勤備考': record ? record.out_remarks2 : '',
-        '休憩時間': record ? formatTime(record.break_time) : '',
-        '勤務時間': record ? formatTime(record.work_hours) : ''
-      };
+      worksheet.addRow({
+        date: date.toLocaleDateString('ja-JP').replace(/\//g, '/'),
+        day: getDayOfWeek(date),
+        check_in: record ? formatTime(record.check_in_time) : '',
+        remarks1: record ? record.remarks1 : '',
+        remarks2: record ? record.remarks2 : '',
+        check_out: record ? formatTime(record.check_out_time) : '',
+        out_remarks1: record ? record.out_remarks1 : '',
+        out_remarks2: record ? record.out_remarks2 : '',
+        break_time: record ? formatTime(record.break_time) : '',
+        work_hours: record ? formatTime(record.work_hours) : ''
+      });
     });
   
-    const ws = XLSX.utils.json_to_sheet(fullData);
+    // スタイルの適用
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+        if (rowNumber === 1) {
+          cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF266EBD' }
+          };
+          cell.alignment = { horizontal: 'center' };
+        }
+      });
+      row.height = 25;
+    });
   
-    const borderStyle = {
-      top: { style: "thin" },
-      bottom: { style: "thin" },
-      left: { style: "thin" },
-      right: { style: "thin" }
-    };
-  
-    // ヘッダー行のスタイルを定義
-    const headerStyle = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "4F81BD" } },
-      alignment: { horizontal: "center" },
-      border: borderStyle
-    };
-  
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const address = XLSX.utils.encode_col(C) + "1"; // 1行目（ヘッダー行）
-      if (!ws[address]) continue;
-      if (!ws[address].s) ws[address].s = {};
-      ws[address].s = headerStyle;
-    }
-  
-    // すべてのセルに罫線スタイルを適用
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws[cell_address]) continue;
-        if (!ws[cell_address].s) ws[cell_address].s = {};
-        ws[cell_address].s.border = borderStyle;
-      }
-    }
-  
-    // 列幅を設定
-    const colWidths = [
-      { wch: 15 }, // 日付
-      { wch: 10 }, // 曜日
-      { wch: 10 }, // 出勤時間
-      { wch: 15 }, // 特記
-      { wch: 20 }, // 出勤備考
-      { wch: 10 }, // 退勤時間
-      { wch: 15 }, // 特記
-      { wch: 20 }, // 退勤備考
-      { wch: 10 }, // 休憩時間
-      { wch: 10 }  // 勤務時間
-    ];
-    ws['!cols'] = colWidths;
-  
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, `${year}年${month}月`);
-  
-    XLSX.writeFile(wb, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
+    // バッファを生成してBlobとして保存
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
   };
   
-  
-  
-  
+
   return (
     <div id='table_flex'>
       <div id='table_box1'>
