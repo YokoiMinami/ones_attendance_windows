@@ -1,5 +1,7 @@
 import React, { Component, useState, useEffect } from 'react';
-import { BrowserRouter as Router, useNavigate } from 'react-router-dom';;
+import { BrowserRouter as Router } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 //import AccountsTable from './Tables/AccountsTable';
 //import AddEditModal from './Modals/AddEditModal';
 //import 'bootstrap/dist/css/bootstrap.min.css';
@@ -38,7 +40,7 @@ const Member = ( ) => {
     <div id='member_page'>
       <div id='member_top'>
         <div id='member_user_name_area'>
-          <p id='member_user_name'>{userData.fullname}</p>
+        <p id='member_user_name'>{userData ? userData.fullname : ''}</p>
         </div>
         <h1 id='member_h1'>メンバー管理</h1>
       </div>
