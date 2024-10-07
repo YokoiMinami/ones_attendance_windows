@@ -33,7 +33,7 @@ class MemberModal extends Component {
         onClick={this.toggle}
         >{label}
       </Button>
-      title = '追加';
+      title = '新規登録';
     }
 
     return (

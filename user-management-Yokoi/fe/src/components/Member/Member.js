@@ -127,6 +127,7 @@ const Member = ( ) => {
             ))}
           </tbody>
         </table>
+        <MemberTable items={items} updateState={updateState} deleteItemFromState={deleteItemFromState} />
         {/* <Container className="container">
             <Row className="row">
               <Col md={2} className="col" id='add_button_area'>
@@ -141,7 +142,7 @@ const Member = ( ) => {
                 }
               </Col>
               <Col md={10} className="col">
-              <MemberTable items={items} updateState={updateState} deleteItemFromState={deleteItemFromState} />
+              // <MemberTable items={items} updateState={updateState} deleteItemFromState={deleteItemFromState} />
               </Col>
             </Row>
             <Row className="row" id='accounto_link_area'>
