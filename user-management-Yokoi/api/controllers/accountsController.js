@@ -142,14 +142,14 @@ const attData = async (req, res, db) => {
     } else {
       // 出勤登録
       await db('attendance').insert({
-        accounts_id,
-        date,
-        check_in_time,
-        remarks1,
-        remarks2,
-        is_checked_in: true
-      });
-      res.status(200).send('出勤登録完了');
+      accounts_id,
+      date,
+      check_in_time,
+      remarks1,
+      remarks2,
+      is_checked_in: true
+    });
+    res.status(200).send('出勤登録完了');
     }
   } catch (error) {
     console.error('Error recording attendance:', error);
@@ -281,6 +281,30 @@ const projectUser = async (req, res, db) => {
   }
 }
 
+const newRemarks = async (req, res, db) => {
+  const { accounts_id, date, remarks1, remarks2, out_remarks1, out_remarks2 } = req.body;
+  const remarksUser = await db('attendance').where({ accounts_id, date }).first();
+  if(remarksUser){
+    await db('attendance').where({ accounts_id, date }).update({ remarks1, remarks2, out_remarks1, out_remarks2 })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    await db('attendance').insert({accounts_id, date, remarks1, remarks2, out_remarks1, out_remarks2})
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
+
 module.exports = {
   getData,
   postData,
@@ -295,6 +319,7 @@ module.exports = {
   overData,
   overUser,
   projectsData,
-  projectUser
+  projectUser,
+  newRemarks
 }
   

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link } from 'react-router-dom';
-// import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import Dropdown from './AttendancePull';
 
 const AttendanceTablePage = ( ) => {
   const id = localStorage.getItem('user');
@@ -23,12 +23,19 @@ const AttendanceTablePage = ( ) => {
   const [remainingTime, setRemainingTime] = useState('');
   const [userTotal, setUserTotal] = useState(0);
   const [isOvertime, setIsOvertime] = useState(false);
-
   const [projectsData, setProjectsData] = useState({});
   const [projects, setProjects] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
-
+  const [editingRemarks, setEditingRemarks] = useState({}); // 出勤特記の編集モードを管理するステート
+  const [editingRemarks2, setEditingRemarks2] = useState({}); //出勤備考の編集モードを管理するステート
+  const [editingOutRemarks, setEditingOutRemarks] = useState({}); // 退勤特記の編集モードを管理するステート
+  const [editingOutRemarks2, setEditingOutRemarks2] = useState({}); //退勤備考の編集モードを管理するステート
+  const [remarks1, setRemarks1] = useState(''); 
+  const [remarks2, setRemarks2] = useState(''); 
+  const [out_set_remarks1, setOutRemarks1] = useState(''); 
+  const [out_set_remarks2, setOutRemarks2] = useState(''); 
+  
   //ユーザー情報を取得
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
@@ -57,7 +64,7 @@ const AttendanceTablePage = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year,month]);
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]);
 
   //土日を判定
   const isWeekend = (date) => {
@@ -99,7 +106,6 @@ const AttendanceTablePage = ( ) => {
     const uniqueHolidays = holidays.filter(holiday => !weekends.some(weekend => weekend.getTime() === holiday.getTime()));
     const holidaysAndWeekends = [...weekends, ...uniqueHolidays].sort((a, b) => a - b);
 
-    // 全ての日数から土日祝日を引いた数をコンソールに表示
     const workingDaysCount = days.length - holidaysAndWeekends.length;
 
     // 土日祝日を引いた日数を状態に設定
@@ -107,7 +113,7 @@ const AttendanceTablePage = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year,month]); //monthが変更されるたびに実行する
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]); //monthが変更されるたびに実行する
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -126,7 +132,7 @@ const AttendanceTablePage = ( ) => {
       const recordDate = new Date(record.date).toLocaleDateString('en-CA');
       // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
       return recordDate === formattedDate;
-    });
+    })|| { date: formattedDate, remarks1: '' , remarks2: '' ,out_remarks1: '' }; // デフォルトの空の特記を返す;
   };
 
   // 時間をhh:mm形式でフォーマットする関数
@@ -143,6 +149,213 @@ const AttendanceTablePage = ( ) => {
     if (!remarks) return '-';
     return remarks.split('。').join('。<br />');
   };
+
+  //出勤特記の編集
+  const handleRemarksChange1 = async (date, newOption) => {
+    setRemarks1(newOption);
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      remarks1: newOption
+    };
+    try {
+      const response = await fetch('http://localhost:3000/remarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        // 編集モードを解除
+        setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
+        // 新しいデータを追加
+        setAttendanceData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, remarks1: newOption } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+        
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing = (date) => {
+    setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  //退勤特記の編集
+  const handleOutRemarksChange1 = async (date, newOption) => {
+    setOutRemarks1(newOption);
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      out_remarks1: newOption
+    };
+    try {
+      const response = await fetch('http://localhost:3000/remarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        // 編集モードを解除
+        setEditingOutRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
+        // 新しいデータを追加
+        setAttendanceData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, out_remarks1: newOption } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+        
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleOutEditing = (date) => {
+    setEditingOutRemarks(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  //出勤備考の編集
+  const handleRemarksChange2 = (newOption) => {
+    setRemarks2(newOption);
+  };
+  
+  const handleRemarksSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      remarks2: remarks2
+    };
+    try {
+      const response = await fetch('http://localhost:3000/remarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingRemarks2(remarks2);
+      console.log(remarks2);
+      if (response.ok) {
+        //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
+        setAttendanceData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, remarks2 } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+  
+  const toggleEditing2 = (date) => {
+    setEditingRemarks2(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (editingRemarks2 && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingRemarks2]);
+
+  //退勤備考の編集
+  const handleRemarksOutChange2 = (newOption) => {
+    console.log(newOption);
+    setOutRemarks2(newOption);
+  };
+  
+  const handleOutRemarksSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      out_remarks2: out_set_remarks2
+    };
+    try {
+      const response = await fetch('http://localhost:3000/remarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingOutRemarks2(out_set_remarks2);
+      console.log(out_set_remarks2);
+      if (response.ok) {
+        //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
+        setAttendanceData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, out_set_remarks2 } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+  
+  const toggleEditingOut2 = (date) => {
+    setEditingOutRemarks2(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef2 = useRef(null);
+
+  useEffect(() => {
+    if (editingOutRemarks2 && inputRef2.current) {
+      inputRef2.current.focus();
+    }
+  }, [editingOutRemarks2]);
+
+
 
   //通常勤怠情報の処理
   //ユーザーIDをもとに残業情報を取得、データがあればインプットにデフォルト表示
@@ -482,15 +695,15 @@ const holidays = getHolidaysInMonth(year, month);
           <form onSubmit={submitFormAdd}>
             <div id='projects_area'>
               <div>
-                <label>プロジェクト名 : </label>
+                <label className='pj_label'>プロジェクト : </label>
                 <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
               </div>
               <div>
-                <label>所属会社 : </label>
+                <label className='pj_label'>所属会社 : </label>
                 <input type='text' className='projects_input' value={company} onChange={(e) => setCompany(e.target.value)} />
               </div>
               <div>
-                <label>氏名 : </label>
+                <label className='pj_label'>氏名 : </label>
                 <input type='text' className='projects_input' value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div id='projects_bt'>
@@ -592,16 +805,73 @@ const holidays = getHolidaysInMonth(year, month);
               const record = findAttendanceRecord(date);
               const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
               const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
+              const isEditing = editingRemarks[date.toISOString()];
+              const isEditing2 = editingRemarks2[date.toISOString()];
+              const isEditingOut = editingOutRemarks[date.toISOString()];
+              const isEditingOut2 = editingOutRemarks2[date.toISOString()];
+              
               return (
                 <tr key={date.toISOString()} className={dayClass}>
                   <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
                   <td>{getDayOfWeek(date)}</td>
                   <td>{record ? formatTime(record.check_in_time) : '-'}</td>
-                  <td>{record ? record.remarks1 : '-'}</td>
-                  <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '-' }}></td>
+                  <td onClick={() => toggleEditing(date)}>
+                    {isEditing ? (
+                      <Dropdown
+                        value={record ? record.remarks1 : ''}
+                        onChange={(remarks1) => handleRemarksChange1(date, remarks1)}
+                      />
+                    ) : (
+                      record ? record.remarks1 : '-'
+                    )}
+                  </td>
+                  <td onClick={() => toggleEditing2(date)}>
+                    {isEditing2 ? (
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder=''
+                        className='remarks2-td'
+                        style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                        value={remarks2}
+                        onChange={(e) => handleRemarksChange2(e.target.value)}
+                        onClick={() => handleRemarksSave(date)}  
+                        onBlur={() => handleRemarksSave(date)}
+                      />
+                    ) : (
+                      record ? formatRemarks(record.remarks2) : '-'
+                    )}
+                  </td>
+                  {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '-' }}></td> */}
                   <td>{record ? formatTime(record.check_out_time) : '-'}</td>
-                  <td>{record ? record.out_remarks1 : '-'}</td>
-                  <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '-' }}></td>
+                  <td onClick={() => toggleOutEditing(date)}>
+                    {isEditingOut ? (
+                      <Dropdown
+                        value={record ? record.out_remarks1 : ''}
+                        onChange={(out_remarks1) => handleOutRemarksChange1(date, out_remarks1)}
+                      />
+                    ) : (
+                      record ? record.out_remarks1 : '-'
+                    )}
+                  </td>
+                  <td onClick={() => toggleEditingOut2(date)}>
+                    {isEditingOut2 ? (
+                      <input
+                        ref={inputRef2}
+                        type="text"
+                        placeholder=''
+                        className='remarks2-td'
+                        style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                        value={out_set_remarks2}
+                        onChange={(e) => handleRemarksOutChange2(e.target.value)}
+                        onClick={() => handleOutRemarksSave(date)}  
+                        onBlur={() => handleOutRemarksSave(date)}
+                      />
+                    ) : (
+                      record ? formatRemarks(record.out_remarks2) : '-'
+                    )}
+                  </td>
+                  {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '-' }}></td> */}
                   <td>{record ? formatTime(record.break_time) : '-'}</td>
                   <td>{record ? formatTime(record.work_hours) : '-'}</td>
                 </tr>

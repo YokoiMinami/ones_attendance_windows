@@ -30,7 +30,7 @@ const TopButton = () => {
   const navigate = useNavigate();
   
   const handleClick1 = () => {
-    navigate('/top');
+    navigate('/');
   };
 
   const handleClick2 = () => {
@@ -38,7 +38,7 @@ const TopButton = () => {
   };
 
   const handleClick3 = () => {
-    navigate('/account');
+    navigate('/member');
   };
 
   const handleLogout = () => {
