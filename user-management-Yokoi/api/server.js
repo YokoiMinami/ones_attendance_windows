@@ -63,6 +63,7 @@ app.post('/attendance', (req, res) => accountsController.attData(req, res, db));
 app.get('/attendance/status/:id', (req, res) => accountsController.attgetData(req, res, db));
 app.get('/attendance/checkin/:accounts_id/:date', (req, res) => accountsController.checkIn(req, res, db));
 app.get('/attendance/attendance/:accounts_id/:date', (req, res) => accountsController.dateData(req, res, db));
+app.get('/attendance/total_hours/:accounts_id/:year/:month', (req, res) => accountsController.getMonthlyTotalHours(req, res, db));
 app.get('/attendance/:accounts_id/:month', (req, res) => accountsController.monthData(req, res, db));
 app.post('/overtime', (req, res) => accountsController.overData(req, res, db));
 app.get('/overuser/:accounts_id', (req, res) => accountsController.overUser(req, res, db));

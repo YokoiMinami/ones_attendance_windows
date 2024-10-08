@@ -189,6 +189,7 @@ const checkIn = async (req, res, db) => {
   }
 }
 
+//メンバーの出勤、退勤時間を取得
 const dateData = async (req, res, db) => {
   const { accounts_id, date } = req.params;
   const numericAccountsId = parseInt(accounts_id, 10); // accounts_idを数値に変換
@@ -206,6 +207,24 @@ const dateData = async (req, res, db) => {
   }
 };
 
+//メンバーの月の総勤務時間を取得
+const getMonthlyTotalHours = async (req, res, db) => {
+  const { accounts_id, year, month } = req.params;
+  const numericAccountsId = parseInt(accounts_id, 10);
+  try {
+    const startDate = `${year}-${month}-01`;
+    const endDate = `${year}-${month}-31`;
+    const totalHours = await db('attendance')
+      .where({ accounts_id: numericAccountsId })
+      .andWhere('date', '>=', startDate)
+      .andWhere('date', '<=', endDate)
+      .sum('hours as total_hours');
+    res.json(totalHours.total_hours || 0);
+  } catch (error) {
+    console.error('Error fetching total hours:', error);
+    res.status(500).send('サーバーエラー');
+  }
+};
 
 
 const monthData = async (req, res, db) => {
@@ -336,6 +355,7 @@ module.exports = {
   checkIn,
   monthData,
   dateData,
+  getMonthlyTotalHours,
   overData,
   overUser,
   projectsData,

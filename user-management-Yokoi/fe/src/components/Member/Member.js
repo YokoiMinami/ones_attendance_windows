@@ -61,6 +61,7 @@ const Member = () => {
     return `${hours}:${minutes}`;
   };
 
+  //各メンバーの出勤、退勤時間を取得
   useEffect(() => {
     const fetchAttendanceData = async (accounts_id) => {
       try {
@@ -184,7 +185,7 @@ const Member = () => {
               <th id='kana_cl'>シメイ</th>
               <th id='in_cl'>出勤</th>
               <th id='out_cl'>退勤</th>
-              <th id='over_cl'>総残業時間</th>
+              <th id='over_cl'>総勤務時間</th>
               <th id='over_cl2'>予想残業時間</th>
               <th id='revision_cl'>勤怠修正</th>
             </tr>
