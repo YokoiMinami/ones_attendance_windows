@@ -189,7 +189,7 @@ const checkIn = async (req, res, db) => {
   }
 }
 
-//メンバーの出勤、退勤時間を取得
+// メンバーの出勤、退勤時間を取得
 const dateData = async (req, res, db) => {
   const { accounts_id, date } = req.params;
   const numericAccountsId = parseInt(accounts_id, 10); // accounts_idを数値に変換
@@ -207,24 +207,51 @@ const dateData = async (req, res, db) => {
   }
 };
 
-//メンバーの月の総勤務時間を取得
+// メンバーの月の総勤務時間を取得
 const getMonthlyTotalHours = async (req, res, db) => {
   const { accounts_id, year, month } = req.params;
   const numericAccountsId = parseInt(accounts_id, 10);
   try {
-    const startDate = `${year}-${month}-01`;
-    const endDate = `${year}-${month}-31`;
+    const yearStr = String(year);
+    const monthStr = String(month).padStart(2, '0');
+    const startDate = `${yearStr}-${monthStr}-01`;
+    const endDate = `${yearStr}-${monthStr}-${new Date(yearStr, monthStr, 0).getDate()}`;
+
+    console.log('numericAccountsId:', numericAccountsId);
+    console.log('startDate:', startDate);
+    console.log('endDate:', endDate);
+
     const totalHours = await db('attendance')
-      .where({ accounts_id: numericAccountsId })
+      .where('accounts_id', numericAccountsId)
       .andWhere('date', '>=', startDate)
       .andWhere('date', '<=', endDate)
-      .sum('hours as total_hours');
-    res.json(totalHours.total_hours || 0);
+      .andWhere('work_hours', '~', '^[0-9]+:[0-9]{2}$') // work_hoursが正しい形式か確認
+      .andWhere('work_hours', '>=', '0:00') // work_hoursが負の値でないことを確認
+      .WhereNotNull('check_out_time') // check_out_timeが空でないことを確認
+      .select(db.raw(`
+        SUM(
+          EXTRACT(EPOCH FROM time '00:00' + work_hours::interval) / 3600
+        ) as total_hours
+      `));
+
+    console.log('totalHours:', totalHours);
+
+    res.json({ total_hours: totalHours.total_hours || 0 });
   } catch (error) {
     console.error('Error fetching total hours:', error);
-    res.status(500).send('サーバーエラー');
+    res.status(500).json({ error: `サーバーエラー: ${error.message}` });
   }
 };
+
+
+
+
+
+
+
+
+
+
 
 
 const monthData = async (req, res, db) => {

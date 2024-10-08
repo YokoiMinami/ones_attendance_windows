@@ -4,6 +4,12 @@ import OnesLogo from '../../images/ones-logo.png';
 import MemberModal from './MemberModal';
 import MemberTable from './MemberTable';
 
+const ErrorMessage = ({ message }) => (
+  <div className="error-message">
+    {message}
+  </div>
+);
+
 const Member = () => {
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
@@ -13,6 +19,8 @@ const Member = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
   const [attendanceData, setAttendanceData] = useState({});
+  const [totalHours, setTotalHours] = useState({});
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
@@ -51,7 +59,6 @@ const Member = () => {
   const now = new Date();
   const year = now.getFullYear(); // 年を取得
   const month = now.getMonth() + 1; // 月を取得（0が1月なので+1します）
-  //const date = now.getDate(); // 日付を取得
   const date = now.toISOString().split('T');
 
   //出勤時間と退勤時間をフォーマット
@@ -62,22 +69,53 @@ const Member = () => {
   };
 
   //各メンバーの出勤、退勤時間を取得
-  const fetchAttendanceData = async (accounts_id) => {
-    try {
-      const response = await fetch(`http://localhost:3000/attendance/attendance/${accounts_id}/${date}`);
-      const data = await response.json();
-      setAttendanceData(prevData => ({
-        ...prevData,
-        [accounts_id]: data || [] // 空文字列の場合は空の配列を設定
-      }));
-    } catch (error) {
-      console.error('Error fetching attendance data:', error);
-    }
-  };
-  filteredItems.forEach(item => {
-    fetchAttendanceData(item.id);
-  });
+  useEffect(() => {
+    const fetchAttendanceData = async (accounts_id) => {
+      try {
+        const response = await fetch(`http://localhost:3000/attendance/attendance/${accounts_id}/${date}`);
+        const data = await response.json();
+        setAttendanceData(prevData => ({
+          ...prevData,
+          [accounts_id]: data || [] 
+        }));
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+      }
+    };
   
+    filteredItems.forEach(item => {
+      fetchAttendanceData(item.id);
+    });
+  }, [filteredItems]);
+
+  useEffect(() => {
+    const fetchTotalHours = async (accounts_id) => {
+      try {
+        const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${month}`);
+        const data = await response.json();
+        if (response.ok) {
+          setTotalHours(prevData => ({
+            ...prevData,
+            [accounts_id]: data.total_hours
+          }));
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching total hours:', error);
+        setError(error.message);
+      }
+    };
+
+    const fetchAllTotalHours = async () => {
+      for (const item of filteredItems) {
+        await fetchTotalHours(item.id);
+      }
+    };
+
+    fetchAllTotalHours();
+  }, [filteredItems, year, month]);
+
   const deleteItems = () => {
     if (selectedItems.length === 0) {
       alert('アカウントが選択されていません');
@@ -211,9 +249,15 @@ const Member = () => {
                     ? attendanceData[item.id].map(att => formatTime(att.check_out_time)).join(', ')
                     : ''}
                 </td>
-                <td>45:00</td>
-                <td>80:00</td>
-                <td>修正</td>
+                <td>
+                  {totalHours[item.id] !== undefined ? totalHours[item.id] : 'N/A'}
+                </td>
+                <td>
+                  {/* 予想残業時間の計算ロジックをここに追加 */}
+                </td>
+                <td>
+                  修正
+                </td>
               </tr>
             ))}
           </tbody>
