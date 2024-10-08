@@ -52,7 +52,7 @@ const Member = () => {
   const year = now.getFullYear(); // 年を取得
   const month = now.getMonth() + 1; // 月を取得（0が1月なので+1します）
   //const date = now.getDate(); // 日付を取得
-  const date = now.toISOString().split('T')[0];
+  const date = now.toISOString().split('T');
 
   //出勤時間と退勤時間をフォーマット
   const formatTime = (timeString) => {
@@ -210,9 +210,9 @@ const Member = () => {
                     : 'N/A'}
                 </td>
                 <td>
-                  {attendanceData[item.id] && Array.isArray(attendanceData[item.id])
+                  {attendanceData[item.id] && Array.isArray(attendanceData[item.id]) && attendanceData[item.id].some(att => att.check_out_time)
                     ? attendanceData[item.id].map(att => formatTime(att.check_out_time)).join(', ')
-                    : 'N/A'}
+                    : ''}
                 </td>
                 <td>45:00</td>
                 <td>80:00</td>
