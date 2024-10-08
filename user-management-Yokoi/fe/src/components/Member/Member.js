@@ -74,13 +74,11 @@ const Member = () => {
         console.error('Error fetching attendance data:', error);
       }
     };
-  
     filteredItems.forEach(item => {
       fetchAttendanceData(item.id);
     });
-  }, [filteredItems, date]);
+  }, []);
   
-
   const deleteItems = () => {
     if (selectedItems.length === 0) {
       alert('アカウントが選択されていません');
