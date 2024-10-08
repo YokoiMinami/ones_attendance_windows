@@ -743,16 +743,17 @@ html {
 
 .new_error2 {
   color: crimson;
+  height: 30px;
   /* margin-top: 5px; */
   margin-left: 30%;
 }
 
 #company_error2 {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 #team_error2 {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 
