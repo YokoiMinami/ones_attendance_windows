@@ -704,13 +704,15 @@ html {
   width: 10%;
 }
 
-#revision_cl {
+#over_cl2 {
   width: 10%;
 }
 
-#row_cl {
+#revision_cl {
   width: 7%;
 }
+
+
 
 /* メンバー新規登録 */
 .new_account_input2 {

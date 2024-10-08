@@ -189,6 +189,25 @@ const checkIn = async (req, res, db) => {
   }
 }
 
+const dateData = async (req, res, db) => {
+  const { accounts_id, date } = req.params;
+  const numericAccountsId = parseInt(accounts_id, 10); // accounts_idを数値に変換
+  console.log(`accounts_id: ${numericAccountsId}, date: ${date}`);
+  try {
+    const userAttendance = await db('attendance').where({ accounts_id: numericAccountsId, date });
+    if (userAttendance.length > 0) {
+      res.json(userAttendance);
+    } else {
+      res.json(''); // 出勤記録が見つからない場合、空文字列を返す
+    }
+  } catch (error) {
+    console.error('Error fetching attendance data:', error);
+    res.status(500).send('サーバーエラー');
+  }
+};
+
+
+
 const monthData = async (req, res, db) => {
   const { accounts_id, month } = req.params;
     db('attendance')
@@ -316,6 +335,7 @@ module.exports = {
   attgetData,
   checkIn,
   monthData,
+  dateData,
   overData,
   overUser,
   projectsData,

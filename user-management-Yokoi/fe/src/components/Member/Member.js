@@ -12,7 +12,8 @@ const Member = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
-
+  const [attendanceData, setAttendanceData] = useState({});
+  
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
       method: 'get',
@@ -45,6 +46,40 @@ const Member = () => {
       })
       .catch(err => console.log(err));
   };
+
+  const accounts_id = localStorage.getItem('user');
+  const now = new Date();
+  const year = now.getFullYear(); // 年を取得
+  const month = now.getMonth() + 1; // 月を取得（0が1月なので+1します）
+  //const date = now.getDate(); // 日付を取得
+  const date = now.toISOString().split('T')[0];
+
+  //出勤時間と退勤時間をフォーマット
+  const formatTime = (timeString) => {
+    if (!timeString) return 'N/A';
+    const [hours, minutes] = timeString.split(':');
+    return `${hours}:${minutes}`;
+  };
+
+  useEffect(() => {
+    const fetchAttendanceData = async (accounts_id) => {
+      try {
+        const response = await fetch(`http://localhost:3000/attendance/attendance/${accounts_id}/${date}`);
+        const data = await response.json();
+        setAttendanceData(prevData => ({
+          ...prevData,
+          [accounts_id]: data || [] // 空文字列の場合は空の配列を設定
+        }));
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+      }
+    };
+  
+    filteredItems.forEach(item => {
+      fetchAttendanceData(item.id);
+    });
+  }, [filteredItems, date]);
+  
 
   const deleteItems = () => {
     if (selectedItems.length === 0) {
@@ -112,7 +147,7 @@ const Member = () => {
   useEffect(() => {
     getItems();
   }, []);
-
+  
   return (
     <div id='member_page'>
       <div id='member_top'>
@@ -146,13 +181,14 @@ const Member = () => {
             <tr>
               <th id='check_cl'></th>
               <th id='no_cl'>No.</th>
+              <th>id</th>
               <th id='name_cl'>氏名</th>
               <th id='kana_cl'>シメイ</th>
               <th id='in_cl'>出勤</th>
               <th id='out_cl'>退勤</th>
               <th id='over_cl'>総残業時間</th>
+              <th id='over_cl2'>予想残業時間</th>
               <th id='revision_cl'>勤怠修正</th>
-              <th id='row_cl'>並び順▼</th>
             </tr>
           </thead>
           <tbody>
@@ -165,13 +201,22 @@ const Member = () => {
                   />
                 </td>
                 <td>{index + 1}</td>
+                <td>{item.id}</td>
                 <td>{item.fullname}</td>
                 <td>{item.kananame}</td>
-                <td>09:00</td>
-                <td>18:00</td>
+                <td>
+                  {attendanceData[item.id] && Array.isArray(attendanceData[item.id])
+                    ? attendanceData[item.id].map(att => formatTime(att.check_in_time)).join(', ')
+                    : 'N/A'}
+                </td>
+                <td>
+                  {attendanceData[item.id] && Array.isArray(attendanceData[item.id])
+                    ? attendanceData[item.id].map(att => formatTime(att.check_out_time)).join(', ')
+                    : 'N/A'}
+                </td>
                 <td>45:00</td>
+                <td>80:00</td>
                 <td>修正</td>
-                <td></td>
               </tr>
             ))}
           </tbody>
