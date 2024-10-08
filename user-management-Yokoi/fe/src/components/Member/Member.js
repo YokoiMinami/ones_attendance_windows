@@ -62,23 +62,21 @@ const Member = () => {
   };
 
   //各メンバーの出勤、退勤時間を取得
-  useEffect(() => {
-    const fetchAttendanceData = async (accounts_id) => {
-      try {
-        const response = await fetch(`http://localhost:3000/attendance/attendance/${accounts_id}/${date}`);
-        const data = await response.json();
-        setAttendanceData(prevData => ({
-          ...prevData,
-          [accounts_id]: data || [] // 空文字列の場合は空の配列を設定
-        }));
-      } catch (error) {
-        console.error('Error fetching attendance data:', error);
-      }
-    };
-    filteredItems.forEach(item => {
-      fetchAttendanceData(item.id);
-    });
-  }, []);
+  const fetchAttendanceData = async (accounts_id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/attendance/attendance/${accounts_id}/${date}`);
+      const data = await response.json();
+      setAttendanceData(prevData => ({
+        ...prevData,
+        [accounts_id]: data || [] // 空文字列の場合は空の配列を設定
+      }));
+    } catch (error) {
+      console.error('Error fetching attendance data:', error);
+    }
+  };
+  filteredItems.forEach(item => {
+    fetchAttendanceData(item.id);
+  });
   
   const deleteItems = () => {
     if (selectedItems.length === 0) {
