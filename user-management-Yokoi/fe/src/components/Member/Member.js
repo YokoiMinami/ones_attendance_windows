@@ -114,7 +114,7 @@ const Member = () => {
     };
 
     fetchAllTotalHours();
-  }, [filteredItems, year, month]);
+  }, [filteredItems]);
 
   const deleteItems = () => {
     if (selectedItems.length === 0) {

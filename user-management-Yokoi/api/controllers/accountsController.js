@@ -225,12 +225,11 @@ const getMonthlyTotalHours = async (req, res, db) => {
       .where('accounts_id', numericAccountsId)
       .andWhere('date', '>=', startDate)
       .andWhere('date', '<=', endDate)
-      .andWhere('work_hours', '~', '^[0-9]+:[0-9]{2}$') // work_hoursが正しい形式か確認
-      .andWhere('work_hours', '>=', '0:00') // work_hoursが負の値でないことを確認
-      .WhereNotNull('check_out_time') // check_out_timeが空でないことを確認
+      .whereNotNull('check_in_time')
+      .whereNotNull('check_out_time') // check_out_timeが空でないことを確認
       .select(db.raw(`
         SUM(
-          EXTRACT(EPOCH FROM time '00:00' + work_hours::interval) / 3600
+          EXTRACT(EPOCH FROM work_hours) / 3600
         ) as total_hours
       `));
 
