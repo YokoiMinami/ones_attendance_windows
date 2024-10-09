@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import OnesLogo from '../../images/ones-logo.png';
 import MemberModal from './MemberModal';
 import MemberTable from './MemberTable';
+
+
 
 const ErrorMessage = ({ message }) => (
   <div className="error-message">
@@ -238,7 +240,7 @@ const Member = () => {
                 </td>
                 <td>{index + 1}</td>
                 <td>{item.id}</td>
-                <td>{item.fullname}</td>
+                <td><Link to={`/user/${item.id}`}>{item.fullname}</Link></td>
                 <td>{item.kananame}</td>
                 <td>
                   {attendanceData[item.id] && Array.isArray(attendanceData[item.id])

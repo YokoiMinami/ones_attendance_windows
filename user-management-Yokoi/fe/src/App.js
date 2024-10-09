@@ -10,6 +10,7 @@ import AttendanceTablePage from './components/Attendance/AttendanceTable';
 import NewAccountPage from './components/NewAccount/NewAccountPage';
 import NewAccountAfter from './components/NewAccount/NewAccountAfter';
 import Member from './components/Member/Member';
+import MemberData from './components/Member/MemberData';
 
 const AppContent = () => {
   
@@ -23,6 +24,7 @@ const AppContent = () => {
         <Route path="/new_account" element={<NewAccountPage />} />
         <Route path="/new_account_after/:id" element={<NewAccountAfter />} />
         <Route path="/member" element={<Member />} />
+        <Route path="/user/:id" element={<MemberData />} />
       </Routes>
     </>
   );
