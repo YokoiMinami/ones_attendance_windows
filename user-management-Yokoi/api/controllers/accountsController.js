@@ -130,7 +130,7 @@ const attData = async (req, res, db) => {
           .update({
             check_out_time,
             break_time,
-            work_hours,
+            work_hours: db.raw(`INTERVAL '${work_hours}'`), // INTERVAL 型に変換
             out_remarks1,
             out_remarks2,
             // is_checked_in: false
@@ -142,20 +142,21 @@ const attData = async (req, res, db) => {
     } else {
       // 出勤登録
       await db('attendance').insert({
-      accounts_id,
-      date,
-      check_in_time,
-      remarks1,
-      remarks2,
-      is_checked_in: true
-    });
-    res.status(200).send('出勤登録完了');
+        accounts_id,
+        date,
+        check_in_time,
+        remarks1,
+        remarks2,
+        is_checked_in: true
+      });
+      res.status(200).send('出勤登録完了');
     }
   } catch (error) {
     console.error('Error recording attendance:', error);
     res.status(500).send('サーバーエラー');
   }
-}
+};
+
 
 const attgetData = async (req, res, db) => {
   const { id } = req.params;
@@ -207,7 +208,43 @@ const dateData = async (req, res, db) => {
   }
 };
 
-// メンバーの月の総勤務時間を取得
+// メンバーの月の総勤務時間を取得0.25
+// const getMonthlyTotalHours = async (req, res, db) => {
+//   const { accounts_id, year, month } = req.params;
+//   const numericAccountsId = parseInt(accounts_id, 10);
+//   try {
+//     const yearStr = String(year);
+//     const monthStr = String(month).padStart(2, '0');
+//     const startDate = `${yearStr}-${monthStr}-01`;
+//     const endDate = `${yearStr}-${monthStr}-${new Date(yearStr, monthStr, 0).getDate()}`;
+
+//     console.log('numericAccountsId:', numericAccountsId);
+//     console.log('startDate:', startDate);
+//     console.log('endDate:', endDate);
+
+//     const totalHours = await db('attendance')
+//       .where('accounts_id', numericAccountsId)
+//       .andWhere('date', '>=', startDate)
+//       .andWhere('date', '<=', endDate)
+//       .whereNotNull('check_in_time')
+//       .whereNotNull('check_out_time') // check_out_timeが空でないことを確認
+//       .select(db.raw(`
+//         SUM(
+//           EXTRACT(EPOCH FROM work_hours) / 3600
+//         ) as total_hours
+//       `));
+
+//     console.log('totalHours:', totalHours);
+
+//     res.json({ total_hours: totalHours.total_hours || 0 });
+//   } catch (error) {
+//     console.error('Error fetching total hours:', error);
+//     res.status(500).json({ error: `サーバーエラー: ${error.message}` });
+//   }
+// };
+
+
+
 const getMonthlyTotalHours = async (req, res, db) => {
   const { accounts_id, year, month } = req.params;
   const numericAccountsId = parseInt(accounts_id, 10);
@@ -226,7 +263,7 @@ const getMonthlyTotalHours = async (req, res, db) => {
       .andWhere('date', '>=', startDate)
       .andWhere('date', '<=', endDate)
       .whereNotNull('check_in_time')
-      .whereNotNull('check_out_time') // check_out_timeが空でないことを確認
+      .whereNotNull('check_out_time')
       .select(db.raw(`
         SUM(
           EXTRACT(EPOCH FROM work_hours) / 3600
@@ -235,12 +272,62 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     console.log('totalHours:', totalHours);
 
-    res.json({ total_hours: totalHours.total_hours || 0 });
+     // total_hoursの値をフォーマット
+    const formattedTotalHours = totalHours.map(item => ({
+      total_hours: parseFloat(item.total_hours).toFixed(2)
+    }));
+
+    console.log('formattedTotalHours:', formattedTotalHours);
+    // 配列の最初の要素をオブジェクトに変換
+    const result = formattedTotalHours.reduce((acc, current) => {
+      acc.total_hours = current.total_hours;
+      return acc;
+    }, {});
+  
+    console.log(result);
+
+    // total_hoursプロパティの値を抽出
+    const totalTime = result.total_hours;
+
+    console.log(totalTime); // '0.75'
+
+    // 時間部分を取得
+const hours = Math.floor(totalTime);
+
+// 分部分を取得
+const minutes = Math.round((totalTime - hours) * 60);
+
+// 2桁の形式に変換
+const formattedHours = String(hours).padStart(2, '0');
+const formattedMinutes = String(minutes).padStart(2, '0');
+
+// フォーマットされた時間
+const formattedTime = `${formattedHours}:${formattedMinutes}`;
+
+console.log(formattedTime); // "00:45"
+
+    res.json(formattedTime);
   } catch (error) {
     console.error('Error fetching total hours:', error);
     res.status(500).json({ error: `サーバーエラー: ${error.message}` });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

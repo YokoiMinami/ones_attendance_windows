@@ -93,10 +93,11 @@ const Member = () => {
       try {
         const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${month}`);
         const data = await response.json();
+        console.log(data);
         if (response.ok) {
           setTotalHours(prevData => ({
             ...prevData,
-            [accounts_id]: data.total_hours
+            [accounts_id]: data
           }));
         } else {
           throw new Error(data.error);
