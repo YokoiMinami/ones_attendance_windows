@@ -4,14 +4,6 @@ import OnesLogo from '../../images/ones-logo.png';
 import MemberModal from './MemberModal';
 import MemberTable from './MemberTable';
 
-
-
-const ErrorMessage = ({ message }) => (
-  <div className="error-message">
-    {message}
-  </div>
-);
-
 const Member = () => {
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
@@ -240,7 +232,7 @@ const Member = () => {
                 </td>
                 <td>{index + 1}</td>
                 <td>{item.id}</td>
-                <td><Link to={`/user/${item.id}`}>{item.fullname}</Link></td>
+                <td><Link to={`/user/${item.id}`} className='member_link'>{item.fullname}</Link></td>
                 <td>{item.kananame}</td>
                 <td>
                   {attendanceData[item.id] && Array.isArray(attendanceData[item.id])

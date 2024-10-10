@@ -712,6 +712,12 @@ html {
   width: 7%;
 }
 
+.member_link {
+  color: inherit; /* 親要素の色を継承 */
+  /* text-decoration: none;  */
+}
+
+
 
 
 /* メンバー新規登録 */
@@ -757,6 +763,22 @@ html {
 #team_error2 {
   margin-top: 14px;
 }
+
+/* メンバー詳細ページ */
+
+#member_data_page {
+  background-color: #eeeeee;
+  margin-top: 50px;
+  font-family: "Yu Gothic Medium","遊ゴシック Medium",YuGothic,"遊ゴシック体","ヒラギノ角ゴ Pro W3",sans-serif;
+  color: #808080;
+  padding: 0;
+  text-align: center;
+  align-items: center;
+  width: 100%;
+}
+
+
+
 
 
 
