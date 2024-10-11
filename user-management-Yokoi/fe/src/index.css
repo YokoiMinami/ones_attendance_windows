@@ -717,7 +717,10 @@ html {
   /* text-decoration: none;  */
 }
 
-
+#member_page_logo{
+  width: 100%;
+  text-align: center;
+}
 
 
 /* メンバー新規登録 */
@@ -765,8 +768,8 @@ html {
 }
 
 /* メンバー詳細ページ */
-
 #member_data_page {
+  width: 100%;
   background-color: #eeeeee;
   margin-top: 50px;
   font-family: "Yu Gothic Medium","遊ゴシック Medium",YuGothic,"遊ゴシック体","ヒラギノ角ゴ Pro W3",sans-serif;
@@ -777,75 +780,72 @@ html {
   width: 100%;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.container {
-  width: 100%;
-  padding: 0; /* コンテナのパディングを削除 */
-  margin: 0; /* コンテナのマージンを削除 *
+#member_data_h1 {
+  margin-top: 100px;
 }
 
-.row {
-  margin: 0; /* 行のマージンを削除 */
+#member_data_table {
+  margin: auto;
+  width: 60%;
+  border: 1px solid #808080;
+  background-color: white;
 }
 
-.col {
-  /* width: 100%; */
-  padding: 0; /* 列のパディングを削除 */
+#member_data_table td {
+  padding: 5px;
+  border: 1px solid #808080;
+  word-wrap: break-word; /* 行を折り返す */
+  white-space: normal; /* 通常の空白処理 */
+  height: 50px;
 }
 
-
-
-.ac_1 {
-  width: 10%;
-}
-
-.ac_2 {
-  width: 20%;
-}
-
-.ac_3 {
+#member_data_table th {
+  background-color: #266ebd;
+  color: white;
+  padding: 5px;
+  border: 1px solid #808080;
   width: 30%;
+  height: 50px;
 }
 
-.ac_4 {
-  width: 15%;
-}
-
-.ac_5 {
-  width: 10%;
-}
-
-.ac_6 {
-  width: 15%;
+#member_data_page_logo {
+  width: 100%;
+  text-align: left;
 }
 
 
 
-#account_button_area {
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* #account_top_link {
+  color: inherit;
+} */
+
+/* #accounto_link_area {
+  margin-top: 50px;
+  text-align: left;
+}
+ */
+
+/* #account_button_area {
   display: flex;
   justify-content: space-between;
   padding-left: 10%;
   padding-right: 10%;
-}
+} */
 
-
-.custom-csv-link {
+/* .custom-csv-link {
   background-color: #266ebd;
   color: white;
   font-size: large;
@@ -856,20 +856,13 @@ html {
   font-family: "Yu Gothic Medium","遊ゴシック Medium",YuGothic,"遊ゴシック体","ヒラギノ角ゴ Pro W3",sans-serif;
   text-decoration: none;
   margin-right: 40px;
-}
+} */
 
-.custom-csv-link:hover {
+/* .custom-csv-link:hover {
   background-color: #023e8a;
-}
+} */
 
-#account_top_link {
-  color: inherit;
-}
 
-#accounto_link_area {
-  margin-top: 50px;
-  text-align: left;
-}
 
 
 

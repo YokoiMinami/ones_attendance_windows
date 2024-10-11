@@ -17,6 +17,9 @@ const MemberData = () => {
       .then(data => {
         if (data) {
           setItems(data);
+          if (data.authority === true) {
+            setAuthorityData(true);
+          }
         } else {
           console.error('Expected an array but got:', data);
         }
@@ -46,9 +49,8 @@ const MemberData = () => {
 
   return (
     <div id='member_data_page'>
-      <h2>User ID: {id}</h2>
-      <button id='member_edit_button' onClick={() => updateState(selectedItems)}>編集</button>
-      <MemberTable items={items} updateState={updateState} deleteItemFromState={deleteItemFromState} />
+      <h1 id='member_data_h1'>メンバー詳細</h1>
+      <MemberTable items={items} updateState={updateState} deleteItemFromState={deleteItemFromState} authorityData={authorityData} />
       {/* ここにユーザーの詳細情報を表示するロジックを追加できます */}
     </div>
   );

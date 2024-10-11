@@ -257,9 +257,10 @@ const Member = () => {
             ))}
           </tbody>
         </table>
-        <MemberTable items={filteredItems} updateState={updateState} deleteItemFromState={deleteItemFromState} />
       </div>
+      <div id='member_page_logo'>
       <img src={OnesLogo} alt="Ones" />
+      </div>
     </div>
   );
 };
