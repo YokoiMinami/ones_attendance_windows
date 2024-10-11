@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from 'reactstrap';
+import { Link } from 'react-router-dom';
 import MemberModal from './MemberModal';
 import OnesLogo from '../../images/ones-logo.png';
 
@@ -68,6 +69,9 @@ const MemberTable = (props) => {
     </div>
     <div id='member_data_page_logo'>
       <img src={OnesLogo} alt="Ones" />
+    </div>
+    <div id='member_data_link_area'>
+        <Link to="/" id='member_data_link'>← 勤怠一覧ページ</Link>
     </div>
   </div>
 

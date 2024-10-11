@@ -810,7 +810,17 @@ html {
 
 #member_data_page_logo {
   width: 100%;
+  text-align: center;
+}
+
+#member_data_link_area {
+  width: 100%;
   text-align: left;
+  margin-left: 30px;
+}
+
+#member_data_link {
+  color: inherit;
 }
 
 
@@ -828,9 +838,13 @@ html {
 
 
 
-/* #account_top_link {
-  color: inherit;
-} */
+
+
+
+
+
+
+
 
 /* #accounto_link_area {
   margin-top: 50px;

@@ -157,23 +157,6 @@ const Member = () => {
     setFilteredItems(prevItems => [...prevItems, item]);
   };
 
-  const updateState = (item) => {
-    const itemIndex = items.findIndex(data => data.id === item.id);
-    const newArray = [
-      ...items.slice(0, itemIndex),
-      item,
-      ...items.slice(itemIndex + 1)
-    ];
-    setItems(newArray);
-    setFilteredItems(newArray);
-  };
-
-  const deleteItemFromState = (id) => {
-    const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
-    setFilteredItems(updatedItems);
-  };
-
   useEffect(() => {
     getItems();
   }, []);
@@ -257,6 +240,9 @@ const Member = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div id='attendance_link_area'>
+        <Link to="/" id='account_top_link'>← 勤怠一覧ページ</Link>
       </div>
       <div id='member_page_logo'>
       <img src={OnesLogo} alt="Ones" />
