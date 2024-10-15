@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import MemberModal from './MemberModal';
 import MemberTable from './MemberTable';
+import MemberForm from './MemberForm';
+import OnesLogo from '../../images/ones-logo.png';
 
 const MemberData = () => {
   const [userData, setUserData] = useState(null);
   const [authorityData, setAuthorityData] = useState(false);
-  const [items, setItems] = useState(null);
-  const [selectedItems, setSelectedItems] = useState([]);
-
+  const [items, setItems] = useState({});
   const { id } = useParams();
 
   const getItems = () => {
@@ -26,21 +26,17 @@ const MemberData = () => {
       })
       .catch(err => console.log(err));
   };
-  
 
   const updateState = (item) => {
-    const itemIndex = items.findIndex(data => data.id === item.id);
-    const newArray = [
-      ...items.slice(0, itemIndex),
-      item,
-      ...items.slice(itemIndex + 1)
-    ];
-    setItems(newArray);
+    setItems({
+      ...items,
+      [item.id]: item
+    });
   };
 
   const deleteItemFromState = (id) => {
-    const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
+    const { [id]: _, ...newItems } = items;
+    setItems(newItems);
   };
 
   useEffect(() => {
@@ -50,8 +46,15 @@ const MemberData = () => {
   return (
     <div id='member_data_page'>
       <h1 id='member_data_h1'>メンバー詳細</h1>
-      <MemberTable items={items} updateState={updateState} deleteItemFromState={deleteItemFromState} authorityData={authorityData} />
-      {/* ここにユーザーの詳細情報を表示するロジックを追加できます */}
+      <div id='member_data_table_area'>
+        <MemberTable items={items} updateState={updateState} deleteItemFromState={deleteItemFromState} authorityData={authorityData} />
+      </div>
+      <div id='member_data_page_logo'>
+        <img src={OnesLogo} alt="Ones" />
+      </div>
+    <div id='member_data_link_area'>
+        <Link to="/member" id='member_data_link'>← メンバー管理ページ</Link>
+    </div>
     </div>
   );
 };

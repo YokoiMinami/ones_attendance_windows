@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import OnesLogo from '../../images/ones-logo.png';
 import MemberModal from './MemberModal';
-import MemberTable from './MemberTable';
 
 const Member = () => {
   const id = localStorage.getItem('user');
@@ -33,12 +32,6 @@ const Member = () => {
       .catch(err => console.log(err));
   }, [id]);
 
-  const navigate = useNavigate();
-
-  const handleClick1 = () => {
-    navigate('/new_account');
-  };
-
   const getItems = () => {
     fetch('http://localhost:3000/get')
       .then(response => response.json())
@@ -49,7 +42,6 @@ const Member = () => {
       .catch(err => console.log(err));
   };
 
-  const accounts_id = localStorage.getItem('user');
   const now = new Date();
   const year = now.getFullYear(); // 年を取得
   const month = now.getMonth() + 1; // 月を取得（0が1月なので+1します）
@@ -57,7 +49,7 @@ const Member = () => {
 
   //出勤時間と退勤時間をフォーマット
   const formatTime = (timeString) => {
-    if (!timeString) return 'N/A';
+    if (!timeString) return '';
     const [hours, minutes] = timeString.split(':');
     return `${hours}:${minutes}`;
   };
@@ -116,7 +108,7 @@ const Member = () => {
       alert('アカウントが選択されていません');
       return;
     }
-    let confirmDelete = window.confirm('削除しますか？');
+    let confirmDelete = window.confirm('チェックしたメンバーを削除しますか？');
     if (confirmDelete) {
       selectedItems.forEach(itemId => {
         fetch('http://localhost:3000/delete', {
@@ -194,7 +186,6 @@ const Member = () => {
             <tr>
               <th id='check_cl'></th>
               <th id='no_cl'>No.</th>
-              <th>id</th>
               <th id='name_cl'>氏名</th>
               <th id='kana_cl'>シメイ</th>
               <th id='in_cl'>出勤</th>
@@ -214,13 +205,12 @@ const Member = () => {
                   />
                 </td>
                 <td>{index + 1}</td>
-                <td>{item.id}</td>
                 <td><Link to={`/user/${item.id}`} className='member_link'>{item.fullname}</Link></td>
                 <td>{item.kananame}</td>
                 <td>
                   {attendanceData[item.id] && Array.isArray(attendanceData[item.id])
                     ? attendanceData[item.id].map(att => formatTime(att.check_in_time)).join(', ')
-                    : 'N/A'}
+                    : ''}
                 </td>
                 <td>
                   {attendanceData[item.id] && Array.isArray(attendanceData[item.id]) && attendanceData[item.id].some(att => att.check_out_time)
@@ -228,21 +218,19 @@ const Member = () => {
                     : ''}
                 </td>
                 <td>
-                  {totalHours[item.id] !== undefined ? totalHours[item.id] : 'N/A'}
+                  {totalHours[item.id] !== undefined ? totalHours[item.id] : ''}
                 </td>
                 <td>
                   {/* 予想残業時間の計算ロジックをここに追加 */}
                 </td>
-                <td>
-                  修正
-                </td>
+                <td><Link to={`/attendance/${item.id}`} className='member_link'>修正</Link></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div id='attendance_link_area'>
-        <Link to="/" id='account_top_link'>← 勤怠一覧ページ</Link>
+      <div id='member_link_area'>
+        <Link to="/" id='member_link'>← トップページ</Link>
       </div>
       <div id='member_page_logo'>
       <img src={OnesLogo} alt="Ones" />

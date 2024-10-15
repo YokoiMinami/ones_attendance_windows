@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useParams } from 'react-router-dom';
 import { TextField, Autocomplete } from '@mui/material';
 
 const options = [
@@ -33,6 +33,8 @@ const teamOptions = [
 ];
 
 const MemberForm = (props) => {
+  const { id } = useParams();
+
   const [state, setState] = useState({
     id: 0,
     company: '',
@@ -121,35 +123,46 @@ const MemberForm = (props) => {
       .catch(err => console.log(err));
   };
 
-  const submitFormEdit = (e) => {
+  const submitFormEdit = async (e) => {
     e.preventDefault();
-    fetch('http://localhost:3000/put', {
-      method: 'put',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        // id: state.id,
-        company: companyState.company,
-        fullname: state.fullname,
-        kananame: state.kananame,
-        email: state.email,
-        team: teamState.team,
-        password: state.password,
-        authority: state.authority
-      })
-    })
-      .then(response => response.json())
-      .then(item => {
-        if (Array.isArray(item)) {
-          props.updateState(item);
-          props.toggle();
-        } else {
-          console.log('failure');
-        }
-      })
-      .catch(err => console.log(err));
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
+  
+    try {
+      const response = await fetch('http://localhost:3000/put', {
+        method: 'put',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: state.id,
+          company: companyState.company,
+          fullname: state.fullname,
+          kananame: state.kananame,
+          email: state.email,
+          team: teamState.team,
+          password: state.password,
+          authority: state.authority
+        })
+      });
+      
+      const item = await response.json();
+      
+      if (item) {
+        props.updateState(item);
+        props.toggle();
+        window.location.reload();
+      } else {
+        console.log('failure');
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
+  
 
   return (
     <Form onSubmit={props.item ? submitFormEdit : submitFormAdd}>
@@ -230,7 +243,7 @@ const MemberForm = (props) => {
         </FormGroup>
         <FormGroup>
           <label htmlFor="password" className='new_account_label2'>パスワード</label>
-          <input type="text" name="password" id="password" className='new_account_input2' onChange={onChange} value={state.password || ''} />
+          <input type="text" name="password" id="password" className='new_account_input2' onChange={onChange} />
           <div className='new_error2' id='pass_error2'>
           {errors.password && <p className="error">{errors.password}</p>}
           </div>

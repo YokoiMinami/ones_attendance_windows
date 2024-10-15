@@ -1,15 +1,17 @@
 import React, { useEffect, useState,useRef } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import Dropdown from './AttendancePull';
+import Dropdown from '../Attendance/AttendancePull';
+import TimeInput from './TimeInput';
 
-const AttendanceTablePage = ( ) => {
-  
-  const id = localStorage.getItem('user');
-  const [userData, setUserData] = useState(null);
-  const [attendanceData, setAttendanceData] = useState([]);
+const MemberAttendanceTable = ( ) => {
+
+  const { id } = useParams(); //メンバーIDを取得
+  const [userData, setUserData] = useState(null); //メンバー情報を取得
+  const [attendanceData, setAttendanceData] = useState([]); //メンバーの勤務データをテーブル用で取得
+  const [userWorkHours, setUserWorkHours] = useState(0); //メンバーの勤務データを取得
   const [overData, setOverData] = useState({});
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [startTime, setStartTime] = useState('09:00');
@@ -20,7 +22,6 @@ const AttendanceTablePage = ( ) => {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0);
   const [provisions, setProvisions] = useState(0);
-  const [userWorkHours, setUserWorkHours] = useState(0);
   const [remainingTime, setRemainingTime] = useState('');
   const [userTotal, setUserTotal] = useState(0);
   const [isOvertime, setIsOvertime] = useState(false);
@@ -32,11 +33,19 @@ const AttendanceTablePage = ( ) => {
   const [editingRemarks2, setEditingRemarks2] = useState({}); //出勤備考の編集モードを管理するステート
   const [editingOutRemarks, setEditingOutRemarks] = useState({}); // 退勤特記の編集モードを管理するステート
   const [editingOutRemarks2, setEditingOutRemarks2] = useState({}); //退勤備考の編集モードを管理するステート
-  const [remarks1, setRemarks1] = useState(''); 
-  const [remarks2, setRemarks2] = useState(''); 
-  const [out_set_remarks1, setOutRemarks1] = useState(''); 
-  const [out_set_remarks2, setOutRemarks2] = useState(''); 
-  
+  const [editingCheckIn, setEditingCheckIn] = useState({}); //出勤時間の編集モードを管理するステート
+  const [editingCheckOut, setEditingCheckOut] = useState({}); //退勤時間の編集モードを管理するステート
+  const [editingBreak, setEditingBreak] = useState({}); //休憩時間の編集モードを管理するステート
+  const [editingWorkHours, setEditingWorkHours] = useState({}); //勤務時間の編集モードを管理するステート
+  const [remarks1, setRemarks1] = useState('');  //出勤特記の編集を保存
+  const [remarks2, setRemarks2] = useState('');  //出勤備考の編集を保存
+  const [out_set_remarks1, setOutRemarks1] = useState('');  //退勤特記の編集を保存
+  const [out_set_remarks2, setOutRemarks2] = useState('');  //出勤備考の編集を保存
+  const [checkIn, setCheckIn] = useState('');  //出勤時間の編集を保存
+  const [checkOut, setCheckOut] = useState('');  //退勤時間の編集を保存
+  const [breakTimeEdit, setBreakTimeEdit] = useState('');  //休憩時間の編集を保存
+  const [workHoursEdit, setWorkHoursEdit] = useState('');  //出勤時間の編集を保存
+
   //ユーザー情報を取得
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
@@ -53,7 +62,7 @@ const AttendanceTablePage = ( ) => {
   //ユーザーの勤怠情報を取得
   useEffect(() => {
     const fetchAttendance = async () => {
-      const accounts_id = localStorage.getItem('user');
+      const accounts_id = id
       try {
         const response = await fetch(`http://localhost:3000/attendance/${accounts_id}/${month}`);
         const data = await response.json();
@@ -65,7 +74,7 @@ const AttendanceTablePage = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]);
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn]);
 
   //土日を判定
   const isWeekend = (date) => {
@@ -114,7 +123,7 @@ const AttendanceTablePage = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]); //monthが変更されるたびに実行する
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn]); //monthが変更されるたびに実行する
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -133,7 +142,7 @@ const AttendanceTablePage = ( ) => {
       const recordDate = new Date(record.date).toLocaleDateString('en-CA');
       // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
       return recordDate === formattedDate;
-    })|| { date: formattedDate, remarks1: '' , remarks2: '' ,out_remarks1: '' }; // デフォルトの空の特記を返す;
+    })|| { date: formattedDate, remarks1: '' , remarks2: '' , out_remarks1: '', checkIn:''}; // デフォルトの空の特記を返す;
   };
 
   // 時間をhh:mm形式でフォーマットする関数
@@ -151,10 +160,87 @@ const AttendanceTablePage = ( ) => {
     return remarks.split('。').join('。<br />');
   };
 
+  //出勤時間の編集
+  const handleCheckInChange = async (date, newOption) => {
+    setCheckIn(newOption);
+    const accounts_id = id;
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      check_in_time: newOption
+    };
+    console.log(checkIn);
+    try {
+      const response = await fetch('http://localhost:3000/time', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        // 編集モードを解除
+        setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
+        // 新しいデータを追加
+        setAttendanceData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, checkIn: newOption } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+        
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleCheckInEditing = (date) => {
+    setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+  
+  // const handleMouseOver = (event) => {
+  //     event.target.focus();
+  // };
+
+  // const checkInRef = useRef(null);
+
+  // useEffect(() => {
+  //   if (editingCheckIn && checkInRef.current) {
+  //     checkInRef.current.focus();
+  //   }
+  // }, [editingCheckIn]);
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
   //出勤特記の編集
   const handleRemarksChange1 = async (date, newOption) => {
     setRemarks1(newOption);
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
@@ -200,7 +286,7 @@ const AttendanceTablePage = ( ) => {
   //退勤特記の編集
   const handleOutRemarksChange1 = async (date, newOption) => {
     setOutRemarks1(newOption);
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
@@ -249,7 +335,7 @@ const AttendanceTablePage = ( ) => {
   };
   
   const handleRemarksSave = async (date) => {
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
@@ -306,7 +392,7 @@ const AttendanceTablePage = ( ) => {
   };
   
   const handleOutRemarksSave = async (date) => {
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
@@ -322,7 +408,6 @@ const AttendanceTablePage = ( ) => {
         body: JSON.stringify(data)
       });
       setEditingOutRemarks2(out_set_remarks2);
-      console.log(out_set_remarks2);
       if (response.ok) {
         //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         setAttendanceData(prev => {
@@ -360,7 +445,7 @@ const AttendanceTablePage = ( ) => {
   //通常勤怠情報の処理
   //ユーザーIDをもとに残業情報を取得、データがあればインプットにデフォルト表示
   useEffect(() => {
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id;
     fetch(`http://localhost:3000/overuser/${accounts_id}`, {
       method: 'get',
       headers: {
@@ -498,7 +583,7 @@ const AttendanceTablePage = ( ) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id
     const data = {
       accounts_id,
       start_time: startTime,
@@ -528,7 +613,7 @@ const AttendanceTablePage = ( ) => {
 
   const submitFormAdd = async (e) => {
     e.preventDefault();
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id;
     const data = {
       accounts_id,
       project: projects,
@@ -555,7 +640,7 @@ const AttendanceTablePage = ( ) => {
   };
 
   useEffect(() => {
-    const accounts_id = localStorage.getItem('user');
+    const accounts_id = id;
     fetch(`http://localhost:3000/projects/${accounts_id}`, {
       method: 'get',
       headers: {
@@ -809,12 +894,34 @@ const holidays = getHolidaysInMonth(year, month);
               const isEditing2 = editingRemarks2[date.toISOString()];
               const isEditingOut = editingOutRemarks[date.toISOString()];
               const isEditingOut2 = editingOutRemarks2[date.toISOString()];
+              const isEditingCheckIn = editingCheckIn[date.toISOString()];
               
               return (
                 <tr key={date.toISOString()} className={dayClass}>
                   <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
                   <td>{getDayOfWeek(date)}</td>
-                  <td>{record ? formatTime(record.check_in_time) : '-'}</td>
+                  {/* <td>{record ? formatTime(record.check_in_time) : '-'}</td> */}
+                  <td onClick={() => toggleCheckInEditing(date)}>
+                    {isEditingCheckIn ? (
+                      <TimeInput
+                      value={record ? formatTime(record.check_in_time) : '-'}
+                      onChange={(check_in_time) => handleCheckInChange(date, check_in_time)}
+                      />
+                      // <input
+                      //   // ref={checkInRef}
+                      //   type='time'
+                      //   step='900'
+                      //   className=''
+                      //   style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      //   value={checkIn}
+                      //   onChange={(e) => handleCheckInChange(e.target.value)}
+                      //   onClick={() => handleCheckInChange(date)}  
+                      //   onBlur={() => handleCheckInChange(date)}
+                      // />
+                    ) : (
+                      record ? formatTime(record.check_in_time) : '-'
+                    )}
+                  </td>
                   <td onClick={() => toggleEditing(date)}>
                     {isEditing ? (
                       <Dropdown
@@ -842,7 +949,6 @@ const holidays = getHolidaysInMonth(year, month);
                       record ? formatRemarks(record.remarks2) : '-'
                     )}
                   </td>
-                  {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '-' }}></td> */}
                   <td>{record ? formatTime(record.check_out_time) : '-'}</td>
                   <td onClick={() => toggleOutEditing(date)}>
                     {isEditingOut ? (
@@ -871,7 +977,6 @@ const holidays = getHolidaysInMonth(year, month);
                       record ? formatRemarks(record.out_remarks2) : '-'
                     )}
                   </td>
-                  {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '-' }}></td> */}
                   <td>{record ? formatTime(record.break_time) : '-'}</td>
                   <td>{record ? formatTime(record.work_hours) : '-'}</td>
                 </tr>
@@ -880,6 +985,7 @@ const holidays = getHolidaysInMonth(year, month);
           </tbody>
           </table>
         </div>
+        <TimeInput />
         <div id='attendance_link_area'>
             <Link to="/" id='account_top_link'>← 勤怠一覧ページ</Link>
         </div>
@@ -888,4 +994,4 @@ const holidays = getHolidaysInMonth(year, month);
   );
 };
 
-export default AttendanceTablePage;
+export default MemberAttendanceTable;

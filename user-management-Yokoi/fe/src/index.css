@@ -528,11 +528,14 @@ html {
   border: 1px solid #266ebd;
   text-align: center;
 }
-
 #attendance_link_area {
   margin-top: 80px;
   text-align: left;
   margin-left: -22%;
+}
+
+#account_top_link {
+  color: inherit;
 }
 
 .saturday {
@@ -722,6 +725,17 @@ html {
   text-align: center;
 }
 
+#member_link_area {
+  width: 100%;
+  text-align: left;
+  margin-left: 30px;
+  margin-top: 100px;
+}
+
+#member_link {
+  color: inherit;
+}
+
 
 /* メンバー新規登録 */
 .new_account_input2 {
@@ -785,8 +799,7 @@ html {
 }
 
 #member_data_table {
-  margin: auto;
-  width: 60%;
+  width: 80%;
   border: 1px solid #808080;
   background-color: white;
 }
@@ -817,12 +830,41 @@ html {
   width: 100%;
   text-align: left;
   margin-left: 30px;
+  margin-bottom: 50px;
 }
 
 #member_data_link {
   color: inherit;
 }
 
+#member_data_table_area {
+  margin-top: 50px;
+}
+
+#member_data_page_table {
+  display: flex;
+  width: 100%;
+}
+
+#member_data_button_area {
+  width: 20%;
+}
+
+#member_data_table_box {
+  width: 80%;
+}
+
+.react-datepicker {
+  position: absolute;
+  z-index: 1000;
+}
+
+.time_input {
+  width: 100%; /* 幅を指定 */
+  height: 30px; /* 高さを指定 */
+  /* padding: 10px; 
+  font-size: 16px;  */
+}
 
 
 

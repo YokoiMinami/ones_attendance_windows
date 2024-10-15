@@ -36,11 +36,21 @@ const postData = async (req, res, db) => {
 }
 
 const putData = async (req, res, db) => {
-
-  const { id, fullname, email, phone, password } = req.body;
+  const { id, company, fullname, kananame, email, team, password, authority } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
-
-  await db('accounts').where({ id }).update({ fullname, email, phone, password: hashedPassword })
+  if(authority === 'true'){
+    const authorityTrue = true;
+    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, password: hashedPassword, authority:authority })
+    .returning('*')
+    .then(item => {
+      res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    const authorityFalse = false;
+    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, password: hashedPassword, authority:authority })
   .returning('*')
   .then(item => {
     res.json(item);
@@ -48,6 +58,7 @@ const putData = async (req, res, db) => {
   .catch(err => res.status(400).json({
     dbError: 'error'
   }));
+  }
 }
 
 const loginData = async (req, res, db) => {
@@ -283,33 +294,6 @@ const getMonthlyTotalHours = async (req, res, db) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const monthData = async (req, res, db) => {
   const { accounts_id, month } = req.params;
     db('attendance')
@@ -426,6 +410,30 @@ const newRemarks = async (req, res, db) => {
   }
 }
 
+const newTime = async (req, res, db) => {
+  const { accounts_id, date, check_in_time, check_out_time, break_time, work_hours } = req.body;
+  const remarksUser = await db('attendance').where({ accounts_id, date }).first();
+  if(remarksUser){
+    await db('attendance').where({ accounts_id, date }).update({ check_in_time, check_out_time, break_time, work_hours })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    await db('attendance').insert({accounts_id, date, check_in_time, check_out_time, break_time, work_hours})
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
+
 module.exports = {
   getData,
   postData,
@@ -443,6 +451,7 @@ module.exports = {
   overUser,
   projectsData,
   projectUser,
-  newRemarks
+  newRemarks,
+  newTime
 }
   

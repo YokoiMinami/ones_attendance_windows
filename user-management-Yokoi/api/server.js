@@ -70,6 +70,7 @@ app.get('/overuser/:accounts_id', (req, res) => accountsController.overUser(req,
 app.post('/projects', (req, res) => accountsController.projectsData(req, res, db));
 app.get('/projects/:accounts_id', (req, res) => accountsController.projectUser(req, res, db));
 app.post('/remarks', (req, res) => accountsController.newRemarks(req, res, db));
+app.post('/time', (req, res) => accountsController.newTime(req, res, db));
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {

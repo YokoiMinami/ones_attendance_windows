@@ -15,7 +15,7 @@ const MemberModal = (props) => {
   let title = '';
 
   if (label === '編集') {
-    button = <Button id='account_edit_button' onClick={toggle}>{label}</Button>;
+    button = <button id='account_edit_button' className='all_button' onClick={toggle}>{label}</button>;
     title = '編集';
   } else {
     button = <Button id='account_add_button' onClick={toggle}>{label}</Button>;
@@ -23,7 +23,7 @@ const MemberModal = (props) => {
   }
 
   return (
-    <div>
+    <div id='member_data_button_area_modal'>
       {button}
       <Modal isOpen={modal} toggle={toggle} className={props.className}>
         <ModalHeader toggle={toggle} close={closeBtn}>{title}</ModalHeader>
