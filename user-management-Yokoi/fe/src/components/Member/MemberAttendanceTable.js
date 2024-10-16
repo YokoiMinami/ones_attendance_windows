@@ -919,7 +919,6 @@ const holidays = getHolidaysInMonth(year, month);
                 <tr key={date.toISOString()} className={dayClass}>
                   <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
                   <td>{getDayOfWeek(date)}</td>
-                  {/* <td>{record ? formatTime(record.check_in_time) : '-'}</td> */}
                   <td onClick={() => toggleCheckInEditing(date)}>
                     {isEditingCheckIn ? (
 
@@ -937,18 +936,6 @@ const holidays = getHolidaysInMonth(year, month);
                         open={isOpen}
                         onClickOutside={() => setIsOpen(false)}
                       />
-                      
-                      // <input
-                      //   // ref={checkInRef}
-                      //   type='time'
-                      //   step='900'
-                      //   className=''
-                      //   style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
-                      //   value={checkIn}
-                      //   onChange={(e) => handleCheckInChange(e.target.value)}
-                      //   onClick={() => handleCheckInChange(date)}  
-                      //   onBlur={() => handleCheckInChange(date)}
-                      // />
                     ) : (
                       record ? formatTime(record.check_in_time) : '-'
                     )}
