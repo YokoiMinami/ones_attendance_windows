@@ -1,48 +1,50 @@
-import React, { useState } from 'react';
+import React, { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-function CustomInput({ value, onClick, onMouseEnter }) {
-  return (
-    <input
-      className="time_input"
-      value={value}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      readOnly
-    />
-  );
-}
+const CustomInput = forwardRef(({ value, onClick, onMouseEnter }, ref) => (
+  <input
+    className="time_input"
+    value={value}
+    onClick={onClick}
+    onMouseEnter={onMouseEnter}
+    readOnly
+    ref={ref}
+  />
+));
 
-function TimeInput() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [isOpen, setIsOpen] = useState(false);
+export default CustomInput;
 
-  const handleMouseEnter = () => {
-    setIsOpen(true);
-  };
+// function TimeInput() {
+//   const [selectedDate, setSelectedDate] = useState(new Date());
+//   const [isOpen, setIsOpen] = useState(false);
 
-  const handleClick = () => {
-    setIsOpen(false);
-  };
+//   const handleMouseEnter = () => {
+//     setIsOpen(true);
+//   };
 
-  return (
-    <div>
-      <DatePicker
-        selected={selectedDate}
-        onChange={date => setSelectedDate(date)}
-        showTimeSelect
-        showTimeSelectOnly
-        timeIntervals={15}
-        timeCaption="Time"
-        dateFormat="HH:mm"
-        timeFormat="HH:mm"
-        customInput={<CustomInput onMouseEnter={handleMouseEnter} onClick={handleClick} />}
-        open={isOpen}
-        onClickOutside={() => setIsOpen(false)}
-      />
-    </div>
-  );
-}
+//   const handleClick = () => {
+//     setIsOpen(false);
+//   };
 
-export default TimeInput;
+//   return (
+//     <div>
+//       <DatePicker
+//         selected={selectedDate}
+//         onChange={date => setSelectedDate(date)}
+//         showTimeSelect
+//         showTimeSelectOnly
+//         timeIntervals={15}
+//         timeCaption="Time"
+//         dateFormat="HH:mm"
+//         timeFormat="HH:mm"
+//         customInput={<CustomInput onMouseEnter={handleMouseEnter} onClick={handleClick} />}
+//         open={isOpen}
+//         onClickOutside={() => setIsOpen(false)}
+//       />
+//     </div>
+//   );
+// }
+
+// export default TimeInput;
+

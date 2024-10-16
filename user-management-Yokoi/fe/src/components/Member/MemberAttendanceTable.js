@@ -1,10 +1,13 @@
-import React, { useEffect, useState,useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link, useParams } from 'react-router-dom';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import Dropdown from '../Attendance/AttendancePull';
-import TimeInput from './TimeInput';
+// import TimeInput from './TimeInput';
+import CustomInput from './TimeInput';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const MemberAttendanceTable = ( ) => {
 
@@ -45,6 +48,9 @@ const MemberAttendanceTable = ( ) => {
   const [checkOut, setCheckOut] = useState('');  //退勤時間の編集を保存
   const [breakTimeEdit, setBreakTimeEdit] = useState('');  //休憩時間の編集を保存
   const [workHoursEdit, setWorkHoursEdit] = useState('');  //出勤時間の編集を保存
+  const [selectedDate, setSelectedDate] = useState(new Date()); //時間の編集機能
+  const [isOpen, setIsOpen] = useState(false); //時間の編集機能
+
 
   //ユーザー情報を取得
   useEffect(() => {
@@ -161,8 +167,16 @@ const MemberAttendanceTable = ( ) => {
   };
 
   //出勤時間の編集
-  const handleCheckInChange = async (date, newOption) => {
+  const handleCheckInChange = async (date) => {
+
+    const newOption = date.toTimeString().split(' ')[0].slice(0, 5);
+
     setCheckIn(newOption);
+    
+    console.log(newOption);
+    console.log(selectedDate);
+    
+    
     const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
     const data = {
@@ -170,7 +184,7 @@ const MemberAttendanceTable = ( ) => {
       date: currentDate,
       check_in_time: newOption
     };
-    console.log(checkIn);
+    console.log(currentDate);
     try {
       const response = await fetch('http://localhost:3000/time', {
         method: 'POST',
@@ -205,6 +219,14 @@ const MemberAttendanceTable = ( ) => {
 
   const toggleCheckInEditing = (date) => {
     setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const handleMouseEnter = () => {
+        setIsOpen(true);
+      };
+    
+  const handleClick = () => {
+    setIsOpen(false);
   };
   
   // const handleMouseOver = (event) => {
@@ -903,10 +925,35 @@ const holidays = getHolidaysInMonth(year, month);
                   {/* <td>{record ? formatTime(record.check_in_time) : '-'}</td> */}
                   <td onClick={() => toggleCheckInEditing(date)}>
                     {isEditingCheckIn ? (
-                      <TimeInput
-                      value={record ? formatTime(record.check_in_time) : '-'}
-                      onChange={(check_in_time) => handleCheckInChange(date, check_in_time)}
+                      // <DatePicker
+                      //   selected={selectedDate}
+                      //   onChange={date => setSelectedDate(date)}
+                      //   showTimeSelect
+                      //   showTimeSelectOnly
+                      //   timeIntervals={15}
+                      //   timeCaption="Time"
+                      //   dateFormat="HH:mm"
+                      //   timeFormat="HH:mm"
+                      //   customInput={<CustomInput onMouseEnter={handleMouseEnter} onClick={handleClick} />}
+                      //   open={isOpen}
+                      //   onClickOutside={() => setIsOpen(false)}
+                      // />
+
+                      <DatePicker
+                        selected={selectedDate}
+                        value={checkIn}
+                        onChange={handleCheckInChange}
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Time"
+                        dateFormat="HH:mm"
+                        timeFormat="HH:mm"
+                        customInput={<CustomInput onMouseEnter={handleMouseEnter} onClick={handleClick} />}
+                        open={isOpen}
+                        onClickOutside={() => setIsOpen(false)}
                       />
+                      
                       // <input
                       //   // ref={checkInRef}
                       //   type='time'
@@ -985,7 +1032,6 @@ const holidays = getHolidaysInMonth(year, month);
           </tbody>
           </table>
         </div>
-        <TimeInput />
         <div id='attendance_link_area'>
             <Link to="/" id='account_top_link'>← 勤怠一覧ページ</Link>
         </div>
