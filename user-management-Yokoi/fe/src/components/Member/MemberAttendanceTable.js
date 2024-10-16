@@ -167,22 +167,19 @@ const MemberAttendanceTable = ( ) => {
   };
 
   //出勤時間の編集
-  const handleCheckInChange = async (date) => {
+  const handleCheckInChange = async (date, newOption) => {
 
-    const newOption = date.toTimeString().split(' ')[0].slice(0, 5);
+    const newTime = newOption;
+    const newFormatTime = newTime.toTimeString().split(' ')[0].slice(0, 5);
 
-    setCheckIn(newOption);
-    
-    console.log(newOption);
-    console.log(selectedDate);
-    
+    setCheckIn(newFormatTime);
     
     const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
-      check_in_time: newOption
+      check_in_time: newFormatTime
     };
     console.log(currentDate);
     try {
@@ -925,24 +922,11 @@ const holidays = getHolidaysInMonth(year, month);
                   {/* <td>{record ? formatTime(record.check_in_time) : '-'}</td> */}
                   <td onClick={() => toggleCheckInEditing(date)}>
                     {isEditingCheckIn ? (
-                      // <DatePicker
-                      //   selected={selectedDate}
-                      //   onChange={date => setSelectedDate(date)}
-                      //   showTimeSelect
-                      //   showTimeSelectOnly
-                      //   timeIntervals={15}
-                      //   timeCaption="Time"
-                      //   dateFormat="HH:mm"
-                      //   timeFormat="HH:mm"
-                      //   customInput={<CustomInput onMouseEnter={handleMouseEnter} onClick={handleClick} />}
-                      //   open={isOpen}
-                      //   onClickOutside={() => setIsOpen(false)}
-                      // />
 
                       <DatePicker
                         selected={selectedDate}
-                        value={checkIn}
-                        onChange={handleCheckInChange}
+                        value={record ? formatTime(record.check_in_time) : '-'}
+                        onChange={(check_in_time) => handleCheckInChange(date, check_in_time)}
                         showTimeSelect
                         showTimeSelectOnly
                         timeIntervals={15}
