@@ -412,9 +412,12 @@ const newRemarks = async (req, res, db) => {
 
 const newTime = async (req, res, db) => {
   const { accounts_id, date, check_in_time, check_out_time, break_time, work_hours } = req.body;
+  
   const remarksUser = await db('attendance').where({ accounts_id, date }).first();
+
   if(remarksUser){
-    await db('attendance').where({ accounts_id, date }).update({ check_in_time, check_out_time, break_time, work_hours })
+    if(check_in_time === ''){
+      await db('attendance').where({ accounts_id, date }).update({ check_in_time: null })
     .returning('*')
     .then(item => {
     res.json(item);
@@ -422,6 +425,16 @@ const newTime = async (req, res, db) => {
     .catch(err => res.status(400).json({
       dbError: 'error'
     }));
+    }else{
+      await db('attendance').where({ accounts_id, date }).update({ check_in_time, check_out_time, break_time, work_hours })
+      .returning('*')
+      .then(item => {
+      res.json(item);
+      })
+      .catch(err => res.status(400).json({
+        dbError: 'error'
+      }));
+    }
   }else {
     await db('attendance').insert({accounts_id, date, check_in_time, check_out_time, break_time, work_hours})
     .returning('*')
