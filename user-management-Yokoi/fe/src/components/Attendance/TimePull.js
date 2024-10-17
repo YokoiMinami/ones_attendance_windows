@@ -36,10 +36,18 @@ const customStyles = {
 const Time = ({ value, onChange }) => {
   const [menuIsOpen, setMenuIsOpen] = useState(false);
 
+  const handleMouseEnter = () => {
+    setMenuIsOpen(true);
+  };
+
+  const handleClick = () => {
+    setMenuIsOpen(false);
+  };
+
   return (
     <div
-      onMouseEnter={() => setMenuIsOpen(true)}
-      onMouseLeave={() => setMenuIsOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onClick={handleClick}
     >
       <Select
         value={options.find(option => option.value === value)}
