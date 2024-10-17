@@ -4,8 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import Dropdown from '../Attendance/AttendancePull';
-// import TimeInput from './TimeInput';
-import CustomInput from './TimeInput';
+import Time from '../Attendance/TimePull';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -48,8 +47,8 @@ const MemberAttendanceTable = ( ) => {
   const [checkOut, setCheckOut] = useState('');  //退勤時間の編集を保存
   const [breakTimeEdit, setBreakTimeEdit] = useState('');  //休憩時間の編集を保存
   const [workHoursEdit, setWorkHoursEdit] = useState('');  //出勤時間の編集を保存
-  const [selectedDate, setSelectedDate] = useState(new Date()); //時間の編集機能
-  const [isOpen, setIsOpen] = useState(false); //時間の編集機能
+  // const [selectedDate, setSelectedDate] = useState(new Date()); //時間の編集機能
+  // const [isOpen, setIsOpen] = useState(false); //時間の編集機能
 
 
   //ユーザー情報を取得
@@ -169,17 +168,14 @@ const MemberAttendanceTable = ( ) => {
   //出勤時間の編集
   const handleCheckInChange = async (date, newOption) => {
 
-    const newTime = newOption;
-    const newFormatTime = newTime.toTimeString().split(' ')[0].slice(0, 5);
+    setCheckIn(newOption);
 
-    setCheckIn(newFormatTime);
-    
     const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
-      check_in_time: newFormatTime
+      check_in_time: newOption
     };
     console.log(currentDate);
     try {
@@ -218,27 +214,13 @@ const MemberAttendanceTable = ( ) => {
     setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
 
-  const handleMouseEnter = () => {
-        setIsOpen(true);
-      };
+  // const handleMouseEnter = () => {
+  //       setIsOpen(true);
+  //     };
     
-  const handleClick = () => {
-    setIsOpen(false);
-  };
-  
-  // const handleMouseOver = (event) => {
-  //     event.target.focus();
+  // const handleClick = () => {
+  //   setIsOpen(false);
   // };
-
-  // const checkInRef = useRef(null);
-
-  // useEffect(() => {
-  //   if (editingCheckIn && checkInRef.current) {
-  //     checkInRef.current.focus();
-  //   }
-  // }, [editingCheckIn]);
-
-
 
 
 
@@ -921,20 +903,9 @@ const holidays = getHolidaysInMonth(year, month);
                   <td>{getDayOfWeek(date)}</td>
                   <td onClick={() => toggleCheckInEditing(date)}>
                     {isEditingCheckIn ? (
-
-                      <DatePicker
-                        selected={selectedDate}
+                      <Time
                         value={record ? formatTime(record.check_in_time) : '-'}
                         onChange={(check_in_time) => handleCheckInChange(date, check_in_time)}
-                        showTimeSelect
-                        showTimeSelectOnly
-                        timeIntervals={15}
-                        timeCaption="Time"
-                        dateFormat="HH:mm"
-                        timeFormat="HH:mm"
-                        customInput={<CustomInput onMouseEnter={handleMouseEnter} onClick={handleClick} />}
-                        open={isOpen}
-                        onClickOutside={() => setIsOpen(false)}
                       />
                     ) : (
                       record ? formatTime(record.check_in_time) : '-'
