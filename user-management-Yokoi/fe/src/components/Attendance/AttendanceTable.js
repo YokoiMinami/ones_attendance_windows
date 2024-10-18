@@ -138,7 +138,7 @@ const AttendanceTablePage = ( ) => {
 
   // 時間をhh:mm形式でフォーマットする関数
   const formatTime = (timeString) => {
-    if (!timeString) return '-';
+    if (!timeString) return '';
     const [hours, minutes] = timeString.split(':');
     const formattedHours = hours ? hours.padStart(2, '0') : '';
     const formattedMinutes = minutes ? minutes.padStart(2, '0') : '';
@@ -147,7 +147,7 @@ const AttendanceTablePage = ( ) => {
 
   // 「。」を改行タグに置き換える関数
   const formatRemarks = (remarks) => {
-    if (!remarks) return '-';
+    if (!remarks) return '';
     return remarks.split('。').join('。<br />');
   };
 
@@ -814,7 +814,7 @@ const holidays = getHolidaysInMonth(year, month);
                 <tr key={date.toISOString()} className={dayClass}>
                   <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
                   <td>{getDayOfWeek(date)}</td>
-                  <td>{record ? formatTime(record.check_in_time) : '-'}</td>
+                  <td>{record ? formatTime(record.check_in_time) : ''}</td>
                   <td onClick={() => toggleEditing(date)}>
                     {isEditing ? (
                       <Dropdown
@@ -822,7 +822,7 @@ const holidays = getHolidaysInMonth(year, month);
                         onChange={(remarks1) => handleRemarksChange1(date, remarks1)}
                       />
                     ) : (
-                      record ? record.remarks1 : '-'
+                      record ? record.remarks1 : ''
                     )}
                   </td>
                   <td onClick={() => toggleEditing2(date)}>
@@ -839,11 +839,11 @@ const holidays = getHolidaysInMonth(year, month);
                         onBlur={() => handleRemarksSave(date)}
                       />
                     ) : (
-                      record ? formatRemarks(record.remarks2) : '-'
+                      record ? formatRemarks(record.remarks2) : ''
                     )}
                   </td>
                   {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '-' }}></td> */}
-                  <td>{record ? formatTime(record.check_out_time) : '-'}</td>
+                  <td>{record ? formatTime(record.check_out_time) : ''}</td>
                   <td onClick={() => toggleOutEditing(date)}>
                     {isEditingOut ? (
                       <Dropdown
@@ -851,7 +851,7 @@ const holidays = getHolidaysInMonth(year, month);
                         onChange={(out_remarks1) => handleOutRemarksChange1(date, out_remarks1)}
                       />
                     ) : (
-                      record ? record.out_remarks1 : '-'
+                      record ? record.out_remarks1 : ''
                     )}
                   </td>
                   <td onClick={() => toggleEditingOut2(date)}>
@@ -868,12 +868,12 @@ const holidays = getHolidaysInMonth(year, month);
                         onBlur={() => handleOutRemarksSave(date)}
                       />
                     ) : (
-                      record ? formatRemarks(record.out_remarks2) : '-'
+                      record ? formatRemarks(record.out_remarks2) : ''
                     )}
                   </td>
                   {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '-' }}></td> */}
-                  <td>{record ? formatTime(record.break_time) : '-'}</td>
-                  <td>{record ? formatTime(record.work_hours) : '-'}</td>
+                  <td>{record ? formatTime(record.break_time) : ''}</td>
+                  <td>{record ? formatTime(record.work_hours) : ''}</td>
                 </tr>
               );
             })}
