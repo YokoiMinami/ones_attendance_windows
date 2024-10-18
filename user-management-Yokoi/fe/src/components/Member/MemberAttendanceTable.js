@@ -166,9 +166,10 @@ const MemberAttendanceTable = ( ) => {
   };
 
   //出勤時間の編集
-  const handleCheckInChange = async (date, newOption, breakTime, check_out_time) => {
+  const handleCheckInChange = async (date, newOption, breakTime, check_out_time ,work_hours) => {
 
-    //勤務時間の合計を再計算
+    if(work_hours.length){
+      //勤務時間の合計を再計算
     const startDate = new Date(`1970-01-01T${newOption}`);
     const endDate = new Date(`1970-01-01T${check_out_time}`);
     const diff = endDate - startDate;
@@ -203,7 +204,7 @@ const MemberAttendanceTable = ( ) => {
       check_in_time: newOption,
       work_hours: edit_work
     };
-
+    console.log(currentDate);
     try {
       const response = await fetch('http://localhost:3000/time', {
         method: 'POST',
@@ -233,6 +234,49 @@ const MemberAttendanceTable = ( ) => {
     } catch (error) {
       console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
+    }
+    }else {
+      setCheckIn(newOption);
+
+      const accounts_id = id;
+      const currentDate = date.toISOString().split('T')[0];
+
+      const data = {
+        accounts_id,
+        date: currentDate,
+        check_in_time: newOption,
+      };
+      console.log(currentDate);
+      try {
+        const response = await fetch('http://localhost:3000/time', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        if (response.ok) {
+          // 編集モードを解除
+          setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
+          // 新しいデータを追加
+          setAttendanceData(prev => {
+            const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+            if (existingRecordIndex !== -1) {
+              return prev.map(record => 
+                record.date === currentDate ? { ...record, checkIn: newOption } : record
+              );
+            } else {
+              return [...prev, data];
+            }
+          });
+          
+        } else {
+          alert('データの保存に失敗しました');
+        }
+      } catch (error) {
+        console.error('Error saving data:', error);
+        alert('データの保存に失敗しました');
+      }
     }
   };
 
@@ -925,7 +969,9 @@ const holidays = getHolidaysInMonth(year, month);
                       <Time
                         value={record ? formatTime(record.check_in_time) : ''}
                         onChange={(check_in_time) => handleCheckInChange(date, check_in_time,
-                        record ? formatTime(record.break_time) : '',record ? formatTime(record.check_out_time) : '')}
+                        record ? formatTime(record.break_time) : '', record ? formatTime(record.check_out_time) : '',
+                        record ? formatTime(record.work_hours) : '')
+                        }
                       />
                     ) : (
                       record ? formatTime(record.check_in_time) : ''
