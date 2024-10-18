@@ -166,27 +166,45 @@ const MemberAttendanceTable = ( ) => {
   };
 
   //出勤時間の編集
-  const handleCheckInChange = async (date, newOption,breakTime) => {
-    console.log(breakTime);
+  const handleCheckInChange = async (date, newOption, breakTime, check_out_time) => {
 
-    const userDate = userWorkHours.map(record => record.date);
-    //const userCurrentDate = new Date(userDate).toISOString().split('T')[0];
-    
-    console.log(userDate);
-    console.log(date);
+    //勤務時間の合計を再計算
+    const startDate = new Date(`1970-01-01T${newOption}`);
+    const endDate = new Date(`1970-01-01T${check_out_time}`);
+    const diff = endDate - startDate;
+    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+    const all_work_time = `${hours}:${minutes}`;
+
+
+    //勤務時間の合計から休憩時間を引く
+    const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
+    const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
+
+    // 日付の有効性をチェック
+    const isValidDate = (date) => date instanceof Date && !isNaN(date);
+    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
+      return '計算できませんでした';
+    }
+
+    // 時間の差を計算
+    const diff2 =  checkOllTime - checkBreakTime;
+    const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
+    const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
+    const edit_work =  `${hours2}:${minutes2}`;
 
     setCheckIn(newOption);
 
     const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
 
-
     const data = {
       accounts_id,
       date: currentDate,
-      check_in_time: newOption
+      check_in_time: newOption,
+      work_hours: edit_work
     };
-    console.log(currentDate);
+
     try {
       const response = await fetch('http://localhost:3000/time', {
         method: 'POST',
@@ -907,7 +925,8 @@ const holidays = getHolidaysInMonth(year, month);
                     {isEditingCheckIn ? (
                       <Time
                         value={record ? formatTime(record.check_in_time) : ''}
-                        onChange={(check_in_time) => handleCheckInChange(date, check_in_time, record ? formatTime(record.break_time) : '')}
+                        onChange={(check_in_time) => handleCheckInChange(date, check_in_time,
+                        record ? formatTime(record.break_time) : '',record ? formatTime(record.check_out_time) : '')}
                       />
                     ) : (
                       record ? formatTime(record.check_in_time) : ''
