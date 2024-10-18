@@ -166,12 +166,21 @@ const MemberAttendanceTable = ( ) => {
   };
 
   //出勤時間の編集
-  const handleCheckInChange = async (date, newOption) => {
+  const handleCheckInChange = async (date, newOption,breakTime) => {
+    console.log(breakTime);
+
+    const userDate = userWorkHours.map(record => record.date);
+    //const userCurrentDate = new Date(userDate).toISOString().split('T')[0];
+    
+    console.log(userDate);
+    console.log(date);
 
     setCheckIn(newOption);
 
     const accounts_id = id;
     const currentDate = date.toISOString().split('T')[0];
+
+
     const data = {
       accounts_id,
       date: currentDate,
@@ -214,13 +223,6 @@ const MemberAttendanceTable = ( ) => {
     setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
 
-  // const handleMouseEnter = () => {
-  //       setIsOpen(true);
-  //     };
-    
-  // const handleClick = () => {
-  //   setIsOpen(false);
-  // };
 
 
 
@@ -905,7 +907,7 @@ const holidays = getHolidaysInMonth(year, month);
                     {isEditingCheckIn ? (
                       <Time
                         value={record ? formatTime(record.check_in_time) : '-'}
-                        onChange={(check_in_time) => handleCheckInChange(date, check_in_time)}
+                        onChange={(check_in_time) => handleCheckInChange(date, check_in_time, record ? formatTime(record.break_time) : '-')}
                       />
                     ) : (
                       record ? formatTime(record.check_in_time) : '-'
