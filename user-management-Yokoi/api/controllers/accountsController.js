@@ -417,7 +417,7 @@ const newTime = async (req, res, db) => {
 
   if(remarksUser){
     if(check_in_time === ''){
-      await db('attendance').where({ accounts_id, date }).update({ check_in_time: null })
+      await db('attendance').where({ accounts_id, date }).update({ check_in_time: null, check_out_time: null, work_hours: null })
     .returning('*')
     .then(item => {
     res.json(item);
@@ -425,7 +425,17 @@ const newTime = async (req, res, db) => {
     .catch(err => res.status(400).json({
       dbError: 'error'
     }));
-    }else{
+    }else if(check_out_time === ''){
+      await db('attendance').where({ accounts_id, date }).update({ check_out_time: null, work_hours: null })
+      .returning('*')
+      .then(item => {
+      res.json(item);
+      })
+      .catch(err => res.status(400).json({
+        dbError: 'error'
+      }));
+    }
+    else{
       await db('attendance').where({ accounts_id, date }).update({ check_in_time, check_out_time, break_time, work_hours })
       .returning('*')
       .then(item => {
