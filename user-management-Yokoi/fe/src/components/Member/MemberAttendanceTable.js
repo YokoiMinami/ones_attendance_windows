@@ -176,7 +176,6 @@ const MemberAttendanceTable = ( ) => {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
     const all_work_time = `${hours}:${minutes}`;
 
-
     //勤務時間の合計から休憩時間を引く
     const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
     const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
