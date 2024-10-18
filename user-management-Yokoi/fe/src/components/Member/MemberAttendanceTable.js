@@ -5,6 +5,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import Dropdown from '../Attendance/AttendancePull';
 import Time from '../Attendance/TimePull';
+import BreakPull from '../Attendance/BreakPull';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -79,7 +80,7 @@ const MemberAttendanceTable = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut]);
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut,editingBreak]);
 
   //土日を判定
   const isWeekend = (date) => {
@@ -128,7 +129,7 @@ const MemberAttendanceTable = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut]); //monthが変更されるたびに実行する
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut,editingBreak]); //monthが変更されるたびに実行する
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -456,6 +457,128 @@ const toggleCheckOutEditing = (date) => {
   setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
 };
 
+
+ //休憩時間の編集
+const handleBreakChange = async (date, newOption, check_in_time , check_out_time , work_hours) => {
+
+  if(check_in_time.length && check_out_time.length && work_hours.length ){
+
+    //勤務時間の合計を再計算
+    const startDate = new Date(`1970-01-01T${check_in_time}`);
+    const endDate = new Date(`1970-01-01T${check_out_time}`);
+    const diff = endDate - startDate;
+    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+    const all_work_time = `${hours}:${minutes}`;
+
+    //勤務時間の合計から休憩時間を引く
+    const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
+    const checkBreakTime = new Date(`1970-01-01T${newOption}`);
+
+    // 日付の有効性をチェック
+    const isValidDate = (date) => date instanceof Date && !isNaN(date);
+    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
+      return '計算できませんでした';
+    }
+
+    // 時間の差を計算
+    const diff2 =  checkOllTime - checkBreakTime;
+    const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
+    const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
+    const edit_work =  `${hours2}:${minutes2}`;
+
+    setBreakTimeEdit(newOption);
+
+    const accounts_id = id;
+    const currentDate = date.toISOString().split('T')[0];
+
+    const data = {
+      accounts_id,
+      date: currentDate,
+      break_time: newOption,
+      work_hours: edit_work
+    };
+    
+    try {
+      const response = await fetch('http://localhost:3000/time', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        // 編集モードを解除
+        setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+        // 新しいデータを追加
+        setAttendanceData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+        
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+
+  }else{
+    
+    setBreakTimeEdit(newOption);
+    setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+    // const accounts_id = id;
+    // const currentDate = date.toISOString().split('T')[0];
+
+    // const data = {
+    //   accounts_id,
+    //   date: currentDate,
+    //   break_time: newOption,
+    //   work_hours: ''
+    // };
+    // console.log('データが無い場合');
+    // try {
+    //   const response = await fetch('http://localhost:3000/time', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify(data)
+    //   });
+    //   if (response.ok) {
+    //     // 編集モードを解除
+    //     setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+    //     // 新しいデータを追加
+    //     setAttendanceData(prev => {
+    //       const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+    //       if (existingRecordIndex !== -1) {
+    //         return prev.map(record => 
+    //           record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
+    //         );
+    //       } else {
+    //         return [...prev, data];
+    //       }
+    //     });
+    //   } else {
+    //     alert('データの保存に失敗しました');
+    //   }
+    // } catch (error) {
+    //   console.error('Error saving data:', error);
+    //   alert('データの保存に失敗しました');
+    // }
+  }
+};
+
+const toggleBreakEditing = (date) => {
+  setEditingBreak(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+};
 
 
 
@@ -1130,6 +1253,7 @@ const holidays = getHolidaysInMonth(year, month);
               const isEditingOut2 = editingOutRemarks2[date.toISOString()];
               const isEditingCheckIn = editingCheckIn[date.toISOString()];
               const isEditingCheckOut = editingCheckOut[date.toISOString()];
+              const isEditingBreak = editingBreak[date.toISOString()];
               
               return (
                 <tr key={date.toISOString()} className={dayClass}>
@@ -1175,7 +1299,6 @@ const holidays = getHolidaysInMonth(year, month);
                       record ? formatRemarks(record.remarks2) : ''
                     )}
                   </td>
-                  {/* <td>{record ? formatTime(record.check_out_time) : ''}</td> */}
                   <td onClick={() => toggleCheckOutEditing(date)}>
                     {isEditingCheckOut ? (
                       <Time
@@ -1216,7 +1339,20 @@ const holidays = getHolidaysInMonth(year, month);
                       record ? formatRemarks(record.out_remarks2) : ''
                     )}
                   </td>
-                  <td>{record ? formatTime(record.break_time) : ''}</td>
+                  {/* <td>{record ? formatTime(record.break_time) : ''}</td> */}
+                  <td onClick={() => toggleBreakEditing(date)}>
+                    {isEditingBreak ? (
+                      <BreakPull
+                        value={record ? formatTime(record.break_time) : ''}
+                        onChange={(break_time) => handleBreakChange(date, break_time,
+                          record ? formatTime(record.check_in_time) : '', record ? formatTime(record.check_out_time) : '',
+                          record ? formatTime(record.work_hours) : '')
+                        }
+                      />
+                    ) : (
+                      record ? formatTime(record.break_time) : ''
+                    )}
+                  </td>
                   <td>{record ? formatTime(record.work_hours) : ''}</td>
                 </tr>
               );

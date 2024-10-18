@@ -435,16 +435,17 @@ const newTime = async (req, res, db) => {
         dbError: 'error'
       }));
     }
-    else{
-      await db('attendance').where({ accounts_id, date }).update({ check_in_time, check_out_time, break_time, work_hours })
-      .returning('*')
-      .then(item => {
-      res.json(item);
-      })
-      .catch(err => res.status(400).json({
-        dbError: 'error'
-      }));
-    }
+
+  else{
+    await db('attendance').where({ accounts_id, date }).update({ check_in_time, check_out_time, break_time, work_hours })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
   }else {
     await db('attendance').insert({accounts_id, date, check_in_time, check_out_time, break_time, work_hours})
     .returning('*')
