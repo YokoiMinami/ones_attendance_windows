@@ -848,8 +848,21 @@ html {
   border-top: 1px solid white; /* 線の色と太さを指定 */
 }
 
+.date-column {
+  width: 8%;
+}
 
+.week-column {
+  width: 5%;
+}
 
+.destination-column {
+  width: 20%;
+}
+
+.expenses_remarks-column {
+  width: 20%;
+}
 
 
 

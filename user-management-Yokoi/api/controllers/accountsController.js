@@ -479,6 +479,46 @@ const newTime = async (req, res, db) => {
   }
 }
 
+//交通費
+const expensesData = async (req, res, db) => {
+  const { accounts_id, month } = req.params;
+    db('expenses')
+    .whereRaw('EXTRACT(MONTH FROM date) = ?', [month])
+    .andWhere('accounts_id', accounts_id)
+    .then(expenses => {
+      res.json(expenses);
+    })
+    .catch(error => {
+      console.error('Error fetching attendance data:', error);
+      res.status(500).json({ error: 'Internal server error. Please try again later.' });
+    });
+};
+
+const newExpenses = async (req, res, db) => {
+  const { accounts_id, date, route, train, bus, tax, aircraft, other, total, stay, grand_total, expenses_remarks} = req.body;
+  const expensesUser = await db('expenses').where({ accounts_id, date }).first();
+  if(expensesUser){
+    await db('expenses').where({ accounts_id, date }).update({ route, train, bus, tax, aircraft, other, total, stay, grand_total, expenses_remarks })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    await db('expenses').insert({accounts_id, date, route, train, bus, tax, aircraft, other, total, stay, grand_total, expenses_remarks })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
+
+
 module.exports = {
   getData,
   postData,
@@ -497,6 +537,8 @@ module.exports = {
   projectsData,
   projectUser,
   newRemarks,
-  newTime
+  newTime,
+  expensesData,
+  newExpenses
 }
   
