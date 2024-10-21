@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MemberModal from './MemberModal';
-import MemberForm from './MemberForm';
 
 const MemberTable = (props) => {
   const navigate = useNavigate();
@@ -72,41 +71,6 @@ const MemberTable = (props) => {
         </table>
       </div>
   </div>
-
-
-
-
-
-
-
-    // <table id='account_table'>
-    //   <thead id='account_thead'>
-    //     <tr>
-    //       <th className='ac_1'>ID</th>
-    //       <th className='ac_2'>氏名</th>
-    //       <th className='ac_3'>Email</th>
-    //       <th className='ac_4'>電話番号</th>
-    //       <th className='ac_5'>パスワード</th>
-    //       <th className='ac_6'></th>
-    //     </tr>
-    //   </thead>
-    //   <tbody>
-    //     <tr key={item.id}>
-    //       <td>{item.id}</td>
-    //       <td>{item.fullname}</td>
-    //       <td>{item.email}</td>
-    //       <td></td>
-    //       <td>****</td>
-    //       <td className='ac_6'>
-    //         <div id='account_button_area'>
-    //           <MemberModal buttonLabel="編集" item={item} updateState={props.updateState} />
-    //           {' '}
-    //           <Button id='account_delete_button' onClick={() => deleteItem(item.id)}>削除</Button>
-    //         </div>
-    //       </td>
-    //     </tr>
-    //   </tbody>
-    // </table>
   );
 }
 

@@ -170,73 +170,118 @@ const MemberAttendanceTable = ( ) => {
   const handleCheckInChange = async (date, newOption, breakTime, check_out_time ,work_hours) => {
 
     if(work_hours.length){
-      //勤務時間の合計を再計算
-    const startDate = new Date(`1970-01-01T${newOption}`);
-    const endDate = new Date(`1970-01-01T${check_out_time}`);
-    const diff = endDate - startDate;
-    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-    const all_work_time = `${hours}:${minutes}`;
 
-    //勤務時間の合計から休憩時間を引く
-    const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
-    const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
+      if(newOption === ''){
+        setCheckIn(newOption);
+        const accounts_id = id;
+        const currentDate = date.toISOString().split('T')[0];
 
-    // 日付の有効性をチェック
-    const isValidDate = (date) => date instanceof Date && !isNaN(date);
-    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-      return '計算できませんでした';
-    }
-
-    // 時間の差を計算
-    const diff2 =  checkOllTime - checkBreakTime;
-    const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
-    const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
-    const edit_work =  `${hours2}:${minutes2}`;
-
-    setCheckIn(newOption);
-
-    const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
-
-    const data = {
-      accounts_id,
-      date: currentDate,
-      check_in_time: newOption,
-      work_hours: edit_work
-    };
-    console.log(currentDate);
-    try {
-      const response = await fetch('http://localhost:3000/time', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        // 編集モードを解除
-        setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
-        // 新しいデータを追加
-        setAttendanceData(prev => {
-          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
-          if (existingRecordIndex !== -1) {
-            return prev.map(record => 
-              record.date === currentDate ? { ...record, checkIn: newOption } : record
-            );
+        const data = {
+          accounts_id,
+          date: currentDate,
+          check_in_time: newOption,
+        };
+      
+        try {
+          const response = await fetch('http://localhost:3000/time', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (response.ok) {
+            // 編集モードを解除
+            setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
+            // 新しいデータを追加
+            setAttendanceData(prev => {
+              const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+              if (existingRecordIndex !== -1) {
+                return prev.map(record => 
+                  record.date === currentDate ? { ...record, checkIn: newOption } : record
+                );
+              } else {
+                return [...prev, data];
+              }
+            });
+            
           } else {
-            return [...prev, data];
+            alert('データの保存に失敗しました');
           }
-        });
-        
-      } else {
-        alert('データの保存に失敗しました');
+        } catch (error) {
+          console.error('Error saving data:', error);
+          alert('データの保存に失敗しました');
+        }
+      }else{
+        //勤務時間の合計を再計算
+        const startDate = new Date(`1970-01-01T${newOption}`);
+        const endDate = new Date(`1970-01-01T${check_out_time}`);
+        const diff = endDate - startDate;
+        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+        const all_work_time = `${hours}:${minutes}`;
+
+        //勤務時間の合計から休憩時間を引く
+        const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
+        const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
+
+        // 日付の有効性をチェック
+        const isValidDate = (date) => date instanceof Date && !isNaN(date);
+        if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
+          return '計算できませんでした';
+        }
+
+        // 時間の差を計算
+        const diff2 =  checkOllTime - checkBreakTime;
+        const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
+        const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
+        const edit_work =  `${hours2}:${minutes2}`;
+
+        setCheckIn(newOption);
+
+        const accounts_id = id;
+        const currentDate = date.toISOString().split('T')[0];
+
+        const data = {
+          accounts_id,
+          date: currentDate,
+          check_in_time: newOption,
+          work_hours: edit_work
+        };
+      
+        try {
+          const response = await fetch('http://localhost:3000/time', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (response.ok) {
+            // 編集モードを解除
+            setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
+            // 新しいデータを追加
+            setAttendanceData(prev => {
+              const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+              if (existingRecordIndex !== -1) {
+                return prev.map(record => 
+                  record.date === currentDate ? { ...record, checkIn: newOption } : record
+                );
+              } else {
+                return [...prev, data];
+              }
+            });
+            
+          } else {
+            alert('データの保存に失敗しました');
+          }
+        } catch (error) {
+          console.error('Error saving data:', error);
+          alert('データの保存に失敗しました');
+        }
       }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('データの保存に失敗しました');
     }
-    }else {
+    else {
       setCheckIn(newOption);
 
       const accounts_id = id;
@@ -286,299 +331,385 @@ const MemberAttendanceTable = ( ) => {
   };
 
 
- //退勤時間の編集
-const handleCheckOutChange = async (date, newOption, breakTime, check_in_time , work_hours) => {
+  //退勤時間の編集
+  const handleCheckOutChange = async (date, newOption, breakTime, check_in_time , work_hours) => {
 
-  if(check_in_time.length && breakTime.length){
-    //勤務時間の合計を再計算
-    const startDate = new Date(`1970-01-01T${check_in_time}`);
-    const endDate = new Date(`1970-01-01T${newOption}`);
-    const diff = endDate - startDate;
-    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-    const all_work_time = `${hours}:${minutes}`;
+    if(newOption === ''){
+      setCheckOut(newOption);
+      const accounts_id = id;
+      const currentDate = date.toISOString().split('T')[0];
 
-    //勤務時間の合計から休憩時間を引く
-    const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
-    const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
-
-    // 日付の有効性をチェック
-    const isValidDate = (date) => date instanceof Date && !isNaN(date);
-    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-      return '計算できませんでした';
-    }
-
-    // 時間の差を計算
-    const diff2 =  checkOllTime - checkBreakTime;
-    const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
-    const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
-    const edit_work =  `${hours2}:${minutes2}`;
-
-    setCheckOut(newOption);
-
-    const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
-
-    const data = {
-      accounts_id,
-      date: currentDate,
-      check_out_time: newOption,
-      work_hours: edit_work
-    };
-    console.log(currentDate);
-    try {
-      const response = await fetch('http://localhost:3000/time', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        // 編集モードを解除
-        setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
-        // 新しいデータを追加
-        setAttendanceData(prev => {
-          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
-          if (existingRecordIndex !== -1) {
-            return prev.map(record => 
-              record.date === currentDate ? { ...record, checkOut: newOption } : record
-            );
-          } else {
-            return [...prev, data];
-          }
+      const data = {
+        accounts_id,
+        date: currentDate,
+        check_out_time: '',
+      };
+      console.log(currentDate);
+      try {
+        const response = await fetch('http://localhost:3000/time', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
         });
-        
-      } else {
+        if (response.ok) {
+          // 編集モードを解除
+          setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
+          // 新しいデータを追加
+          setAttendanceData(prev => {
+            const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+            if (existingRecordIndex !== -1) {
+              return prev.map(record => 
+                record.date === currentDate ? { ...record, checkOut: newOption } : record
+              );
+            } else {
+              return [...prev, data];
+            }
+          });
+          
+        } else {
+          alert('データの保存に失敗しました');
+        }
+      } catch (error) {
+        console.error('Error saving data:', error);
         alert('データの保存に失敗しました');
       }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('データの保存に失敗しました');
-    }
-  }else if(check_in_time.length){
-    //勤務時間の合計を再計算
-    const startDate = new Date(`1970-01-01T${check_in_time}`);
-    const endDate = new Date(`1970-01-01T${newOption}`);
-    const diff = endDate - startDate;
-    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-    const all_work_time = `${hours}:${minutes}`;
-
-    setCheckOut(newOption);
-
-    const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
-
-    const data = {
-      accounts_id,
-      date: currentDate,
-      check_out_time: newOption,
-      work_hours: all_work_time
-    };
-    console.log(currentDate);
-    try {
-      const response = await fetch('http://localhost:3000/time', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        // 編集モードを解除
-        setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
-        // 新しいデータを追加
-        setAttendanceData(prev => {
-          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
-          if (existingRecordIndex !== -1) {
-            return prev.map(record => 
-              record.date === currentDate ? { ...record, checkOut: newOption } : record
-            );
+    }else{
+      if(check_in_time.length && breakTime.length){
+        //勤務時間の合計を再計算
+        const startDate = new Date(`1970-01-01T${check_in_time}`);
+        const endDate = new Date(`1970-01-01T${newOption}`);
+        const diff = endDate - startDate;
+        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+        const all_work_time = `${hours}:${minutes}`;
+  
+        //勤務時間の合計から休憩時間を引く
+        const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
+        const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
+  
+        // 日付の有効性をチェック
+        const isValidDate = (date) => date instanceof Date && !isNaN(date);
+        if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
+          return '計算できませんでした';
+        }
+  
+        // 時間の差を計算
+        const diff2 =  checkOllTime - checkBreakTime;
+        const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
+        const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
+        const edit_work =  `${hours2}:${minutes2}`;
+  
+        setCheckOut(newOption);
+  
+        const accounts_id = id;
+        const currentDate = date.toISOString().split('T')[0];
+  
+        const data = {
+          accounts_id,
+          date: currentDate,
+          check_out_time: newOption,
+          work_hours: edit_work
+        };
+        console.log(currentDate);
+        try {
+          const response = await fetch('http://localhost:3000/time', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (response.ok) {
+            // 編集モードを解除
+            setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
+            // 新しいデータを追加
+            setAttendanceData(prev => {
+              const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+              if (existingRecordIndex !== -1) {
+                return prev.map(record => 
+                  record.date === currentDate ? { ...record, checkOut: newOption } : record
+                );
+              } else {
+                return [...prev, data];
+              }
+            });
+            
           } else {
-            return [...prev, data];
+            alert('データの保存に失敗しました');
           }
+        } catch (error) {
+          console.error('Error saving data:', error);
+          alert('データの保存に失敗しました');
+        }
+      }else if(check_in_time.length){
+        //勤務時間の合計を再計算
+        const startDate = new Date(`1970-01-01T${check_in_time}`);
+        const endDate = new Date(`1970-01-01T${newOption}`);
+        const diff = endDate - startDate;
+        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+        const all_work_time = `${hours}:${minutes}`;
+  
+        setCheckOut(newOption);
+  
+        const accounts_id = id;
+        const currentDate = date.toISOString().split('T')[0];
+  
+        const data = {
+          accounts_id,
+          date: currentDate,
+          check_out_time: newOption,
+          work_hours: all_work_time
+        };
+        console.log(currentDate);
+        try {
+          const response = await fetch('http://localhost:3000/time', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (response.ok) {
+            // 編集モードを解除
+            setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
+            // 新しいデータを追加
+            setAttendanceData(prev => {
+              const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+              if (existingRecordIndex !== -1) {
+                return prev.map(record => 
+                  record.date === currentDate ? { ...record, checkOut: newOption } : record
+                );
+              } else {
+                return [...prev, data];
+              }
+            });
+            
+          } else {
+            alert('データの保存に失敗しました');
+          }
+        } catch (error) {
+          console.error('Error saving data:', error);
+          alert('データの保存に失敗しました');
+        }
+      }
+    }
+  };
+
+  const toggleCheckOutEditing = (date) => {
+    setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+
+  //休憩時間の編集
+  const handleBreakChange = async (date, newOption, check_in_time , check_out_time , work_hours) => {
+
+    if(newOption === ''){
+      setBreakTimeEdit(newOption);
+
+      const accounts_id = id;
+      const currentDate = date.toISOString().split('T')[0];
+
+      const data = {
+        accounts_id,
+        date: currentDate,
+        break_time: '',
+      };
+      
+      try {
+        const response = await fetch('http://localhost:3000/time', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
         });
-        
-      } else {
+        if (response.ok) {
+          // 編集モードを解除
+          setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+          // 新しいデータを追加
+          setAttendanceData(prev => {
+            const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+            if (existingRecordIndex !== -1) {
+              return prev.map(record => 
+                record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
+              );
+            } else {
+              return [...prev, data];
+            }
+          });
+          
+        } else {
+          alert('データの保存に失敗しました');
+        }
+      } catch (error) {
+        console.error('Error saving data:', error);
         alert('データの保存に失敗しました');
       }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('データの保存に失敗しました');
-    }
+    }else{
+      if(work_hours.length ){
 
-  }else {
-    setCheckOut(newOption);
-
-    const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
-
-    const data = {
-      accounts_id,
-      date: currentDate,
-      check_out_time: newOption,
-    };
-    console.log(currentDate);
-    try {
-      const response = await fetch('http://localhost:3000/time', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        // 編集モードを解除
-        setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
-        // 新しいデータを追加
-        setAttendanceData(prev => {
-          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
-          if (existingRecordIndex !== -1) {
-            return prev.map(record => 
-              record.date === currentDate ? { ...record, checkOut: newOption } : record
-            );
-          } else {
-            return [...prev, data];
-          }
-        });
+        //勤務時間の合計を再計算
+        const startDate = new Date(`1970-01-01T${check_in_time}`);
+        const endDate = new Date(`1970-01-01T${check_out_time}`);
+        const diff = endDate - startDate;
+        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+        const all_work_time = `${hours}:${minutes}`;
+  
+        //勤務時間の合計から休憩時間を引く
+        const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
+        const checkBreakTime = new Date(`1970-01-01T${newOption}`);
+  
+        // 日付の有効性をチェック
+        const isValidDate = (date) => date instanceof Date && !isNaN(date);
+        if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
+          return '計算できませんでした';
+        }
+  
+        // 時間の差を計算
+        const diff2 =  checkOllTime - checkBreakTime;
+        const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
+        const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
+        const edit_work =  `${hours2}:${minutes2}`;
+  
+        setBreakTimeEdit(newOption);
+  
+        const accounts_id = id;
+        const currentDate = date.toISOString().split('T')[0];
+  
+        const data = {
+          accounts_id,
+          date: currentDate,
+          break_time: newOption,
+          work_hours: edit_work
+        };
         
-      } else {
-        alert('データの保存に失敗しました');
-      }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('データの保存に失敗しました');
-    }
-  }
-};
-
-const toggleCheckOutEditing = (date) => {
-  setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
-};
-
-
- //休憩時間の編集
-const handleBreakChange = async (date, newOption, check_in_time , check_out_time , work_hours) => {
-
-  if(check_in_time.length && check_out_time.length && work_hours.length ){
-
-    //勤務時間の合計を再計算
-    const startDate = new Date(`1970-01-01T${check_in_time}`);
-    const endDate = new Date(`1970-01-01T${check_out_time}`);
-    const diff = endDate - startDate;
-    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-    const all_work_time = `${hours}:${minutes}`;
-
-    //勤務時間の合計から休憩時間を引く
-    const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
-    const checkBreakTime = new Date(`1970-01-01T${newOption}`);
-
-    // 日付の有効性をチェック
-    const isValidDate = (date) => date instanceof Date && !isNaN(date);
-    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-      return '計算できませんでした';
-    }
-
-    // 時間の差を計算
-    const diff2 =  checkOllTime - checkBreakTime;
-    const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
-    const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
-    const edit_work =  `${hours2}:${minutes2}`;
-
-    setBreakTimeEdit(newOption);
-
-    const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
-
-    const data = {
-      accounts_id,
-      date: currentDate,
-      break_time: newOption,
-      work_hours: edit_work
-    };
-    
-    try {
-      const response = await fetch('http://localhost:3000/time', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        // 編集モードを解除
-        setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
-        // 新しいデータを追加
-        setAttendanceData(prev => {
-          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
-          if (existingRecordIndex !== -1) {
-            return prev.map(record => 
-              record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
-            );
+        try {
+          const response = await fetch('http://localhost:3000/time', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (response.ok) {
+            // 編集モードを解除
+            setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+            // 新しいデータを追加
+            setAttendanceData(prev => {
+              const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+              if (existingRecordIndex !== -1) {
+                return prev.map(record => 
+                  record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
+                );
+              } else {
+                return [...prev, data];
+              }
+            });
+            
           } else {
-            return [...prev, data];
+            alert('データの保存に失敗しました');
           }
-        });
+        } catch (error) {
+          console.error('Error saving data:', error);
+          alert('データの保存に失敗しました');
+        }
+      }if(check_in_time.length ){
+  
+        setBreakTimeEdit(newOption);
+  
+        const accounts_id = id;
+        const currentDate = date.toISOString().split('T')[0];
+  
+        const data = {
+          accounts_id,
+          date: currentDate,
+          break_time: newOption,
+        };
         
-      } else {
-        alert('データの保存に失敗しました');
+        try {
+          const response = await fetch('http://localhost:3000/time', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (response.ok) {
+            // 編集モードを解除
+            setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+            // 新しいデータを追加
+            setAttendanceData(prev => {
+              const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+              if (existingRecordIndex !== -1) {
+                return prev.map(record => 
+                  record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
+                );
+              } else {
+                return [...prev, data];
+              }
+            });
+            
+          } else {
+            alert('データの保存に失敗しました');
+          }
+        } catch (error) {
+          console.error('Error saving data:', error);
+          alert('データの保存に失敗しました');
+        }
       }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('データの保存に失敗しました');
+      // else{
+      //   setBreakTimeEdit(newOption);
+      //   setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+      //   const accounts_id = id;
+      //   const currentDate = date.toISOString().split('T')[0];
+  
+      //   const data = {
+      //     accounts_id,
+      //     date: currentDate,
+      //     break_time: newOption,
+      //     work_hours: ''
+      //   };
+      //   console.log('データが無い場合');
+      //   try {
+      //     const response = await fetch('http://localhost:3000/time', {
+      //       method: 'POST',
+      //       headers: {
+      //         'Content-Type': 'application/json'
+      //       },
+      //       body: JSON.stringify(data)
+      //     });
+      //     if (response.ok) {
+      //       // 編集モードを解除
+      //       setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
+      //       // 新しいデータを追加
+      //       setAttendanceData(prev => {
+      //         const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+      //         if (existingRecordIndex !== -1) {
+      //           return prev.map(record => 
+      //             record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
+      //           );
+      //         } else {
+      //           return [...prev, data];
+      //         }
+      //       });
+      //     } else {
+      //       alert('データの保存に失敗しました');
+      //     }
+      //   } catch (error) {
+      //     console.error('Error saving data:', error);
+      //     alert('データの保存に失敗しました');
+      //   }
+      // }
     }
+  };
 
-  }else{
-    
-    setBreakTimeEdit(newOption);
-    setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
-    // const accounts_id = id;
-    // const currentDate = date.toISOString().split('T')[0];
-
-    // const data = {
-    //   accounts_id,
-    //   date: currentDate,
-    //   break_time: newOption,
-    //   work_hours: ''
-    // };
-    // console.log('データが無い場合');
-    // try {
-    //   const response = await fetch('http://localhost:3000/time', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify(data)
-    //   });
-    //   if (response.ok) {
-    //     // 編集モードを解除
-    //     setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
-    //     // 新しいデータを追加
-    //     setAttendanceData(prev => {
-    //       const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
-    //       if (existingRecordIndex !== -1) {
-    //         return prev.map(record => 
-    //           record.date === currentDate ? { ...record, breakTimeEdit: newOption } : record
-    //         );
-    //       } else {
-    //         return [...prev, data];
-    //       }
-    //     });
-    //   } else {
-    //     alert('データの保存に失敗しました');
-    //   }
-    // } catch (error) {
-    //   console.error('Error saving data:', error);
-    //   alert('データの保存に失敗しました');
-    // }
-  }
-};
-
-const toggleBreakEditing = (date) => {
-  setEditingBreak(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
-};
+  const toggleBreakEditing = (date) => {
+    setEditingBreak(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
 
 
 

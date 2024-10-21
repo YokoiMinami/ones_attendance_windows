@@ -389,6 +389,12 @@ html {
   width: 100%;
   text-align: center;
   margin-top: 50px;
+  margin-bottom: 10px;
+}
+
+#expenses_button_area {
+  width: 100%;
+  text-align: center;
   margin-bottom: 100px;
 }
 
@@ -532,6 +538,7 @@ html {
   margin-top: 80px;
   text-align: left;
   margin-left: -22%;
+  margin-bottom: 80px;
 }
 
 #account_top_link {
@@ -780,6 +787,77 @@ html {
 #team_error2 {
   margin-top: 14px;
 }
+
+
+
+/* 交通費精算ページ */
+#expenses_page {
+  width: 100%;
+  background-color: #eeeeee;
+  margin-top: 50px;
+  font-family: "Yu Gothic Medium","遊ゴシック Medium",YuGothic,"遊ゴシック体","ヒラギノ角ゴ Pro W3",sans-serif;
+  color: #808080;
+  padding: 0;
+  text-align: center;
+  align-items: center;
+  width: 100%;
+}
+
+#expenses_user_area {
+  width: 100%;
+  text-align: left;
+}
+
+#expenses_at_ym {
+  width: 80%;
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: right;
+}
+
+#expenses_H2_area {
+  width: 80%;
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: right;
+}
+
+#expenses_table_area {
+  width: 100%;
+  margin: auto;
+}
+
+#expenses_table {
+  width: 80%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  table-layout: fixed;
+  margin: auto;
+  border: 1px solid #266ebd;
+}
+
+#expenses_Th {
+  background-color: #266ebd;
+  color: white;
+}
+
+/* テーブルの1段目と2段目の間に白い線を引くスタイル */
+.expenses-table thead tr + tr th {
+  border-top: 1px solid white; /* 線の色と太さを指定 */
+}
+
+
+
+
+
+
+
+
+
+
+
 
 /* メンバー詳細ページ */
 #member_data_page {

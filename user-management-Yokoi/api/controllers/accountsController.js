@@ -116,16 +116,28 @@ const newData = async (req, res, db) => {
 
 const delData = (req, res, db) => {
   const { id } = req.body;
-  db('accounts').where({ id }).del()
-  .then(() => {
-    res.json({
-      delete: 'true'
-    });
+
+  // トランザクションを使用して複数の削除操作を実行
+  db.transaction(trx => {
+    trx('attendance').where({ accounts_id: id }).del()
+      .then(() => {
+        return trx('overdata').where({ accounts_id: id }).del();
+      })
+      .then(() => {
+        return trx('projectdata').where({ accounts_id: id }).del();
+      })
+      .then(() => {
+        return trx('accounts').where({ id }).del();
+      })
+      .then(trx.commit)
+      .catch(trx.rollback);
   })
-  .catch(err => res.status(400).json({
-    dbError: 'error'
-  }));
-}
+  .then(() => {
+    res.json({ delete: 'true' });
+  })
+  .catch(err => res.status(400).json({ dbError: 'error' }));
+};
+
 
 const attData = async (req, res, db) => {
   const { accounts_id, date, check_in_time, check_out_time, break_time, work_hours, remarks1, remarks2, out_remarks1, out_remarks2 } = req.body;
@@ -417,7 +429,7 @@ const newTime = async (req, res, db) => {
 
   if(remarksUser){
     if(check_in_time === ''){
-      await db('attendance').where({ accounts_id, date }).update({ check_in_time: null, check_out_time: null, work_hours: null })
+      await db('attendance').where({ accounts_id, date }).update({ check_in_time: null, break_time: null, check_out_time: null, work_hours: null })
     .returning('*')
     .then(item => {
     res.json(item);
@@ -426,7 +438,16 @@ const newTime = async (req, res, db) => {
       dbError: 'error'
     }));
     }else if(check_out_time === ''){
-      await db('attendance').where({ accounts_id, date }).update({ check_out_time: null, work_hours: null })
+      await db('attendance').where({ accounts_id, date }).update({ break_time: null, check_out_time: null, work_hours: null })
+      .returning('*')
+      .then(item => {
+      res.json(item);
+      })
+      .catch(err => res.status(400).json({
+        dbError: 'error'
+      }));
+    }else if(break_time === ''){
+      await db('attendance').where({ accounts_id, date }).update({ break_time: null, check_out_time: null, work_hours: null })
       .returning('*')
       .then(item => {
       res.json(item);

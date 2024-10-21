@@ -1,6 +1,6 @@
 import React, { useEffect, useState,useRef } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import Dropdown from './AttendancePull';
@@ -36,6 +36,12 @@ const AttendanceTablePage = ( ) => {
   const [remarks2, setRemarks2] = useState(''); 
   const [out_set_remarks1, setOutRemarks1] = useState(''); 
   const [out_set_remarks2, setOutRemarks2] = useState(''); 
+
+  const navigate = useNavigate();
+
+  const expensesClick = () => {
+    navigate('/expenses');
+  };
   
   //ユーザー情報を取得
   useEffect(() => {
@@ -689,6 +695,9 @@ const holidays = getHolidaysInMonth(year, month);
           <div id='excel_button_area'>
             <button className='all_button' id='excel_button' onClick={exportToExcel}>Excel 出力</button>
           </div>
+          <div id='expenses_button_area'>
+            <button className='all_button' id='expenses_button' onClick={expensesClick}>交通費精算</button>
+          </div>
           <div id='at_h3'>
             <h3>ユーザー情報</h3>
           </div>
@@ -842,7 +851,6 @@ const holidays = getHolidaysInMonth(year, month);
                       record ? formatRemarks(record.remarks2) : ''
                     )}
                   </td>
-                  {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '-' }}></td> */}
                   <td>{record ? formatTime(record.check_out_time) : ''}</td>
                   <td onClick={() => toggleOutEditing(date)}>
                     {isEditingOut ? (
@@ -871,7 +879,6 @@ const holidays = getHolidaysInMonth(year, month);
                       record ? formatRemarks(record.out_remarks2) : ''
                     )}
                   </td>
-                  {/* <td className='remarks2-td' style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '-' }}></td> */}
                   <td>{record ? formatTime(record.break_time) : ''}</td>
                   <td>{record ? formatTime(record.work_hours) : ''}</td>
                 </tr>
