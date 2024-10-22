@@ -37,9 +37,11 @@ const ExpensesPage = ( ) => {
   const [stay, setStay] = useState(''); //宿泊費
   const [editingStay, setEditingStay] = useState({}); //宿泊費の編集モードを管理するステート
 
+  const [expensesRemarks, setExpensesRemarks] = useState(''); //備考
+  const [editingExpensesRemarks, setEditingExpensesRemarks] = useState({}); //備考の編集モードを管理するステート
+
 
   const [dateTotal, setDateTotal] = useState(0); //交通費の合計
-
   const [totalExpenses, setTotalExpenses] = useState(0); //全ての合計
 
 
@@ -85,7 +87,7 @@ const ExpensesPage = ( ) => {
       }
     };
     fetchExpenses();
-  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks]);
 
 
   // 交通費情報を検索する関数
@@ -136,7 +138,7 @@ const ExpensesPage = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]); //monthが変更されるたびに実行する
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks]); //monthが変更されるたびに実行する
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -523,18 +525,7 @@ const ExpensesPage = ( ) => {
     }
   }, [editingOther])
 
-
-
-
-
-
-
-
-
-
-
-
-  //その他の編集
+  //宿泊費の編集
   const handleStayChange = (newOption) => {
     setStay(newOption);
   };
@@ -588,6 +579,70 @@ const ExpensesPage = ( ) => {
       inputRef7.current.focus();
     }
   }, [editingStay])
+
+
+
+
+
+
+
+
+
+  //備考の編集
+  const handleRemarksChange = (newOption) => {
+    setExpensesRemarks(newOption);
+  };
+
+  const handleRemarksSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      expenses_remarks: expensesRemarks
+    };
+    try {
+      const response = await fetch('http://localhost:3000/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingExpensesRemarks(expensesRemarks);
+      
+      if (response.ok) {
+        setExpensesData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, expensesRemarks } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing8 = (date) => {
+    setEditingExpensesRemarks(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef8 = useRef(null);
+
+  useEffect(() => {
+    if (editingExpensesRemarks && inputRef8.current) {
+      inputRef8.current.focus();
+    }
+  }, [editingExpensesRemarks])
+
 
 
 
@@ -671,6 +726,7 @@ const formatRemarks = (remarks) => {
             const isEditing5 = editingAircraft[date.toISOString()];
             const isEditing6 = editingOther[date.toISOString()];
             const isEditing7 = editingStay[date.toISOString()];
+            const isEditing8 = editingExpensesRemarks[date.toISOString()];
             
             return (
               <tr key={date.toISOString()} className={dayClass}>
@@ -797,7 +853,23 @@ const formatRemarks = (remarks) => {
                   )}
                 </td>
                 <td>{grandTotal(record) > 0 ? grandTotal(record) : ''}</td>
-                <td></td>
+                <td onClick={() => toggleEditing8(date)}>
+                  {isEditing8 ? (
+                    <input
+                      ref={inputRef8}
+                      type="text"
+                      placeholder=''
+                      className='remarks2-td'
+                      style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      value={expensesRemarks}
+                      onChange={(e) => handleRemarksChange(e.target.value)}
+                      onClick={() => handleRemarksSave(date)}  
+                      onBlur={() => handleRemarksSave(date)}
+                    />
+                  ) : (
+                    record ? record.expenses_remarks : ''
+                  )}
+                </td>
               </tr>
             );
           })}
