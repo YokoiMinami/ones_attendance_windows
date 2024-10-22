@@ -22,6 +22,21 @@ const ExpensesPage = ( ) => {
   const [train, setTrain] = useState(''); //電車
   const [editingTrain, setEditingTrain] = useState({}); //電車の編集モードを管理するステート
 
+  const [bus, setBus] = useState(''); //バス
+  const [editingBus, setEditingBus] = useState({}); //バスの編集モードを管理するステート
+
+  const [tax, setTax] = useState(''); //タクシー
+  const [editingTax, setEditingTax] = useState({}); //タクシーの編集モードを管理するステート
+
+  const [aircraft, setAircraft] = useState(''); //航空機
+  const [editingAircraft, setEditingAircraft] = useState({}); //航空機の編集モードを管理するステート
+
+  const [other, setOther] = useState(''); //その他
+  const [editingOther, setEditingOther] = useState({}); //その他の編集モードを管理するステート
+
+  const [totalExpenses, setTotalExpenses] = useState(0); //交通費合計
+
+
 
   //ユーザー情報を取得
   useEffect(() => {
@@ -64,7 +79,7 @@ const ExpensesPage = ( ) => {
       }
     };
     fetchExpenses();
-  }, [year, month, editingDestination]);
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]);
 
   useEffect(() => {
     console.log(expensesData); // expensesDataの変更を監視
@@ -80,7 +95,7 @@ const ExpensesPage = ( ) => {
       const recordDate = new Date(record.date).toLocaleDateString('en-CA');
       // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
       return recordDate === formattedDate;
-    })|| { date: formattedDate, destination: '' }; // デフォルトの空の特記を返す;
+    })|| { date: formattedDate, destination: '', train:'' }; // デフォルトの空の特記を返す;
   };
 
   //表を出力
@@ -118,7 +133,7 @@ const ExpensesPage = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year, month, editingDestination]); //monthが変更されるたびに実行する
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]); //monthが変更されるたびに実行する
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -181,21 +196,308 @@ const ExpensesPage = ( ) => {
       inputRef.current.focus();
     }
   }, [editingDestination]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   
+  //電車の編集
+  const handleTrainChange = (newOption) => {
+    setTrain(newOption);
+  };
+
+  const handleTrainSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      train: train
+    };
+    try {
+      const response = await fetch('http://localhost:3000/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingTrain(train);
+      
+      if (response.ok) {
+        setExpensesData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, train } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing2 = (date) => {
+    setEditingTrain(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef2 = useRef(null);
+
+  useEffect(() => {
+    if (editingTrain && inputRef2.current) {
+      inputRef2.current.focus();
+    }
+  }, [editingTrain]);
+
+  //バスの編集
+  const handleBusChange = (newOption) => {
+    setBus(newOption);
+  };
+
+  const handleBusSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      bus: bus
+    };
+    try {
+      const response = await fetch('http://localhost:3000/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingBus(bus);
+      
+      if (response.ok) {
+        setExpensesData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, bus } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing3 = (date) => {
+    setEditingBus(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef3 = useRef(null);
+
+  useEffect(() => {
+    if (editingBus && inputRef3.current) {
+      inputRef3.current.focus();
+    }
+  }, [editingBus]);
+
+  //タクシーの編集
+  const handleTaxChange = (newOption) => {
+    setTax(newOption);
+  };
+
+  const handleTaxSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      tax: tax
+    };
+    try {
+      const response = await fetch('http://localhost:3000/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingTax(tax);
+      
+      if (response.ok) {
+        setExpensesData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, tax } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing4 = (date) => {
+    setEditingTax(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef4 = useRef(null);
+
+  useEffect(() => {
+    if (editingTax && inputRef4.current) {
+      inputRef4.current.focus();
+    }
+  }, [editingTax])
+
+  //航空機の編集
+  const handleAircraftChange = (newOption) => {
+    setAircraft(newOption);
+  };
+
+  const handleAircraftSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      aircraft: aircraft
+    };
+    try {
+      const response = await fetch('http://localhost:3000/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingAircraft(aircraft);
+      
+      if (response.ok) {
+        setExpensesData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, aircraft } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing5 = (date) => {
+    setEditingAircraft(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef5 = useRef(null);
+
+  useEffect(() => {
+    if (editingAircraft && inputRef5.current) {
+      inputRef5.current.focus();
+    }
+  }, [editingAircraft])
+
+  //その他の編集
+  const handleOtherChange = (newOption) => {
+    setOther(newOption);
+  };
+
+  const handleOtherSave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      other: other
+    };
+    try {
+      const response = await fetch('http://localhost:3000/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingOther(other);
+      
+      if (response.ok) {
+        setExpensesData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, other } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing6 = (date) => {
+    setEditingOther(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef6 = useRef(null);
+
+  useEffect(() => {
+    if (editingOther && inputRef6.current) {
+      inputRef6.current.focus();
+    }
+  }, [editingOther])
+
+
+
+  //交通費の合計を計算
+  const calculateTotal = (record) => {
+    const train = parseFloat(record.train) || 0;
+    const bus = parseFloat(record.bus) || 0;
+    const tax = parseFloat(record.tax) || 0;
+    const aircraft = parseFloat(record.aircraft) || 0;
+    const other = parseFloat(record.other) || 0;
+    return train + bus + tax + aircraft + other;
+  };
+
+  useEffect(() => {
+    const calculateTotalExpenses = () => {
+      let total = 0;
+      expensesData.forEach(record => {
+        total += calculateTotal(record);
+      });
+      setTotalExpenses(total);
+    };
+    calculateTotalExpenses();
+  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]);
+
+
+
+
 
 // 「。」を改行タグに置き換える関数
 const formatRemarks = (remarks) => {
@@ -267,10 +569,12 @@ const formatRemarks = (remarks) => {
             const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
             const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
             const isEditing = editingDestination[date.toISOString()];
-            // const isEditing = editingRemarks[date.toISOString()];
+            const isEditing2 = editingTrain[date.toISOString()];
+            const isEditing3 = editingBus[date.toISOString()];
+            const isEditing4 = editingTax[date.toISOString()];
+            const isEditing5 = editingAircraft[date.toISOString()];
+            const isEditing6 = editingOther[date.toISOString()];
             
-            // const isEditingOut = editingOutRemarks[date.toISOString()];
-            // const isEditingOut2 = editingOutRemarks2[date.toISOString()];
 
             return (
               <tr key={date.toISOString()} className={dayClass}>
@@ -293,12 +597,92 @@ const formatRemarks = (remarks) => {
                     record ? formatRemarks(record.route) : ''
                   )}
                 </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td onClick={() => toggleEditing2(date)}>
+                  {isEditing2 ? (
+                    <input
+                      ref={inputRef2}
+                      type="text"
+                      placeholder=''
+                      className='remarks2-td'
+                      style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      value={train}
+                      onChange={(e) => handleTrainChange(e.target.value)}
+                      onClick={() => handleTrainSave(date)}  
+                      onBlur={() => handleTrainSave(date)}
+                    />
+                  ) : (
+                    record ? record.train : ''
+                  )}
+                </td>
+                <td onClick={() => toggleEditing3(date)}>
+                  {isEditing3 ? (
+                    <input
+                      ref={inputRef3}
+                      type="text"
+                      placeholder=''
+                      className='remarks2-td'
+                      style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      value={bus}
+                      onChange={(e) => handleBusChange(e.target.value)}
+                      onClick={() => handleBusSave(date)}  
+                      onBlur={() => handleBusSave(date)}
+                    />
+                  ) : (
+                    record ? record.bus : ''
+                  )}
+                </td>
+                <td onClick={() => toggleEditing4(date)}>
+                  {isEditing4 ? (
+                    <input
+                      ref={inputRef4}
+                      type="text"
+                      placeholder=''
+                      className='remarks2-td'
+                      style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      value={tax}
+                      onChange={(e) => handleTaxChange(e.target.value)}
+                      onClick={() => handleTaxSave(date)}  
+                      onBlur={() => handleTaxSave(date)}
+                    />
+                  ) : (
+                    record ? record.tax : ''
+                  )}
+                </td>
+                <td onClick={() => toggleEditing5(date)}>
+                  {isEditing5 ? (
+                    <input
+                      ref={inputRef5}
+                      type="text"
+                      placeholder=''
+                      className='remarks2-td'
+                      style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      value={aircraft}
+                      onChange={(e) => handleAircraftChange(e.target.value)}
+                      onClick={() => handleAircraftSave(date)}  
+                      onBlur={() => handleAircraftSave(date)}
+                    />
+                  ) : (
+                    record ? record.aircraft : ''
+                  )}
+                </td>
+                <td onClick={() => toggleEditing6(date)}>
+                  {isEditing6 ? (
+                    <input
+                      ref={inputRef6}
+                      type="text"
+                      placeholder=''
+                      className='remarks2-td'
+                      style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      value={other}
+                      onChange={(e) => handleOtherChange(e.target.value)}
+                      onClick={() => handleOtherSave(date)}  
+                      onBlur={() => handleOtherSave(date)}
+                    />
+                  ) : (
+                    record ? record.other : ''
+                  )}
+                </td>
+                <td>{calculateTotal(record) > 0 ? calculateTotal(record) : ''}</td>
                 <td></td>
                 <td></td>
                 <td></td>
