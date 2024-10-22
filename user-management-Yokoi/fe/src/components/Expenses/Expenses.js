@@ -34,7 +34,9 @@ const ExpensesPage = ( ) => {
   const [other, setOther] = useState(''); //その他
   const [editingOther, setEditingOther] = useState({}); //その他の編集モードを管理するステート
 
-  const [totalExpenses, setTotalExpenses] = useState(0); //交通費合計
+  const [dateTotal, setDateTotal] = useState(0); //交通費の合計
+
+  const [totalExpenses, setTotalExpenses] = useState(0); //全ての合計
 
 
 
@@ -196,20 +198,44 @@ const ExpensesPage = ( ) => {
       inputRef.current.focus();
     }
   }, [editingDestination]);
+
+  //交通費の合計を計算
+  const calculateTotal = (record) => {
+    const train = parseFloat(record.train) || 0;
+    const bus = parseFloat(record.bus) || 0;
+    const tax = parseFloat(record.tax) || 0;
+    const aircraft = parseFloat(record.aircraft) || 0;
+    const other = parseFloat(record.other) || 0;
+    return train + bus + tax + aircraft + other;
+  };
+
+  useEffect(() => {
+    const calculateTotalExpenses = () => {
+      let total = 0;
+      expensesData.forEach(record => {
+        total += calculateTotal(record);
+      });
+      setTotalExpenses(total);
+    };
+    calculateTotalExpenses();
+  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]);
+
   
   //電車の編集
   const handleTrainChange = (newOption) => {
     setTrain(newOption);
   };
 
-  const handleTrainSave = async (date) => {
+  const handleTrainSave = async (date,total) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
+  
     const data = {
       accounts_id,
       date: currentDate,
-      train: train
+      train: train,
     };
+  
     try {
       const response = await fetch('http://localhost:3000/expenses', {
         method: 'POST',
@@ -218,14 +244,14 @@ const ExpensesPage = ( ) => {
         },
         body: JSON.stringify(data)
       });
-      setEditingTrain(train);
-      
+      setEditingTrain({});
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
             return prev.map(record => 
-              record.date === currentDate ? { ...record, train } : record
+              record.date === currentDate ? { ...record, train, total } : record
             );
           } else {
             return [...prev, data];
@@ -239,6 +265,7 @@ const ExpensesPage = ( ) => {
       alert('データの保存に失敗しました');
     }
   };
+  
 
   const toggleEditing2 = (date) => {
     setEditingTrain(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
@@ -474,28 +501,7 @@ const ExpensesPage = ( ) => {
 
 
 
-  //交通費の合計を計算
-  const calculateTotal = (record) => {
-    const train = parseFloat(record.train) || 0;
-    const bus = parseFloat(record.bus) || 0;
-    const tax = parseFloat(record.tax) || 0;
-    const aircraft = parseFloat(record.aircraft) || 0;
-    const other = parseFloat(record.other) || 0;
-    return train + bus + tax + aircraft + other;
-  };
-
-  useEffect(() => {
-    const calculateTotalExpenses = () => {
-      let total = 0;
-      expensesData.forEach(record => {
-        total += calculateTotal(record);
-      });
-      setTotalExpenses(total);
-    };
-    calculateTotalExpenses();
-  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]);
-
-
+  
 
 
 
