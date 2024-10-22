@@ -33,6 +33,10 @@ const ExpensesPage = ( ) => {
 
   const [other, setOther] = useState(''); //その他
   const [editingOther, setEditingOther] = useState({}); //その他の編集モードを管理するステート
+  
+  const [stay, setStay] = useState(''); //宿泊費
+  const [editingStay, setEditingStay] = useState({}); //宿泊費の編集モードを管理するステート
+
 
   const [dateTotal, setDateTotal] = useState(0); //交通費の合計
 
@@ -81,11 +85,8 @@ const ExpensesPage = ( ) => {
       }
     };
     fetchExpenses();
-  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]);
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
 
-  useEffect(() => {
-    console.log(expensesData); // expensesDataの変更を監視
-  }, [expensesData]);
 
   // 交通費情報を検索する関数
   const findAttendanceRecord = (date) => {
@@ -135,7 +136,7 @@ const ExpensesPage = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]); //monthが変更されるたびに実行する
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]); //monthが変更されるたびに実行する
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -215,10 +216,33 @@ const ExpensesPage = ( ) => {
       expensesData.forEach(record => {
         total += calculateTotal(record);
       });
-      setTotalExpenses(total);
+      setDateTotal(total);
     };
     calculateTotalExpenses();
-  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther]);
+  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
+
+  //全ての合計を計算
+  const grandTotal = (record) => {
+    const train = parseFloat(record.train) || 0;
+    const bus = parseFloat(record.bus) || 0;
+    const tax = parseFloat(record.tax) || 0;
+    const aircraft = parseFloat(record.aircraft) || 0;
+    const other = parseFloat(record.other) || 0;
+    const stay = parseFloat(record.stay) || 0;
+    return train + bus + tax + aircraft + other + stay;
+  };
+
+  useEffect(() => {
+    const calculateGrandTotal = () => {
+      let total = 0;
+      expensesData.forEach(record => {
+        total += grandTotal(record);
+      });
+      setTotalExpenses(total);
+    };
+    calculateGrandTotal();
+  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
+
 
   
   //電車の編集
@@ -501,6 +525,72 @@ const ExpensesPage = ( ) => {
 
 
 
+
+
+
+
+
+
+
+
+
+  //その他の編集
+  const handleStayChange = (newOption) => {
+    setStay(newOption);
+  };
+
+  const handleStaySave = async (date) => {
+    const accounts_id = localStorage.getItem('user');
+    const currentDate = date.toISOString().split('T')[0];
+    const data = {
+      accounts_id,
+      date: currentDate,
+      stay: stay
+    };
+    try {
+      const response = await fetch('http://localhost:3000/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      setEditingStay(stay);
+      
+      if (response.ok) {
+        setExpensesData(prev => {
+          const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+          if (existingRecordIndex !== -1) {
+            return prev.map(record => 
+              record.date === currentDate ? { ...record, stay } : record
+            );
+          } else {
+            return [...prev, data];
+          }
+        });
+      } else {
+        alert('データの保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('データの保存に失敗しました');
+    }
+  };
+
+  const toggleEditing7 = (date) => {
+    setEditingStay(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  };
+
+  const inputRef7 = useRef(null);
+
+  useEffect(() => {
+    if (editingStay && inputRef7.current) {
+      inputRef7.current.focus();
+    }
+  }, [editingStay])
+
+
+
   
 
 
@@ -580,8 +670,8 @@ const formatRemarks = (remarks) => {
             const isEditing4 = editingTax[date.toISOString()];
             const isEditing5 = editingAircraft[date.toISOString()];
             const isEditing6 = editingOther[date.toISOString()];
+            const isEditing7 = editingStay[date.toISOString()];
             
-
             return (
               <tr key={date.toISOString()} className={dayClass}>
                 <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
@@ -689,8 +779,24 @@ const formatRemarks = (remarks) => {
                   )}
                 </td>
                 <td>{calculateTotal(record) > 0 ? calculateTotal(record) : ''}</td>
-                <td></td>
-                <td></td>
+                <td onClick={() => toggleEditing7(date)}>
+                  {isEditing7 ? (
+                    <input
+                      ref={inputRef7}
+                      type="text"
+                      placeholder=''
+                      className='remarks2-td'
+                      style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                      value={stay}
+                      onChange={(e) => handleStayChange(e.target.value)}
+                      onClick={() => handleStaySave(date)}  
+                      onBlur={() => handleStaySave(date)}
+                    />
+                  ) : (
+                    record ? record.stay : ''
+                  )}
+                </td>
+                <td>{grandTotal(record) > 0 ? grandTotal(record) : ''}</td>
                 <td></td>
               </tr>
             );
