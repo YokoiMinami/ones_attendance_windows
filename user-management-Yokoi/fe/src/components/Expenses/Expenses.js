@@ -13,12 +13,15 @@ const ExpensesPage = ( ) => {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0);
-  const [expensesData, setExpensesData] = useState([]);
-  const [destination, setDestination] = useState(''); //経路
 
-  const [editingRemarks2, setEditingRemarks2] = useState({}); //出勤備考の編集モードを管理するステート
-  const [remarks2, setRemarks2] = useState(''); 
-  //const [editingDestination, setEditingDestination] = useState({}); //経路の編集モードを管理するステート
+  const [expensesData, setExpensesData] = useState([]); //交通費データ
+
+  const [destination, setDestination] = useState(''); //経路
+  const [editingDestination, setEditingDestination] = useState({}); //経路の編集モードを管理するステート
+
+  const [train, setTrain] = useState(''); //電車
+  const [editingTrain, setEditingTrain] = useState({}); //電車の編集モードを管理するステート
+
 
   //ユーザー情報を取得
   useEffect(() => {
@@ -61,14 +64,13 @@ const ExpensesPage = ( ) => {
       }
     };
     fetchExpenses();
-  }, [year, month, editingRemarks2]);
+  }, [year, month, editingDestination]);
 
   useEffect(() => {
     console.log(expensesData); // expensesDataの変更を監視
   }, [expensesData]);
 
   // 交通費情報を検索する関数
-  // 勤怠情報を検索する関数
   const findAttendanceRecord = (date) => {
     // dateオブジェクトをローカルタイムゾーンのYYYY-MM-DD形式に変換
     const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA'はYYYY-MM-DD形式を返す
@@ -78,7 +80,7 @@ const ExpensesPage = ( ) => {
       const recordDate = new Date(record.date).toLocaleDateString('en-CA');
       // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
       return recordDate === formattedDate;
-    })|| { date: formattedDate, remarks2: '' }; // デフォルトの空の特記を返す;
+    })|| { date: formattedDate, destination: '' }; // デフォルトの空の特記を返す;
   };
 
   //表を出力
@@ -116,7 +118,7 @@ const ExpensesPage = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year, month, editingRemarks2]); //monthが変更されるたびに実行する
+  }, [year, month, editingDestination]); //monthが変更されるたびに実行する
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -126,18 +128,17 @@ const ExpensesPage = ( ) => {
   };
 
   //経路の編集
-  //出勤備考の編集
-  const handleRemarksChange2 = (newOption) => {
-    setRemarks2(newOption);
+  const handleRouteChange = (newOption) => {
+    setDestination(newOption);
   };
   
-  const handleRemarksSave = async (date) => {
+  const handleRouteSave = async (date) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
-      route: remarks2
+      route: destination
     };
     try {
       const response = await fetch('http://localhost:3000/expenses', {
@@ -147,15 +148,14 @@ const ExpensesPage = ( ) => {
         },
         body: JSON.stringify(data)
       });
-      setEditingRemarks2(remarks2);
-      console.log(remarks2);
+      setEditingDestination(destination);
+      
       if (response.ok) {
-        //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
             return prev.map(record => 
-              record.date === currentDate ? { ...record, remarks2 } : record
+              record.date === currentDate ? { ...record, destination } : record
             );
           } else {
             return [...prev, data];
@@ -170,17 +170,32 @@ const ExpensesPage = ( ) => {
     }
   };
   
-  const toggleEditing2 = (date) => {
-    setEditingRemarks2(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
+  const toggleEditing = (date) => {
+    setEditingDestination(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
 
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (editingRemarks2 && inputRef.current) {
+    if (editingDestination && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [editingRemarks2]);
+  }, [editingDestination]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 // 「。」を改行タグに置き換える関数
 const formatRemarks = (remarks) => {
@@ -251,8 +266,9 @@ const formatRemarks = (remarks) => {
             const record = findAttendanceRecord(date);
             const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
             const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
+            const isEditing = editingDestination[date.toISOString()];
             // const isEditing = editingRemarks[date.toISOString()];
-            const isEditing2 = editingRemarks2[date.toISOString()];
+            
             // const isEditingOut = editingOutRemarks[date.toISOString()];
             // const isEditingOut2 = editingOutRemarks2[date.toISOString()];
 
@@ -260,40 +276,23 @@ const formatRemarks = (remarks) => {
               <tr key={date.toISOString()} className={dayClass}>
                 <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
                 <td>{getDayOfWeek(date)}</td>
-                <td onClick={() => toggleEditing2(date)}>
-                    {isEditing2 ? (
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder=''
-                        className='remarks2-td'
-                        style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
-                        value={remarks2}
-                        onChange={(e) => handleRemarksChange2(e.target.value)}
-                        onClick={() => handleRemarksSave(date)}  
-                        onBlur={() => handleRemarksSave(date)}
-                      />
-                    ) : (
-                      record ? formatRemarks(record.route) : ''
-                    )}
-                  </td>
-                {/* <td onClick={() => toggleEditing1(date)}>
+                <td onClick={() => toggleEditing(date)}>
                   {isEditing ? (
                     <input
                       ref={inputRef}
                       type="text"
                       placeholder=''
-                      className='destination-td'
+                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
-                      value={record.route} 
-                      onChange={(e) => handleDestination(e.target.value)}
-                      onClick={() => handleDestinationSave(date)}  
-                      onBlur={() => handleDestinationSave(date)}
+                      value={destination}
+                      onChange={(e) => handleRouteChange(e.target.value)}
+                      onClick={() => handleRouteSave(date)}  
+                      onBlur={() => handleRouteSave(date)}
                     />
                   ) : (
                     record ? formatRemarks(record.route) : ''
                   )}
-                </td> */}
+                </td>
                 <td></td>
                 <td></td>
                 <td></td>
