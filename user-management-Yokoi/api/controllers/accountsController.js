@@ -482,17 +482,24 @@ const newTime = async (req, res, db) => {
 //交通費
 const expensesData = async (req, res, db) => {
   const { accounts_id, month } = req.params;
-    db('expenses')
+  db('expenses')
     .whereRaw('EXTRACT(MONTH FROM date) = ?', [month])
     .andWhere('accounts_id', accounts_id)
     .then(expenses => {
-      res.json(expenses);
+      // 日付をローカルタイムゾーンに変換
+      const adjustedExpenses = expenses.map(expense => ({
+        ...expense,
+        date: new Date(expense.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
+      }));
+      res.json(adjustedExpenses);
+      console.log(adjustedExpenses);
     })
     .catch(error => {
       console.error('Error fetching attendance data:', error);
       res.status(500).json({ error: 'Internal server error. Please try again later.' });
     });
 };
+
 
 const newExpenses = async (req, res, db) => {
   const { accounts_id, date, route, train, bus, tax, aircraft, other, total, stay, grand_total, expenses_remarks} = req.body;
@@ -516,7 +523,7 @@ const newExpenses = async (req, res, db) => {
       dbError: 'error'
     }));
   }
-}
+};
 
 
 module.exports = {
