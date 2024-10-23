@@ -676,12 +676,27 @@ const AttendanceTablePage = ( ) => {
         row.height = 25;
       }
     });
+
+    // 空のセルにも罫線を適用
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 6) {
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+    });
   
     // バッファを生成してBlobとして保存
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
 };
+
 
 const holidays = getHolidaysInMonth(year, month);
 

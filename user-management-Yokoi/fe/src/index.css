@@ -876,6 +876,19 @@ html {
   color: inherit;
 }
 
+#grand_total_area {
+  width: 80%;
+  text-align: right;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: xx-large;
+}
+
+#grand_total_under {
+  border-bottom: solid 2px;
+}
 
 
 

@@ -255,7 +255,7 @@ const ExpensesPage = ( ) => {
           otherTotal += parseFloat(record.other) || 0;
           stayTotal += parseFloat(record.stay) || 0;
           totalTotal += parseFloat(record.total) || 0;
-          grand_totalTotal += parseFloat(record.grand_totalTotal) || 0;
+          grand_totalTotal += parseFloat(record.grand_total) || 0;
         }
       });
 
@@ -273,8 +273,6 @@ const ExpensesPage = ( ) => {
 
     calculateTotals();
   }, [daysInMonth, findAttendanceRecord]);
-
-
 
   //全ての合計を計算
   const grandTotal = (record) => {
@@ -995,13 +993,14 @@ const formatRemarks = (remarks) => {
             <td>{totals.tax}</td>
             <td>{totals.aircraft}</td>
             <td>{totals.other}</td>
-            <td>{totals.stay}</td>
             <td>{totals.total}</td>
+            <td>{totals.stay}</td>
             <td>{totals.grand_total}</td>
             <td></td>
           </tr>
         </tbody>
         </table>
+        <div id='grand_total_area'>合計金額 : <span id='grand_total_under'>&nbsp;&nbsp;&nbsp;{totals.grand_total} 円&nbsp;&nbsp;&nbsp;</span></div>
       </div>
       <div id='expenses_link_area'>
           <Link to="/attendance_table" id='expenses_link'>← 勤怠一覧ページ</Link>
