@@ -127,6 +127,9 @@ const delData = (req, res, db) => {
         return trx('projectdata').where({ accounts_id: id }).del();
       })
       .then(() => {
+        return trx('expenses').where({ accounts_id: id }).del();
+      })
+      .then(() => {
         return trx('accounts').where({ id }).del();
       })
       .then(trx.commit)
@@ -524,7 +527,6 @@ const newExpenses = async (req, res, db) => {
     }));
   }
 };
-
 
 module.exports = {
   getData,

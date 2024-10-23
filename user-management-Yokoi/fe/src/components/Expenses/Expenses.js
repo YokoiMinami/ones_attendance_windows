@@ -40,8 +40,18 @@ const ExpensesPage = ( ) => {
   const [expensesRemarks, setExpensesRemarks] = useState(''); //備考
   const [editingExpensesRemarks, setEditingExpensesRemarks] = useState({}); //備考の編集モードを管理するステート
 
+  const [totals, setTotals] = useState({
+    train: 0,
+    bus: 0,
+    tax: 0,
+    aircraft: 0,
+    other: 0,
+    stay: 0,
+    total: 0,
+    grand_total: 0
+  }); //各項目の合計
 
-  const [dateTotal, setDateTotal] = useState(0); //交通費の合計
+
   const [totalExpenses, setTotalExpenses] = useState(0); //全ての合計
 
 
@@ -80,7 +90,6 @@ const ExpensesPage = ( ) => {
         const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${month}`);
         const data = await response.json();
         setExpensesData(Array.isArray(data) ? data : []);
-        console.log(data); // APIレスポンスの確認
       } catch (error) {
         console.error('Error fetching attendance data:', error);
         setExpensesData([]);
@@ -213,15 +222,59 @@ const ExpensesPage = ( ) => {
   };
 
   useEffect(() => {
-    const calculateTotalExpenses = () => {
+    const calculateTotalExpenses = async () => {
       let total = 0;
       expensesData.forEach(record => {
         total += calculateTotal(record);
       });
-      setDateTotal(total);
     };
     calculateTotalExpenses();
   }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
+
+
+
+  //各項目の合計
+  useEffect(() => {
+    const calculateTotals = () => {
+      let trainTotal = 0;
+      let busTotal = 0;
+      let taxTotal = 0;
+      let aircraftTotal = 0;
+      let otherTotal = 0;
+      let stayTotal = 0;
+      let totalTotal = 0;
+      let grand_totalTotal = 0;
+
+      daysInMonth.forEach((date) => {
+        const record = findAttendanceRecord(date);
+        if (record) {
+          trainTotal += parseFloat(record.train) || 0;
+          busTotal += parseFloat(record.bus) || 0;
+          taxTotal += parseFloat(record.tax) || 0;
+          aircraftTotal += parseFloat(record.aircraft) || 0;
+          otherTotal += parseFloat(record.other) || 0;
+          stayTotal += parseFloat(record.stay) || 0;
+          totalTotal += parseFloat(record.total) || 0;
+          grand_totalTotal += parseFloat(record.grand_totalTotal) || 0;
+        }
+      });
+
+      setTotals({
+        train: trainTotal,
+        bus: busTotal,
+        tax: taxTotal,
+        aircraft: aircraftTotal,
+        other: otherTotal,
+        stay: stayTotal,
+        total: totalTotal,
+        grand_total: grand_totalTotal
+      });
+    };
+
+    calculateTotals();
+  }, [daysInMonth, findAttendanceRecord]);
+
+
 
   //全ての合計を計算
   const grandTotal = (record) => {
@@ -252,14 +305,25 @@ const ExpensesPage = ( ) => {
     setTrain(newOption);
   };
 
-  const handleTrainSave = async (date,total) => {
+  const handleTrainSave = async (date,bus,tax,aircraft,other,stay) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
-  
+
+    const Train = parseFloat(train) || 0;
+    const Bus = parseFloat(bus) || 0;
+    const Tax = parseFloat(tax) || 0;
+    const Aircraft = parseFloat(aircraft) || 0;
+    const Other = parseFloat(other) || 0;
+    const Stay = parseFloat(stay) || 0;
+    const total = Train + Bus + Tax + Aircraft + Other;
+    const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
+
     const data = {
       accounts_id,
       date: currentDate,
       train: train,
+      total: total,
+      grand_total: grand_total
     };
   
     try {
@@ -277,7 +341,7 @@ const ExpensesPage = ( ) => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
             return prev.map(record => 
-              record.date === currentDate ? { ...record, train, total } : record
+              record.date === currentDate ? { ...record, train } : record
             );
           } else {
             return [...prev, data];
@@ -310,13 +374,25 @@ const ExpensesPage = ( ) => {
     setBus(newOption);
   };
 
-  const handleBusSave = async (date) => {
+  const handleBusSave = async (date,train,tax,aircraft,other,stay) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
+
+    const Train = parseFloat(train) || 0;
+    const Bus = parseFloat(bus) || 0;
+    const Tax = parseFloat(tax) || 0;
+    const Aircraft = parseFloat(aircraft) || 0;
+    const Other = parseFloat(other) || 0;
+    const Stay = parseFloat(stay) || 0;
+    const total = Train + Bus + Tax + Aircraft + Other;
+    const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
+
     const data = {
       accounts_id,
       date: currentDate,
-      bus: bus
+      bus: bus,
+      total: total,
+      grand_total: grand_total
     };
     try {
       const response = await fetch('http://localhost:3000/expenses', {
@@ -365,13 +441,25 @@ const ExpensesPage = ( ) => {
     setTax(newOption);
   };
 
-  const handleTaxSave = async (date) => {
+  const handleTaxSave = async (date,train,bus,aircraft,other,stay) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
+
+    const Train = parseFloat(train) || 0;
+    const Bus = parseFloat(bus) || 0;
+    const Tax = parseFloat(tax) || 0;
+    const Aircraft = parseFloat(aircraft) || 0;
+    const Other = parseFloat(other) || 0;
+    const Stay = parseFloat(stay) || 0;
+    const total = Train + Bus + Tax + Aircraft + Other;
+    const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
+
     const data = {
       accounts_id,
       date: currentDate,
-      tax: tax
+      tax: tax,
+      total: total,
+      grand_total: grand_total
     };
     try {
       const response = await fetch('http://localhost:3000/expenses', {
@@ -420,13 +508,25 @@ const ExpensesPage = ( ) => {
     setAircraft(newOption);
   };
 
-  const handleAircraftSave = async (date) => {
+  const handleAircraftSave = async (date,train,bus,tax,other,stay) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
+
+    const Train = parseFloat(train) || 0;
+    const Bus = parseFloat(bus) || 0;
+    const Tax = parseFloat(tax) || 0;
+    const Aircraft = parseFloat(aircraft) || 0;
+    const Other = parseFloat(other) || 0;
+    const Stay = parseFloat(stay) || 0;
+    const total = Train + Bus + Tax + Aircraft + Other;
+    const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
+
     const data = {
       accounts_id,
       date: currentDate,
-      aircraft: aircraft
+      aircraft: aircraft,
+      total: total,
+      grand_total: grand_total
     };
     try {
       const response = await fetch('http://localhost:3000/expenses', {
@@ -475,13 +575,25 @@ const ExpensesPage = ( ) => {
     setOther(newOption);
   };
 
-  const handleOtherSave = async (date) => {
+  const handleOtherSave = async (date,train,bus,tax,aircraft,stay) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
+
+    const Train = parseFloat(train) || 0;
+    const Bus = parseFloat(bus) || 0;
+    const Tax = parseFloat(tax) || 0;
+    const Aircraft = parseFloat(aircraft) || 0;
+    const Other = parseFloat(other) || 0;
+    const Stay = parseFloat(stay) || 0;
+    const total = Train + Bus + Tax + Aircraft + Other;
+    const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
+
     const data = {
       accounts_id,
       date: currentDate,
-      other: other
+      other: other,
+      total: total,
+      grand_total: grand_total
     };
     try {
       const response = await fetch('http://localhost:3000/expenses', {
@@ -530,13 +642,23 @@ const ExpensesPage = ( ) => {
     setStay(newOption);
   };
 
-  const handleStaySave = async (date) => {
+  const handleStaySave = async (date,train,bus,tax,aircraft,other) => {
     const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
+
+    const Train = parseFloat(train) || 0;
+    const Bus = parseFloat(bus) || 0;
+    const Tax = parseFloat(tax) || 0;
+    const Aircraft = parseFloat(aircraft) || 0;
+    const Other = parseFloat(other) || 0;
+    const Stay = parseFloat(stay) || 0;
+    const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
+
     const data = {
       accounts_id,
       date: currentDate,
-      stay: stay
+      stay: stay,
+      grand_total: grand_total
     };
     try {
       const response = await fetch('http://localhost:3000/expenses', {
@@ -643,13 +765,6 @@ const ExpensesPage = ( ) => {
     }
   }, [editingExpensesRemarks])
 
-
-
-
-  
-
-
-
 // 「。」を改行タグに置き換える関数
 const formatRemarks = (remarks) => {
   if (!remarks) return '';
@@ -686,8 +801,8 @@ const formatRemarks = (remarks) => {
         <table id ='expenses_table' className='expenses-table'>
           <thead id ='expenses_Th'>
             <tr>
-              <th className ='date-column'>日付</th>
-              <th className ='week-column'>曜日</th>
+              <th className ='ex_date-column'>日付</th>
+              <th className ='ex_week-column'>曜日</th>
               <th className ='destination-column'>行先・経路</th>
               <th className='no-column'></th>
               <th className='no-column'></th>
@@ -700,8 +815,8 @@ const formatRemarks = (remarks) => {
               <th className ='expenses_remarks-column'>備考</th>
             </tr>
             <tr>
-              <th className='date-column'></th>
-              <th className ='week-column'></th>
+              <th className='ex_date-column'></th>
+              <th className ='ex_week-column'></th>
               <th className='destination-column'></th>
               <th id ='train-column'>電車</th>
               <th id ='bus-column'>バス</th>
@@ -759,7 +874,7 @@ const formatRemarks = (remarks) => {
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={train}
                       onChange={(e) => handleTrainChange(e.target.value)}
-                      onClick={() => handleTrainSave(date)}  
+                      onClick={() => handleTrainSave(date,record ? record.bus : '', record ? record.tax : '',record ? record.aircraft : '',record ? record.other : '',record ? record.stay : '')}  
                       onBlur={() => handleTrainSave(date)}
                     />
                   ) : (
@@ -776,7 +891,7 @@ const formatRemarks = (remarks) => {
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={bus}
                       onChange={(e) => handleBusChange(e.target.value)}
-                      onClick={() => handleBusSave(date)}  
+                      onClick={() => handleBusSave(date,record ? record.train : '', record ? record.tax : '',record ? record.aircraft : '',record ? record.other : '',record ? record.stay : '')}  
                       onBlur={() => handleBusSave(date)}
                     />
                   ) : (
@@ -793,7 +908,7 @@ const formatRemarks = (remarks) => {
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={tax}
                       onChange={(e) => handleTaxChange(e.target.value)}
-                      onClick={() => handleTaxSave(date)}  
+                      onClick={() => handleTaxSave(date,record ? record.train : '', record ? record.bus : '',record ? record.aircraft : '',record ? record.other : '',record ? record.stay : '')}  
                       onBlur={() => handleTaxSave(date)}
                     />
                   ) : (
@@ -810,7 +925,7 @@ const formatRemarks = (remarks) => {
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={aircraft}
                       onChange={(e) => handleAircraftChange(e.target.value)}
-                      onClick={() => handleAircraftSave(date)}  
+                      onClick={() => handleAircraftSave(date,record ? record.train : '', record ? record.bus : '',record ? record.tax : '',record ? record.other : '',record ? record.stay : '')}  
                       onBlur={() => handleAircraftSave(date)}
                     />
                   ) : (
@@ -827,7 +942,7 @@ const formatRemarks = (remarks) => {
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={other}
                       onChange={(e) => handleOtherChange(e.target.value)}
-                      onClick={() => handleOtherSave(date)}  
+                      onClick={() => handleOtherSave(date,record ? record.train : '', record ? record.bus : '',record ? record.tax : '',record ? record.aircraft : '',record ? record.stay : '')}  
                       onBlur={() => handleOtherSave(date)}
                     />
                   ) : (
@@ -845,7 +960,7 @@ const formatRemarks = (remarks) => {
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={stay}
                       onChange={(e) => handleStayChange(e.target.value)}
-                      onClick={() => handleStaySave(date)}  
+                      onClick={() => handleStaySave(date,record ? record.train : '', record ? record.bus : '',record ? record.tax : '',record ? record.aircraft : '',record ? record.other : '')}  
                       onBlur={() => handleStaySave(date)}
                     />
                   ) : (
@@ -873,8 +988,23 @@ const formatRemarks = (remarks) => {
               </tr>
             );
           })}
+          <tr>
+            <td colSpan="3">合計</td>
+            <td>{totals.train}</td>
+            <td>{totals.bus}</td>
+            <td>{totals.tax}</td>
+            <td>{totals.aircraft}</td>
+            <td>{totals.other}</td>
+            <td>{totals.stay}</td>
+            <td>{totals.total}</td>
+            <td>{totals.grand_total}</td>
+            <td></td>
+          </tr>
         </tbody>
         </table>
+      </div>
+      <div id='expenses_link_area'>
+          <Link to="/attendance_table" id='expenses_link'>← 勤怠一覧ページ</Link>
       </div>
     </div>
   )
