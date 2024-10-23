@@ -36,6 +36,7 @@ const AttendanceTablePage = ( ) => {
   const [remarks2, setRemarks2] = useState(''); 
   const [out_set_remarks1, setOutRemarks1] = useState(''); 
   const [out_set_remarks2, setOutRemarks2] = useState(''); 
+  const [expensesData, setExpensesData] = useState([]); //交通費データ
 
   const navigate = useNavigate();
 
@@ -72,6 +73,23 @@ const AttendanceTablePage = ( ) => {
     };
     fetchAttendance();
   }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]);
+
+  //ユーザーの交通費情報を取得
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      const accounts_id = localStorage.getItem('user');
+      try {
+        const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${month}`);
+        const data = await response.json();
+        setExpensesData(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+        setExpensesData([]);
+      }
+    };
+    fetchExpenses();
+  }, [year, month]);
+
 
   //土日を判定
   const isWeekend = (date) => {
@@ -140,6 +158,19 @@ const AttendanceTablePage = ( ) => {
       // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
       return recordDate === formattedDate;
     })|| { date: formattedDate, remarks1: '' , remarks2: '' ,out_remarks1: '' }; // デフォルトの空の特記を返す;
+  };
+
+  // 交通費情報を検索する関数
+  const findExpensesRecord = (date) => {
+    // dateオブジェクトをローカルタイムゾーンのYYYY-MM-DD形式に変換
+    const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA'はYYYY-MM-DD形式を返す
+    // attendanceData配列内の各recordを検索し、条件に一致する最初の要素を返す
+    return expensesData.find(record => {
+      // record.dateを日付オブジェクトに変換し、ローカルタイムゾーンの日付部分を取得
+      const recordDate = new Date(record.date).toLocaleDateString('en-CA');
+      // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
+      return recordDate === formattedDate;
+    })|| { date: formattedDate, destination: '', train:'' }; // デフォルトの空の特記を返す;
   };
 
   // 時間をhh:mm形式でフォーマットする関数
@@ -582,16 +613,17 @@ const AttendanceTablePage = ( ) => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
     const allDates = [];
+    const allDates2 = [];
   
     for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
       allDates.push(new Date(d));
+      allDates2.push(new Date(d));
     }
   
     const workbook = new ExcelJS.Workbook();
-    const worksheetName = `${year}年${month}月`;
-    const worksheet = workbook.addWorksheet(worksheetName);
+    const worksheet = workbook.addWorksheet('勤怠表');
     
-    // タイトルを追加
+    // 勤怠表のタイトルを追加
     worksheet.mergeCells('A1:J1'); // セルを結合
     const titleCell = worksheet.getCell('A1');
     titleCell.value = '勤務表';
@@ -672,6 +704,10 @@ const AttendanceTablePage = ( ) => {
             };
             cell.alignment = { horizontal: 'center' };
           }
+          // 中央揃えにする列を指定
+          if (![1, 5, 8].includes(colNumber)) {
+            cell.alignment = { horizontal: 'center' };
+          }
         });
         row.height = 25;
       }
@@ -690,11 +726,185 @@ const AttendanceTablePage = ( ) => {
         });
       }
     });
+
+    // 交通費情報を新しいシートに追加
+    const expensesSheet = workbook.addWorksheet('旅費交通費清算書');
+
+    // 交通費清算書のタイトルを追加
+    expensesSheet.mergeCells('A1:L1'); // セルを結合
+    const titleCell2 = expensesSheet.getCell('A1');
+    titleCell2.value = '旅費交通費清算書';
+    titleCell2.font = { size: 20, bold: true };
+    titleCell2.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    expensesSheet.mergeCells('A2:C2'); 
+    const workName2 = expensesSheet.getCell('A2');
+    workName2.value = `氏名 : ${name}`;
+    workName2.font = { size: 18 };
+    workName2.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    expensesSheet.mergeCells('J2:L2'); 
+    const workMonth3 = expensesSheet.getCell('J2');
+    workMonth3.value = `${year}年${month}月`;
+    workMonth3.font = { size: 18 };
+    workMonth3.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    // ヘッダーの1行目
+    expensesSheet.getCell('A4').value = '日付';
+    expensesSheet.getCell('B4').value = '曜日';
+    expensesSheet.getCell('C4').value = '行先・経路';
+    expensesSheet.getCell('D4').value = '交通費';
+    expensesSheet.getCell('J4').value = '宿泊費';
+    expensesSheet.getCell('K4').value = '合計';
+    expensesSheet.getCell('L4').value = '備考';
+
+    expensesSheet.mergeCells('A4:A5'); // 日付
+    expensesSheet.mergeCells('B4:B5'); // 曜日
+    expensesSheet.mergeCells('C4:C5'); // 行先・経路
+    expensesSheet.mergeCells('D4:I4'); // 交通費
+    expensesSheet.mergeCells('J4:J5'); // 宿泊費
+    expensesSheet.mergeCells('K4:K5'); // 合計
+    expensesSheet.mergeCells('L4:L5'); // 備考
+
+    // ヘッダーの2行目
+    expensesSheet.getCell('D5').value = '電車';
+    expensesSheet.getCell('E5').value = 'バス';
+    expensesSheet.getCell('F5').value = 'タクシー';
+    expensesSheet.getCell('G5').value = '航空機';
+    expensesSheet.getCell('H5').value = 'その他';
+    expensesSheet.getCell('I5').value = '計';
+    
+    expensesSheet.columns = [
+      { key: 'date', width: 15 },
+      { key: 'day', width: 10 },
+      { key: 'route', width: 30 },
+      { key: 'train', width: 10 },
+      { key: 'bus', width: 10 },
+      { key: 'tax', width: 10 },
+      { key: 'aircraft', width: 10 },
+      { key: 'other', width: 10 },
+      { key: 'total', width: 10 },
+      { key: 'stay', width: 10 },
+      { key: 'grand_total', width: 10 },
+      { key: 'expenses_remarks', width: 30 }
+    ];
+
+    allDates2.forEach(date => {
+      const record = expensesData.find(record => new Date(record.date).toLocaleDateString('ja-JP') === date.toLocaleDateString('ja-JP'));
+      expensesSheet.addRow({
+        date: date.toLocaleDateString('ja-JP').replace(/\//g, '/'),
+        day: getDayOfWeek(date),
+        route: record ? record.route : null,
+        train: record ? Number(record.train) : null,
+        bus: record ? Number(record.bus) : null,
+        tax: record ? Number(record.tax) : null,
+        aircraft: record ? Number(record.aircraft) : null,
+        other: record ? Number(record.other) : null,
+        total: record ? Number(record.total) : null,
+        stay: record ? Number(record.stay) : null,
+        grand_total: record ? Number(record.grand_total) : null,
+        expenses_remarks: record ? record.expenses_remarks : null
+      });
+    });
+    
+    // スタイルの適用
+    expensesSheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 4) { // 4行目から罫線を適用
+        row.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          if (rowNumber === 4 || rowNumber === 5) {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FF266EBD' }
+            };
+            cell.alignment = { horizontal: 'center' };
+          }
+          // 中央揃えにする列を指定
+          if (![1,12].includes(colNumber)) {
+            cell.alignment = { horizontal: 'center' };
+          }
+        });
+        row.height = 25;
+      }
+    });
+
+    // 空のセルにも罫線を適用
+    expensesSheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 4) {
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+    });
+
+    // 合計行を追加
+    const totalRow = expensesSheet.addRow({
+      date: '',
+      day: '',
+      route: '合計',
+      train: { formula: `SUM(D6:D${expensesSheet.rowCount})` },
+      bus: { formula: `SUM(E6:E${expensesSheet.rowCount})` },
+      tax: { formula: `SUM(F6:F${expensesSheet.rowCount})` },
+      aircraft: { formula: `SUM(G6:G${expensesSheet.rowCount})` },
+      other: { formula: `SUM(H6:H${expensesSheet.rowCount})` },
+      total: { formula: `SUM(I6:I${expensesSheet.rowCount})` },
+      stay: { formula: `SUM(J6:J${expensesSheet.rowCount})` },
+      grand_total: { formula: `SUM(K6:K${expensesSheet.rowCount})` },
+      expenses_remarks: ''
+    });
+
+    // 合計行のスタイルを適用
+    totalRow.eachCell((cell, colNumber) => {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center' };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+
+    // 合計金額を手動で計算
+    let grandTotalSum = 0;
+    for (let i = 6; i <= totalRow.number - 1; i++) {
+      const cellValue = expensesSheet.getCell(`K${i}`).value;
+      if (typeof cellValue === 'number') {
+        grandTotalSum += cellValue;
+      }
+    }
+
+    // 1行開けてJからL列を結合
+    const emptyRowNumber = totalRow.number + 2;
+    expensesSheet.mergeCells(`J${emptyRowNumber}:L${emptyRowNumber}`);
+    const mergedCell = expensesSheet.getCell(`J${emptyRowNumber}`);
+    mergedCell.value = {
+      richText: [
+        { text: '合計金額 : ', font: { size: 18 } },
+        { text: ` ${grandTotalSum} 円`, font: { size: 18, underline: true } }
+      ]
+    };
+    mergedCell.font = { size: 18 };
+    mergedCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+
   
     // バッファを生成してBlobとして保存
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
+    saveAs(blob, `【月末書類】_${userData.fullname}_${userData.company}_${year}_${month}_.xlsx`);
 };
 
 
