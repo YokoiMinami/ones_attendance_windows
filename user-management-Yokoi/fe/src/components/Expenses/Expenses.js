@@ -1,8 +1,6 @@
 import React, { useEffect, useState,useRef } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link } from 'react-router-dom';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
 
 const ExpensesPage = ( ) => {
 
@@ -699,14 +697,6 @@ const ExpensesPage = ( ) => {
       inputRef7.current.focus();
     }
   }, [editingStay])
-
-
-
-
-
-
-
-
 
   //備考の編集
   const handleRemarksChange = (newOption) => {

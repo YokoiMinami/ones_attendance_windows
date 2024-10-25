@@ -220,7 +220,6 @@ const checkIn = async (req, res, db) => {
 const dateData = async (req, res, db) => {
   const { accounts_id, date } = req.params;
   const numericAccountsId = parseInt(accounts_id, 10); // accounts_idを数値に変換
-  console.log(`accounts_id: ${numericAccountsId}, date: ${date}`);
   try {
     const userAttendance = await db('attendance').where({ accounts_id: numericAccountsId, date });
     if (userAttendance.length > 0) {
@@ -244,10 +243,6 @@ const getMonthlyTotalHours = async (req, res, db) => {
     const startDate = `${yearStr}-${monthStr}-01`;
     const endDate = `${yearStr}-${monthStr}-${new Date(yearStr, monthStr, 0).getDate()}`;
 
-    console.log('numericAccountsId:', numericAccountsId);
-    console.log('startDate:', startDate);
-    console.log('endDate:', endDate);
-
     const totalHours = await db('attendance')
       .where('accounts_id', numericAccountsId)
       .andWhere('date', '>=', startDate)
@@ -260,26 +255,19 @@ const getMonthlyTotalHours = async (req, res, db) => {
         ) as total_hours
       `));
 
-    console.log('totalHours:', totalHours);
-
      // total_hoursの値をフォーマット
     const formattedTotalHours = totalHours.map(item => ({
       total_hours: parseFloat(item.total_hours).toFixed(2)
     }));
 
-    console.log('formattedTotalHours:', formattedTotalHours);
     // 配列の最初の要素をオブジェクトに変換
     const result = formattedTotalHours.reduce((acc, current) => {
       acc.total_hours = current.total_hours;
       return acc;
     }, {});
   
-    console.log(result);
-
     // total_hoursプロパティの値を抽出
     const totalTime = result.total_hours;
-
-    console.log(totalTime); // '0.75'
 
     // totalTimeが数値でない場合は空文字列を返す
     if (isNaN(totalTime)) {
@@ -299,8 +287,6 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     // フォーマットされた時間
     const formattedTime = `${formattedHours}:${formattedMinutes}`;
-
-    console.log(formattedTime); // "00:45"
 
     res.json(formattedTime);
   } catch (error) {
@@ -495,7 +481,6 @@ const expensesData = async (req, res, db) => {
         date: new Date(expense.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
       }));
       res.json(adjustedExpenses);
-      console.log(adjustedExpenses);
     })
     .catch(error => {
       console.error('Error fetching attendance data:', error);
@@ -528,6 +513,47 @@ const newExpenses = async (req, res, db) => {
   }
 };
 
+//代休
+const holidayPost = async (req, res, db) => {
+  const { accounts_id, year, month, day, week  } = req.body;
+  const projectUser = await db('holiday').where({ accounts_id }).first();
+  if(projectUser){
+    await db('holiday').where({ accounts_id }).update({ year, month, day, week })
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    await db('holiday').insert({accounts_id, year, month, day, week})
+    .returning('*')
+    .then(item => {
+    res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
+
+const holidayData = async (req, res, db) => {
+  const { accounts_id } = req.params;
+  try {
+    const item = await db('holiday').where({ accounts_id });
+    console.log(item);
+    if (item) {
+      res.json( item );
+    } else {
+      res.status(404).send('保存データが見つかりません。');
+    }
+  } catch (error) {
+    console.error('Error fetching check-in time:', error);
+    res.status(500).send('サーバーエラー');
+  }
+}
+
 module.exports = {
   getData,
   postData,
@@ -548,6 +574,8 @@ module.exports = {
   newRemarks,
   newTime,
   expensesData,
-  newExpenses
+  newExpenses,
+  holidayPost,
+  holidayData
 }
   

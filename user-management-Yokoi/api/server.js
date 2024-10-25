@@ -74,6 +74,9 @@ app.post('/time', (req, res) => accountsController.newTime(req, res, db));
 //交通費
 app.get('/expenses/:accounts_id/:month', (req, res) => accountsController.expensesData(req, res, db));
 app.post('/expenses', (req, res) => accountsController.newExpenses(req, res, db));
+//代休
+app.post('/holiday', (req, res) => accountsController.holidayPost(req, res, db));
+app.get('/holiday/:accounts_id', (req, res) => accountsController.holidayData(req, res, db));
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {

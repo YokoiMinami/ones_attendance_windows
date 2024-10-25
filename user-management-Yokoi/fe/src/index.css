@@ -389,10 +389,16 @@ html {
   width: 100%;
   text-align: center;
   margin-top: 50px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 #expenses_button_area {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+#holiday_button_area {
   width: 100%;
   text-align: center;
   margin-bottom: 100px;
@@ -555,6 +561,10 @@ html {
 .holiday {
   background-color: #FFF1AB;
 }
+
+
+
+
 
 /* メンバー管理 */
 #member_page {
@@ -891,6 +901,101 @@ html {
 }
 
 
+
+
+
+/* 代休ページ */
+
+#h_table {
+  width: 80%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  table-layout: fixed;
+  margin: auto;
+  border: 1px solid #266ebd;
+  float: left;
+}
+
+#h_tbody {
+  background-color: white;
+}
+
+#h_tbody td {
+  padding: 5px;
+  border-top: 1px solid #266ebd; /* 上の線のみ表示 */
+  border-bottom: 1px solid #266ebd; /* 下の線のみ表示 */
+  word-wrap: break-word; /* 行を折り返す */
+  white-space: normal; /* 通常の空白処理 */
+}
+
+#h_tbody tr:first-child td {
+  border-top: none; /* 最初の行の上の線を非表示 */
+}
+
+#h_tbody tr:last-child td {
+  border-bottom: none; /* 最後の行の下の線を非表示 */
+}
+
+#h_tbody td:first-child {
+  border-left: 1px solid #266ebd; /* 左の線を表示 */
+}
+
+#h_tbody td:last-child {
+  border-right: 1px solid #266ebd; /* 右の線を表示 */
+}
+
+.h_input {
+  outline: none;
+  width: 100px;
+  height: 35px;
+  border: 1px solid #808080
+}
+
+.h_input:focus {
+  border: 1px solid #808080
+}
+
+#h_flex {
+  display: flex;
+}
+
+#h_box1 {
+  width: 30%;
+}
+
+#h_box2 {
+  width: 70%;
+}
+
+/* #h_button {
+  background-color: #266ebd;
+  color: white;
+  font-size: large;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  width: 100px;
+  height: 50px;
+  border: 6px outset #266ebd;
+  transition: 0.5s;
+} 
+
+#h_button:hover{
+  background-color: #023e8a;
+}  */
+
+
+#h_button {
+  background-color: #266ebd;
+  color: white;
+  width: 100px;
+  height: 30px;
+  border: 1px solid #266ebd;
+  margin-top: 30px;
+}
+
+#h_button:hover {
+  background-color: #023e8a;
+}
 
 
 

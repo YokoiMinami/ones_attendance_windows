@@ -1492,7 +1492,7 @@ const holidays = getHolidaysInMonth(year, month);
           </table>
         </div>
         <div id='attendance_link_area'>
-            <Link to="/" id='account_top_link'>← 勤怠一覧ページ</Link>
+            <Link to="/member" id='account_top_link'>← メンバー管理ページ</Link>
         </div>
       </div>
     </div>

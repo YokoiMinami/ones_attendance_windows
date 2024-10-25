@@ -13,6 +13,7 @@ import Member from './components/Member/Member';
 import MemberData from './components/Member/MemberData';
 import MemberAttendanceTable from './components/Member/MemberAttendanceTable';
 import ExpensesPage from './components/Expenses/Expenses';
+import HolidayPage from './components/holiday/holiday';
 
 const AppContent = () => {
   
@@ -24,6 +25,7 @@ const AppContent = () => {
         <Route path="/" element={<ProtectedRoute component={TopPage} />} />
         <Route path="/attendance_table" element={<AttendanceTablePage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/holiday" element={<HolidayPage />} />
         <Route path="/new_account" element={<NewAccountPage />} />
         <Route path="/new_account_after/:id" element={<NewAccountAfter />} />
         <Route path="/member" element={<Member />} />
