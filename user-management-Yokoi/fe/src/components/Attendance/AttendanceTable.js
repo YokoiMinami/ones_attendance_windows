@@ -37,6 +37,7 @@ const AttendanceTablePage = ( ) => {
   const [out_set_remarks1, setOutRemarks1] = useState(''); 
   const [out_set_remarks2, setOutRemarks2] = useState(''); 
   const [expensesData, setExpensesData] = useState([]); //交通費データ
+  const [holidayData, setHolidayData] = useState([]); //代休データ
 
   const navigate = useNavigate();
 
@@ -94,6 +95,21 @@ const AttendanceTablePage = ( ) => {
     fetchExpenses();
   }, [year, month]);
 
+  //ユーザーの代休情報を取得
+  useEffect(() => {
+    const fetchHoliday = async () => {
+      const accounts_id = localStorage.getItem('user');
+      try {
+        const response = await fetch(`http://localhost:3000/holiday/${accounts_id}`);
+        const data = await response.json();
+        setHolidayData(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+        setHolidayData([]);
+      }
+    };
+    fetchHoliday();
+  }, [year, month]);
 
   //土日を判定
   const isWeekend = (date) => {
@@ -164,18 +180,18 @@ const AttendanceTablePage = ( ) => {
     })|| { date: formattedDate, remarks1: '' , remarks2: '' ,out_remarks1: '' }; // デフォルトの空の特記を返す;
   };
 
-  // 交通費情報を検索する関数
-  const findExpensesRecord = (date) => {
-    // dateオブジェクトをローカルタイムゾーンのYYYY-MM-DD形式に変換
-    const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA'はYYYY-MM-DD形式を返す
-    // attendanceData配列内の各recordを検索し、条件に一致する最初の要素を返す
-    return expensesData.find(record => {
-      // record.dateを日付オブジェクトに変換し、ローカルタイムゾーンの日付部分を取得
-      const recordDate = new Date(record.date).toLocaleDateString('en-CA');
-      // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
-      return recordDate === formattedDate;
-    })|| { date: formattedDate, destination: '', train:'' }; // デフォルトの空の特記を返す;
-  };
+  // // 交通費情報を検索する関数
+  // const findExpensesRecord = (date) => {
+  //   // dateオブジェクトをローカルタイムゾーンのYYYY-MM-DD形式に変換
+  //   const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA'はYYYY-MM-DD形式を返す
+  //   // attendanceData配列内の各recordを検索し、条件に一致する最初の要素を返す
+  //   return expensesData.find(record => {
+  //     // record.dateを日付オブジェクトに変換し、ローカルタイムゾーンの日付部分を取得
+  //     const recordDate = new Date(record.date).toLocaleDateString('en-CA');
+  //     // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
+  //     return recordDate === formattedDate;
+  //   })|| { date: formattedDate, destination: '', train:'' }; // デフォルトの空の特記を返す;
+  // };
 
   // 時間をhh:mm形式でフォーマットする関数
   const formatTime = (timeString) => {
@@ -618,6 +634,7 @@ const AttendanceTablePage = ( ) => {
     const endDate = new Date(year, month, 0);
     const allDates = [];
     const allDates2 = [];
+    const allDates3 = [];
   
     for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
       allDates.push(new Date(d));
@@ -904,6 +921,140 @@ const AttendanceTablePage = ( ) => {
     mergedCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
 
+    // 代休情報を新しいシートに追加
+    const holidaySheet = workbook.addWorksheet('代休未消化記録表');
+
+    // 代休未消化記録表のタイトルを追加
+    holidaySheet.mergeCells('A1:D1'); // セルを結合
+    const titleCell3 = holidaySheet.getCell('A1');
+    titleCell3.value = '代休未消化記録表';
+    titleCell3.font = { size: 20, bold: true };
+    titleCell3.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    holidaySheet.mergeCells('C2:D2'); 
+    const workMonth4 = holidaySheet.getCell('C2');
+    workMonth4.value = `${year}年${month}月`;
+    workMonth4.font = { size: 18 };
+    workMonth4.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    // ヘッダーの1行目
+    holidaySheet.getCell('A4').value = '代休未消化記録表';
+
+    holidaySheet.mergeCells('A4:D4'); 
+
+    holidaySheet.columns = [
+      { key: 'year', width: 15 },
+      { key: 'month', width: 15 },
+      { key: 'day', width: 15 },
+      { key: 'week', width: 15 },
+    ];
+
+    // データの追加
+    holidayData.forEach(record => {
+      holidaySheet.addRow({
+        year: `${record.year}年`,
+        month: `${record.month}月`,
+        day: `${record.day}日`,
+        week: record.week,
+      });
+    });
+
+    // スタイルの適用
+    holidaySheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 4) { // 4行目から罫線を適用
+        row.eachCell((cell, colNumber) => {
+          if(rowNumber === 4){
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          }
+        // } else if (colNumber === holidaySheet.columnCount) { // 最後の列
+        //   cell.border = {
+        //     top: { style: 'thin' },
+        //     left: { style: 'thin' },
+        //     bottom: { style: 'thin' },
+        //     right: { style: 'thin' }
+        //   };
+        }else if (colNumber === 1) {
+          // A列の罫線（左側のみ）
+          cell.border = {
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+            left: { style: 'thin' }
+          };
+        } else if (colNumber === 4) {
+          // D列の罫線（左側のみ）
+          cell.border = {
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        }  else { // 中間の列
+          cell.border = {
+            top: { style: 'thin' },
+            bottom: { style: 'thin' }
+          };
+        } if (rowNumber === 4) {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FF266EBD' }
+            };
+            cell.alignment = { horizontal: 'center' };
+        }
+          // 中央揃えにする列を指定
+          if (![1,12].includes(colNumber)) {
+            cell.alignment = { horizontal: 'center' };
+          }
+        });
+        row.height = 25;
+      } 
+    });
+
+    // 空のセルにも罫線を適用
+    holidaySheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 4) {
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          if(rowNumber === 4){
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            }
+          // } else if (colNumber === holidaySheet.columnCount) { // 最後の列
+          //   cell.border = {
+          //     top: { style: 'thin' },
+          //     left: { style: 'thin' },
+          //     bottom: { style: 'thin' },
+          //     right: { style: 'thin' }
+          //   };
+          } else if (colNumber === 1) {
+            // A列の罫線（左側のみ）
+            cell.border = {
+              top: { style: 'thin' },
+              bottom: { style: 'thin' },
+              left: { style: 'thin' }
+            };
+          } else if (colNumber === 4) {
+            // D列の罫線（左側のみ）
+            cell.border = {
+              top: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+          }else { // 中間の列
+            cell.border = {
+              top: { style: 'thin' },
+              bottom: { style: 'thin' }
+            };
+          }
+        });
+      }
+    });
   
     // バッファを生成してBlobとして保存
     const buffer = await workbook.xlsx.writeBuffer();
