@@ -907,13 +907,14 @@ html {
 /* 代休ページ */
 
 #h_table {
-  width: 80%;
+  width: 50%;
   border-collapse: collapse;
   white-space: nowrap;
   table-layout: fixed;
   margin: auto;
   border: 1px solid #266ebd;
   float: left;
+  margin-left: 4%;
 }
 
 #h_tbody {
@@ -967,7 +968,12 @@ html {
   width: 70%;
 }
 
-/* #h_button {
+#h_button_area {
+  width: 100%;
+}
+
+#h_button {
+  margin-top: 10px;
   background-color: #266ebd;
   color: white;
   font-size: large;
@@ -981,10 +987,27 @@ html {
 
 #h_button:hover{
   background-color: #023e8a;
-}  */
+} 
+
+#holiday_delete_button {
+  margin-top: 10px;
+  background-color: #266ebd;
+  color: white;
+  font-size: large;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  width: 150px;
+  height: 50px;
+  border: 6px outset #266ebd;
+  transition: 0.5s;
+} 
+
+#holiday_delete_button:hover{
+  background-color: #023e8a;
+} 
 
 
-#h_button {
+/* #h_button {
   background-color: #266ebd;
   color: white;
   width: 100px;
@@ -995,7 +1018,7 @@ html {
 
 #h_button:hover {
   background-color: #023e8a;
-}
+} */
 
 
 

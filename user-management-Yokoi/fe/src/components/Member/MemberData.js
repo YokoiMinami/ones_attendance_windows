@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import MemberModal from './MemberModal';
 import MemberTable from './MemberTable';
-import MemberForm from './MemberForm';
 import OnesLogo from '../../images/ones-logo.png';
 
 const MemberData = () => {

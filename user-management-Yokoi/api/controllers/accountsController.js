@@ -516,17 +516,6 @@ const newExpenses = async (req, res, db) => {
 //代休
 const holidayPost = async (req, res, db) => {
   const { accounts_id, year, month, day, week  } = req.body;
-  const projectUser = await db('holiday').where({ accounts_id }).first();
-  if(projectUser){
-    await db('holiday').where({ accounts_id }).update({ year, month, day, week })
-    .returning('*')
-    .then(item => {
-    res.json(item);
-    })
-    .catch(err => res.status(400).json({
-      dbError: 'error'
-    }));
-  }else {
     await db('holiday').insert({accounts_id, year, month, day, week})
     .returning('*')
     .then(item => {
@@ -535,7 +524,6 @@ const holidayPost = async (req, res, db) => {
     .catch(err => res.status(400).json({
       dbError: 'error'
     }));
-  }
 }
 
 const holidayData = async (req, res, db) => {
@@ -552,6 +540,19 @@ const holidayData = async (req, res, db) => {
     console.error('Error fetching check-in time:', error);
     res.status(500).send('サーバーエラー');
   }
+}
+
+const delHolidayData = (req, res, db) => {
+  const { id } = req.body;
+  db('holiday').where({ id }).del()
+    .then(() => {
+      res.json({
+        delete: 'true'
+      });
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
 }
 
 module.exports = {
@@ -576,6 +577,7 @@ module.exports = {
   expensesData,
   newExpenses,
   holidayPost,
-  holidayData
+  holidayData,
+  delHolidayData
 }
   
