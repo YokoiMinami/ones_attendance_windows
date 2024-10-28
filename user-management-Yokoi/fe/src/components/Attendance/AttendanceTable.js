@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import Dropdown from './AttendancePull';
+import UserModal from './UserModal';
+import TimeModal from './TimeModal';
 
 const AttendanceTablePage = ( ) => {
   
@@ -38,6 +40,8 @@ const AttendanceTablePage = ( ) => {
   const [out_set_remarks2, setOutRemarks2] = useState(''); 
   const [expensesData, setExpensesData] = useState([]); //交通費データ
   const [holidayData, setHolidayData] = useState([]); //代休データ
+  const [items, setItems] = useState([]); //プロジェクト情報
+  const [items2, setItems2] = useState([]); //標準勤務時間情報
 
   const navigate = useNavigate();
 
@@ -111,6 +115,16 @@ const AttendanceTablePage = ( ) => {
     fetchHoliday();
   }, [year, month]);
 
+  const addItemToState = (item) => {
+    window.location.reload();
+    setItems(prevItems => [...prevItems, item]);
+};
+
+  const addItemToState2 = (item) => {
+    window.location.reload();
+    setItems2(prevItems => [...prevItems, item]);
+  };
+
   //土日を判定
   const isWeekend = (date) => {
     const day = date.getUTCDay();
@@ -179,19 +193,6 @@ const AttendanceTablePage = ( ) => {
       return recordDate === formattedDate;
     })|| { date: formattedDate, remarks1: '' , remarks2: '' ,out_remarks1: '' }; // デフォルトの空の特記を返す;
   };
-
-  // // 交通費情報を検索する関数
-  // const findExpensesRecord = (date) => {
-  //   // dateオブジェクトをローカルタイムゾーンのYYYY-MM-DD形式に変換
-  //   const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA'はYYYY-MM-DD形式を返す
-  //   // attendanceData配列内の各recordを検索し、条件に一致する最初の要素を返す
-  //   return expensesData.find(record => {
-  //     // record.dateを日付オブジェクトに変換し、ローカルタイムゾーンの日付部分を取得
-  //     const recordDate = new Date(record.date).toLocaleDateString('en-CA');
-  //     // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
-  //     return recordDate === formattedDate;
-  //   })|| { date: formattedDate, destination: '', train:'' }; // デフォルトの空の特記を返す;
-  // };
 
   // 時間をhh:mm形式でフォーマットする関数
   const formatTime = (timeString) => {
@@ -553,81 +554,68 @@ const AttendanceTablePage = ( ) => {
     }
   },[remainingTime])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const accounts_id = localStorage.getItem('user');
-    const data = {
-      accounts_id,
-      start_time: startTime,
-      end_time: endTime,
-      break_time: breakTime,
-      work_hours: workHours
-    };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const accounts_id = localStorage.getItem('user');
+  //   const data = {
+  //     accounts_id,
+  //     start_time: startTime,
+  //     end_time: endTime,
+  //     break_time: breakTime,
+  //     work_hours: workHours
+  //   };
 
-    try {
-      const response = await fetch('http://localhost:3000/overtime', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        alert('データが保存されました');
-      } else {
-        alert('データの保存に失敗しました');
-      }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('データの保存に失敗しました');
-    }
-  };
+  //   try {
+  //     const response = await fetch('http://localhost:3000/overtime', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify(data)
+  //     });
+  //     if (response.ok) {
+  //       alert('データが保存されました');
+  //     } else {
+  //       alert('データの保存に失敗しました');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error saving data:', error);
+  //     alert('データの保存に失敗しました');
+  //   }
+  // };
 
-  const submitFormAdd = async (e) => {
-    e.preventDefault();
-    const accounts_id = localStorage.getItem('user');
-    const data = {
-      accounts_id,
-      project: projects,
-      company: company,
-      name: name
-    };
-    try {
-      const response = await fetch('http://localhost:3000/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        alert('データが保存されました');
-      } else {
-        alert('データの保存に失敗しました');
-      }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('データの保存に失敗しました');
-    }
-  };
+//   //プロジェクト情報
+//   useEffect(() => {
+//     const fetchUser = async () => {
+//     const accounts_id = localStorage.getItem('user');
+//     try {
+//         const response = await fetch(`http://localhost:3000/projects/${accounts_id}`);
+//         const data = await response.json();
+//         setItems(data);
+//     } catch (error) {
+//         console.error('Error fetching holiday data:', error);
+//     }
+//     };
+//     fetchUser();
+// }, [id]);
 
-  useEffect(() => {
-    const accounts_id = localStorage.getItem('user');
-    fetch(`http://localhost:3000/projects/${accounts_id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      setProjectsData(data);
-      if (data.project ) setProjects(data.project);
-      if (data.company) setCompany(data.company);
-      if (data.name) setName(data.name);
-    })
-    .catch(err => console.log(err));
-  }, [id]);
+  // useEffect(() => {
+  //   const accounts_id = localStorage.getItem('user');
+  //   fetch(`http://localhost:3000/projects/${accounts_id}`, {
+  //     method: 'get',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     }
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     setProjectsData(data);
+  //     if (data.project ) setProjects(data.project);
+  //     if (data.company) setCompany(data.company);
+  //     if (data.name) setName(data.name);
+  //   })
+  //   .catch(err => console.log(err));
+  // }, [id]);
 
   const exportToExcel = async () => {
     const startDate = new Date(year, month - 1, 1);
@@ -1075,35 +1063,19 @@ const holidays = getHolidaysInMonth(year, month);
           <div id='excel_button_area'>
             <button className='all_button' id='excel_button' onClick={exportToExcel}>Excel 出力</button>
           </div>
+          <div id='user_button_area'>
+            <UserModal buttonLabel="PJ情報登録" addItemToState={addItemToState} />
+          </div>
           <div id='expenses_button_area'>
             <button className='all_button' id='expenses_button' onClick={expensesClick}>交通費精算</button>
           </div>
           <div id='holiday_button_area'>
             <button className='all_button' id='holiday_button' onClick={holidayClick}>代休未消化</button>
           </div>
-          <div id='at_h3'>
-            <h3>ユーザー情報</h3>
+          <div id='time_button_area'>
+            <TimeModal buttonLabel="標準勤務時間" addItemToState={addItemToState2} />
           </div>
-          <form onSubmit={submitFormAdd}>
-            <div id='projects_area'>
-              <div>
-                <label className='pj_label'>プロジェクト : </label>
-                <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
-              </div>
-              <div>
-                <label className='pj_label'>所属会社 : </label>
-                <input type='text' className='projects_input' value={company} onChange={(e) => setCompany(e.target.value)} />
-              </div>
-              <div>
-                <label className='pj_label'>氏名 : </label>
-                <input type='text' className='projects_input' value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div id='projects_bt'>
-                <button type='submit' id='projects_button'>保存</button>
-              </div>
-            </div>
-          </form>
-          <div id='at_left_at'>
+          {/* <div id='at_left_at'>
             <div id='at_h3'>
               <h3>標準勤務時間</h3>
             </div>
@@ -1130,7 +1102,7 @@ const holidays = getHolidaysInMonth(year, month);
                 </div>
               </form>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       <div id='table_box2'>

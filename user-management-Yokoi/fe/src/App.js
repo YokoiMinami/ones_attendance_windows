@@ -14,6 +14,7 @@ import MemberData from './components/Member/MemberData';
 import MemberAttendanceTable from './components/Member/MemberAttendanceTable';
 import ExpensesPage from './components/Expenses/Expenses';
 import HolidayPage from './components/holiday/holiday';
+import PassPage from './components/Pass/PassPage';
 
 const AppContent = () => {
   
@@ -24,6 +25,7 @@ const AppContent = () => {
         <Route path="/account" element={<Account />} />
         <Route path="/" element={<ProtectedRoute component={TopPage} />} />
         <Route path="/attendance_table" element={<AttendanceTablePage />} />
+        <Route path="/pass" element={<PassPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
         <Route path="/holiday" element={<HolidayPage />} />
         <Route path="/new_account" element={<NewAccountPage />} />

@@ -347,32 +347,48 @@ html {
   margin-top: 5px;
 }
 
-.at_left_input {
-  width: 100px;
-  height: 25px;
-  margin-left: 5px;
-  outline: none;
-  border: 1px solid white;
-}
 
 .projects_input {
   margin-bottom: 5px;
+  margin-left: 5px;
   outline: none;
-  width: 220px;
-  height: 25px;
-  border: 1px solid white;
+  width: 300px;
+  height: 40px;
+  border: 1px solid #808080;
 }
 
 .projects_input:focus {
   border: 1px solid #808080
 }
 
-#at_left_bt, #projects_bt {
+#projects_bt {
+  width: 100%;
+  text-align: center;
+}
+
+#projects_button {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  background-color: #266ebd;
+  color: white;
+  font-size: large;
+  border-radius: 5px;
+  width: 100px;
+  height: 50px;
+  border: 6px outset #266ebd;
+  transition: 0.5s;
+} 
+
+#projects_button:hover{
+  background-color: #023e8a;
+} 
+
+#at_left_bt{
   text-align: center;
   width: 100%;
 }
 
-#at_left_button, #projects_button {
+#at_left_button{
   margin-top: 50px;
   background-color: #266ebd;
   color: white;
@@ -381,7 +397,7 @@ html {
   border: 1px solid #266ebd;
 }
 
-#at_left_button:hover, #projects_button:hover {
+#at_left_button:hover{
   background-color: #023e8a;
 }
 
@@ -389,6 +405,12 @@ html {
   width: 100%;
   text-align: center;
   margin-top: 50px;
+  margin-bottom: 5px;
+}
+
+#user_button_area {
+  width: 100%;
+  text-align: center;
   margin-bottom: 5px;
 }
 
@@ -401,7 +423,13 @@ html {
 #holiday_button_area {
   width: 100%;
   text-align: center;
-  margin-bottom: 100px;
+  margin-bottom: 5px;
+}
+
+#time_button_area {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 5px;
 }
 
 #table_box2 {
@@ -471,15 +499,108 @@ html {
   align-items: center; 
 }
 
+.projects_area_box {
+  width: 100%;
+}
+
 .pj_label {
   text-align: right; /* ラベルを右揃え */
   width: 120px; /* 必要に応じて調整 */
 }
 
-.projects_input {
-  margin-left: 5px;
-  width: 150px;
+.admin_area {
+  width: 100%;
 }
+
+.admin_area_box {
+  width: 100%;
+}
+
+.admin_label {
+  width: 100%;
+}
+
+.admin_input {
+  outline: none;
+  width: 100%;
+  height: 40px;
+  margin-top: 10px;
+  border: 1px solid #808080
+}
+
+.admin_button {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  background-color: #266ebd;
+  color: white;
+  font-size: large;
+  border-radius: 5px;
+  width: 100px;
+  height: 50px;
+  border: 6px outset #266ebd;
+  transition: 0.5s;
+} 
+
+.admin_button:hover{
+  background-color: #023e8a;
+} 
+
+#login_password_input:focus {
+  border: 1px solid #808080
+}
+
+#time_area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+}
+
+.time_label {
+  text-align: right; /* ラベルを右揃え */
+  width: 120px; /* 必要に応じて調整 */
+}
+
+.over_time_input {
+  padding-left: 5px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+  margin-right: 70px;
+  outline: none;
+  width: 200px;
+  height: 40px;
+  border: 1px solid #808080;
+}
+
+.over_time_input:focus {
+  border: 1px solid #808080
+}
+
+#over_time_text {
+  margin-right: 215px;
+}
+
+#time_bt {
+  width: 100%;
+  text-align: center;
+}
+
+#over_time_button {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  background-color: #266ebd;
+  color: white;
+  font-size: large;
+  border-radius: 5px;
+  width: 100px;
+  height: 50px;
+  border: 6px outset #266ebd;
+  transition: 0.5s;
+} 
+
+#over_time_button:hover{
+  background-color: #023e8a;
+} 
 
 #atH2 {
   margin-bottom: 50px;
@@ -958,6 +1079,7 @@ html {
 
 #h_flex {
   display: flex;
+  margin-top: 100px;
 }
 
 #h_box1 {

@@ -1315,7 +1315,7 @@ const holidays = getHolidaysInMonth(year, month);
         </div>
       </div>
       <div id='table_box2'>
-        <h1 id='atH1'>勤怠一覧</h1>
+        <h1 id='atH1'>勤怠修正</h1>
         <div id='table_top_menu'>
           <div id='all_overwork'>
             <p>

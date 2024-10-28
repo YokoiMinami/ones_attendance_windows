@@ -78,6 +78,10 @@ app.post('/expenses', (req, res) => accountsController.newExpenses(req, res, db)
 app.post('/holiday', (req, res) => accountsController.holidayPost(req, res, db));
 app.get('/holiday/:accounts_id', (req, res) => accountsController.holidayData(req, res, db));
 app.delete('/holiday_delete', (req, res) => accountsController.delHolidayData(req, res, db));
+//管理者パスワード
+app.get('/pass', (req, res) => accountsController.passData(req, res, db));
+app.post('/pass/:accounts_id', (req, res) => accountsController.passPost(req, res, db));
+app.put('/pass_edit/:accounts_id', (req, res) => accountsController.passPut(req, res, db));
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {

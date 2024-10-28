@@ -41,6 +41,10 @@ const TopButton = () => {
     navigate('/member');
   };
 
+  const handleClick4 = () => {
+    navigate('/pass');
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -52,6 +56,9 @@ const TopButton = () => {
     <button className='all_button' onClick={handleClick2}>勤怠一覧</button>
     {authorityData && (
       <button className='all_button' onClick={handleClick3}>メンバー管理</button>
+    )}
+    {authorityData && (
+      <button className='all_button' onClick={handleClick4}>管理PW変更</button>
     )}
     <button className='all_button' onClick={handleLogout}>ログアウト</button>
   </div>

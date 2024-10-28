@@ -555,6 +555,51 @@ const delHolidayData = (req, res, db) => {
     }));
 }
 
+//管理者パスワード
+const passData = (req, res, db) => {
+  db.select('*').from('passdata')
+  .then(items => {
+    if (items.length) {
+      res.json(items);
+    } else {
+      res.json({
+        dataExists: 'false'
+      });
+    }
+  })
+  .catch(err => res.status(400).json({
+    dbError: 'error'
+  }));
+}
+
+const passPost = async (req, res, db) => {
+  const { accounts_id } = req.params;
+  const { date, admin_password, } = req.body;
+
+  await db('passdata').insert({ accounts_id, date, admin_password  })
+  .returning('*')
+  .then(item => {
+  res.json(item);
+  })
+  .catch(err => res.status(400).json({
+      dbError: 'error'
+  }));
+}
+
+const passPut = async (req, res, db) => {
+  const { accounts_id } = req.params;
+  const { id, date, admin_password, } = req.body;
+
+  await db('passdata').where({ id }).update({ date, admin_password })
+  .returning('*')
+  .then(item => {
+    res.json(item);
+  })
+  .catch(err => res.status(400).json({
+    dbError: 'error'
+  }));
+}
+
 module.exports = {
   getData,
   postData,
@@ -578,6 +623,9 @@ module.exports = {
   newExpenses,
   holidayPost,
   holidayData,
-  delHolidayData
+  delHolidayData,
+  passData,
+  passPost,
+  passPut
 }
   
