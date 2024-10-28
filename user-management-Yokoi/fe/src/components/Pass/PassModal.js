@@ -9,7 +9,7 @@ const PassModal = (props) => {
 
   return (
     <div id='member_data_button_area_modal'>
-      <button id='account_edit_button' className='all_button' onClick={toggle}>{props.buttonLabel}</button>
+      <button id='account_edit_button' className='admin_button' onClick={toggle}>{props.buttonLabel}</button>
       <Modal isOpen={modal} toggle={toggle} className={props.className}>
         <ModalHeader toggle={toggle} close={closeBtn}>変更</ModalHeader>
         <ModalBody>

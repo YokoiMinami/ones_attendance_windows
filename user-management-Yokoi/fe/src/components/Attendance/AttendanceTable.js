@@ -1075,34 +1075,6 @@ const holidays = getHolidaysInMonth(year, month);
           <div id='time_button_area'>
             <TimeModal buttonLabel="標準勤務時間" addItemToState={addItemToState2} />
           </div>
-          {/* <div id='at_left_at'>
-            <div id='at_h3'>
-              <h3>標準勤務時間</h3>
-            </div>
-            <div id='at_left_input'>
-              <form onSubmit={handleSubmit}>
-                <div>
-                  <label>出勤開始時間 : </label>
-                    <input type='time' className='at_left_input' value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                </div>
-                <div className='at_left'>
-                  <label>退勤時間 : </label>
-                  <input type='time' className='at_left_input' value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                </div>
-                <div className='at_left'>
-                  <label>休憩時間 : </label>
-                  <input type='time' className='at_left_input' value={breakTime} onChange={(e) => setBreakTime(e.target.value)} />
-                </div>
-                <div className='at_left'>
-                  <label>勤務時間 : </label>
-                  <input type='time' className='at_left_input' value={workHours} onChange={(e) => setWorkHours(e.target.value)} />
-                </div>
-                <div id='at_left_bt'>
-                  <button type='submit' id='at_left_button'>保存</button>
-                </div>
-              </form>
-            </div>
-          </div> */}
         </div>
       </div>
       <div id='table_box2'>

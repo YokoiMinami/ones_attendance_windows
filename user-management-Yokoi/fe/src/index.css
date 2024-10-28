@@ -529,7 +529,7 @@ html {
 }
 
 .admin_button {
-  margin-top: 30px;
+  margin-top: 10px;
   margin-bottom: 10px;
   background-color: #266ebd;
   color: white;
@@ -544,6 +544,32 @@ html {
 .admin_button:hover{
   background-color: #023e8a;
 } 
+
+#admin_error_area {
+  margin-top: 5px;
+  height: 30px;
+}
+
+.admin_error {
+  color: crimson;
+}
+
+.admin_button{
+  background-color: #266ebd;
+  color: white;
+  font-size: large;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  width: 150px;
+  height: 50px;
+  border: 6px outset #266ebd;
+  transition: 0.5s;
+} 
+
+.admin_button:hover{
+  background-color: #023e8a;
+} 
+
 
 #login_password_input:focus {
   border: 1px solid #808080

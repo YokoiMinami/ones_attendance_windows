@@ -7,6 +7,8 @@ const PassPage = () => {
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
   const [items, setItems] = useState([]);
+  const [adminDate, setAdminDate] = useState();
+
 
   // ユーザー情報を取得
   useEffect(() => {
@@ -21,6 +23,7 @@ const PassPage = () => {
       .catch(err => console.log(err));
   }, [id]);
 
+
   // 現在の管理者パスワードを取得
   useEffect(() => {
     const fetchPass = async () => {
@@ -28,6 +31,7 @@ const PassPage = () => {
         const response = await fetch('http://localhost:3000/pass');
         const data = await response.json();
         setItems(data);
+        
       } catch (error) {
         console.error('Error fetching password data:', error);
       }
@@ -69,7 +73,7 @@ const PassPage = () => {
                 items.map((pass, index) => (
                   <tr key={index}>
                     <td>{pass.admin_password}</td>
-                    <td>{pass.accounts_id}</td>
+                    <td>{pass.fullname}</td>
                     <td>{pass.date}</td>
                   </tr>
                 ))

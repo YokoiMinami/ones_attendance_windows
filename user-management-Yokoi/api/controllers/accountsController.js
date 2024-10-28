@@ -573,10 +573,9 @@ const passData = (req, res, db) => {
 }
 
 const passPost = async (req, res, db) => {
-  const { accounts_id } = req.params;
-  const { date, admin_password, } = req.body;
+  const { admin, date, admin_password, } = req.body;
 
-  await db('passdata').insert({ accounts_id, date, admin_password  })
+  await db('passdata').insert({ admin, date, admin_password  })
   .returning('*')
   .then(item => {
   res.json(item);
