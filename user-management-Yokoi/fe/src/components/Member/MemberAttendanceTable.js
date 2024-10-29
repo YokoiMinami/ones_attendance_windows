@@ -1253,70 +1253,13 @@ const MemberAttendanceTable = ( ) => {
 const holidays = getHolidaysInMonth(year, month);
 
   return (
-    <div id='table_flex'>
-      <div id='table_box1'>
-        <div>
+    <div id='table_flex2'>
+      <div id='member_attendance_user'> 
         {userData && <p id='atUser'>ユーザー名: {userData.fullname} さん</p>}
-        </div>
-        <div id='at_all_left'>
-          <div id='excel_button_area'>
-            <button className='all_button' id='excel_button' onClick={exportToExcel}>Excel 出力</button>
-          </div>
-          <div id='at_h3'>
-            <h3>ユーザー情報</h3>
-          </div>
-          <form onSubmit={submitFormAdd}>
-            <div id='projects_area'>
-              <div>
-                <label className='pj_label'>プロジェクト : </label>
-                <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
-              </div>
-              <div>
-                <label className='pj_label'>所属会社 : </label>
-                <input type='text' className='projects_input' value={company} onChange={(e) => setCompany(e.target.value)} />
-              </div>
-              <div>
-                <label className='pj_label'>氏名 : </label>
-                <input type='text' className='projects_input' value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div id='projects_bt'>
-                <button type='submit' id='projects_button'>保存</button>
-              </div>
-            </div>
-          </form>
-          <div id='at_left_at'>
-            <div id='at_h3'>
-              <h3>標準勤務時間</h3>
-            </div>
-            <div id='at_left_input'>
-              <form onSubmit={handleSubmit}>
-                <div>
-                  <label>出勤開始時間 : </label>
-                    <input type='time' className='at_left_input' value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                </div>
-                <div className='at_left'>
-                  <label>退勤時間 : </label>
-                  <input type='time' className='at_left_input' value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                </div>
-                <div className='at_left'>
-                  <label>休憩時間 : </label>
-                  <input type='time' className='at_left_input' value={breakTime} onChange={(e) => setBreakTime(e.target.value)} />
-                </div>
-                <div className='at_left'>
-                  <label>勤務時間 : </label>
-                  <input type='time' className='at_left_input' value={workHours} onChange={(e) => setWorkHours(e.target.value)} />
-                </div>
-                <div id='at_left_bt'>
-                  <button type='submit' id='at_left_button'>保存</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
       </div>
-      <div id='table_box2'>
-        <h1 id='atH1'>勤怠修正</h1>
-        <div id='table_top_menu'>
+      <h1>勤怠修正</h1>
+      <div id='attendance_table_box2'>
+        <div id='table_top_menu2'>
           <div id='all_overwork'>
             <p>
               <span className="label">今月の総勤務時間 :</span>
@@ -1337,7 +1280,7 @@ const holidays = getHolidaysInMonth(year, month);
               </span>
             </p>
           </div>
-          <div id='at_ym'>
+          <div id='at_ym2'>
             <input
               id='at_year'
               type="number"
@@ -1352,12 +1295,10 @@ const holidays = getHolidaysInMonth(year, month);
               min="1"
               max="12"
             />
+            <h2 id='member_at_h2'>{year}年 {month}月</h2>
           </div>
         </div>
-        <div id='atH2_area'>
-          <h2 id='atH2'>{year}年 {month}月</h2>
-        </div>
-        <div id='atTable'>
+        <div id='atTable2'>
           <table className='atTop'>
             <thead className='atTh'>
               <tr>
@@ -1491,9 +1432,9 @@ const holidays = getHolidaysInMonth(year, month);
           </tbody>
           </table>
         </div>
-        <div id='attendance_link_area'>
-            <Link to="/member" id='account_top_link'>← メンバー管理ページ</Link>
-        </div>
+      </div>
+      <div id='attendance_link_area2'>
+        <Link to="/member" id='account_top_link'>← メンバー管理ページ</Link>
       </div>
     </div>
   );

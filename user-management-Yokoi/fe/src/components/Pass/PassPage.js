@@ -50,7 +50,7 @@ const PassPage = () => {
       </div>
       <h1>管理者パスワード変更</h1>
       <div id='h_flex'>
-        <div id='h_box1'>
+        <div id='a_box1'>
           <div id='member_new_button'>
             { items && items.length > 0 ? (
               <PassModal buttonLabel="変更" addItemToState={addItemToState} />
@@ -59,8 +59,8 @@ const PassPage = () => {
             )}
           </div>
         </div>
-        <div id ='h_box2'>
-          <table id ='h_table'>
+        <div id ='a_box2'>
+          <table id ='admin_table'>
             <thead id ='expenses_Th'>
               <tr>
                 <th id='pass_cl1'>現在のパスワード</th>
@@ -68,7 +68,7 @@ const PassPage = () => {
                 <th id='pass_cl3'>最終更新日</th>
               </tr>
             </thead>
-            <tbody id='h_tbody'>
+            <tbody id='admin_tbody'>
               { items && items.length > 0 ? (
                 items.map((pass, index) => (
                   <tr key={index}>

@@ -16,7 +16,6 @@ const TopPage = () => {
   const [out_remarks2, setOutRemarks2] = useState('');
   const [isCheckedIn, setIsCheckedIn] = useState(false); // 出勤状態を管理するフラグ
   const [break_time, setBreakTime] = useState('01:00');  
-  const [authorityData, setAuthorityData] = useState(false);
 
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
@@ -26,12 +25,7 @@ const TopPage = () => {
     }
     })
       .then(response => response.json())
-      .then(data => {
-        setUserData(data);
-        if (data.authority === true) {
-          setAuthorityData(true);
-        }
-      })
+      .then(data => setUserData(data))
       .catch(err => console.log(err));
   }, [id]);
 
@@ -198,13 +192,11 @@ const TopPage = () => {
   
       const message = await response.text();
       alert(message);
-      // setIsCheckedIn(false); // 出勤状態を更新
+      setIsCheckedIn(false); // 出勤状態を更新
     } catch (error) {
       console.error('Error recording attendance:', error);
     }
   };
-
-  
   
   return (
     <div className ="top_flex">

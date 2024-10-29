@@ -149,17 +149,17 @@ const attData = async (req, res, db) => {
     const userAttendance = await db('attendance').where({ accounts_id, date }).first();
 
     if (userAttendance) {
-      if (userAttendance) {
+      if (userAttendance.is_checked_in) {
         // 退勤登録
         await db('attendance')
           .where({ accounts_id, date })
           .update({
             check_out_time,
             break_time,
-            work_hours: db.raw(`INTERVAL '${work_hours}'`), // INTERVAL 型に変換
+            work_hours,
             out_remarks1,
             out_remarks2,
-            // is_checked_in: false
+            is_checked_in: false
           });
         res.status(200).send('退勤登録完了');
       } else {
@@ -181,8 +181,7 @@ const attData = async (req, res, db) => {
     console.error('Error recording attendance:', error);
     res.status(500).send('サーバーエラー');
   }
-};
-
+}
 
 const attgetData = async (req, res, db) => {
   const { id } = req.params;
@@ -573,9 +572,9 @@ const passData = (req, res, db) => {
 }
 
 const passPost = async (req, res, db) => {
-  const { admin, date, admin_password, } = req.body;
+  const { fullname, date, admin_password, } = req.body;
 
-  await db('passdata').insert({ admin, date, admin_password  })
+  await db('passdata').insert({ fullname, date, admin_password  })
   .returning('*')
   .then(item => {
   res.json(item);
@@ -586,10 +585,9 @@ const passPost = async (req, res, db) => {
 }
 
 const passPut = async (req, res, db) => {
-  const { accounts_id } = req.params;
-  const { id, date, admin_password, } = req.body;
+  const { id, fullname, date, admin_password, } = req.body;
 
-  await db('passdata').where({ id }).update({ date, admin_password })
+  await db('passdata').where({ id }).update({ fullname, date, admin_password })
   .returning('*')
   .then(item => {
     res.json(item);

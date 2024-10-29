@@ -81,7 +81,7 @@ app.delete('/holiday_delete', (req, res) => accountsController.delHolidayData(re
 //管理者パスワード
 app.get('/pass', (req, res) => accountsController.passData(req, res, db));
 app.post('/pass_post', (req, res) => accountsController.passPost(req, res, db));
-app.put('/pass_edit/:accounts_id', (req, res) => accountsController.passPut(req, res, db));
+app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {

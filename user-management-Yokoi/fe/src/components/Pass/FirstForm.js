@@ -1,28 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const FirstForm = (props) => {
     const id = localStorage.getItem('user');
-    const [userData, setUserData] = useState(null);
+    const [name, setName] = useState('');
     const [pass, setPass] = useState('');
     const [errors, setErrors] = useState({});
-    const navigate = useNavigate();
 
-    // ユーザー情報を取得
+    //プロジェクト情報
     useEffect(() => {
-
-        fetch(`http://localhost:3000/user/${id}`, {
-        method: 'get',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-        })
-        .then(response => response.json())
-        .then(data => setUserData(data))
-        .catch(err => console.log(err));
-    }, [id]);
-
-    const admin = userData.fullname;
+      const fetchUser = async () => {
+      try {
+          const response = await fetch(`http://localhost:3000/user/${id}`);
+          const data = await response.json();
+          if (data.fullname ) setName(data.fullname);
+      } catch (error) {
+          console.error('Error fetching holiday data:', error);
+      }
+      };
+      fetchUser();
+  }, []);
 
     const validateForm = () => {
         const newErrors = {};
@@ -49,7 +45,7 @@ const FirstForm = (props) => {
         const formattedDate = formatDate(currentDate);
 
         const data = {
-            fullname:admin,
+            fullname:name,
             date: formattedDate,
             admin_password: pass,
         };

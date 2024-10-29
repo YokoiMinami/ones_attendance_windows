@@ -312,6 +312,17 @@ html {
   display: flex;
 }
 
+#table_flex2 {
+  font-family: "Yu Gothic Medium","遊ゴシック Medium",YuGothic,"遊ゴシック体","ヒラギノ角ゴ Pro W3",sans-serif;
+  background-color: #eeeeee;
+  color: #808080;
+  text-align: center;
+}
+
+#member_attendance_user {
+  text-align: left;
+}
+
 #table_box1 {
   width: 20%;
 }
@@ -349,6 +360,7 @@ html {
 
 
 .projects_input {
+  padding-left: 10px;
   margin-bottom: 5px;
   margin-left: 5px;
   outline: none;
@@ -437,6 +449,14 @@ html {
   text-align: center;
 }
 
+#attendance_table_box2 {
+  margin-top: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  text-align: center;
+}
+
 #table_top_menu {
   display: flex;
   justify-content: space-between;
@@ -444,9 +464,17 @@ html {
   margin: auto;
 }
 
+#table_top_menu2 {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin: auto;
+}
+
 #all_overwork {
   display: table;
   width: 50%;
+  /* margin-left: 150px; */
 }
 
 #all_overwork p {
@@ -468,6 +496,12 @@ html {
 #at_ym {
   text-align: right;
   width: 50%;
+}
+
+#at_ym2 {
+  text-align: right;
+  width: 50%;
+  padding-right: 10%;
 }
 
 #at_year {
@@ -492,6 +526,18 @@ html {
   width: 80%;
 }
 
+#member_at_h2 {
+  margin-top: 50px;
+}
+
+#atH2_area2 {
+  text-align: right;
+  width: 80%;
+  margin-bottom: 50px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 #projects_area {
   width: 100%;
   display: flex;
@@ -510,6 +556,14 @@ html {
 
 .admin_area {
   width: 100%;
+}
+
+#a_box1 {
+  width: 30%;
+}
+
+#a_box2 {
+  width: 70%;
 }
 
 .admin_area_box {
@@ -569,6 +623,44 @@ html {
 .admin_button:hover{
   background-color: #023e8a;
 } 
+
+#admin_table {
+  width: 60%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  table-layout: fixed;
+  margin: auto;
+  border: 1px solid #266ebd;
+  float: left;
+}
+
+#admin_tbody {
+  background-color: white;
+}
+
+#admin_tbody td {
+  padding: 5px;
+  border-top: 1px solid #266ebd; /* 上の線のみ表示 */
+  border-bottom: 1px solid #266ebd; /* 下の線のみ表示 */
+  word-wrap: break-word; /* 行を折り返す */
+  white-space: normal; /* 通常の空白処理 */
+}
+
+#admin_tbody tr:first-child td {
+  border-top: none; /* 最初の行の上の線を非表示 */
+}
+
+#admin_tbody tr:last-child td {
+  border-bottom: none; /* 最後の行の下の線を非表示 */
+}
+
+#admin_tbody td:first-child {
+  border-left: 1px solid #266ebd; /* 左の線を表示 */
+}
+
+#admin_tbody td:last-child {
+  border-right: 1px solid #266ebd; /* 右の線を表示 */
+}
 
 
 #login_password_input:focus {
@@ -637,6 +729,13 @@ html {
   margin: auto;
 }
 
+#atTable2 {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 50px;
+}
+
 .atTh {
   background-color: #266ebd;
   color: white;
@@ -692,6 +791,14 @@ html {
   margin-top: 80px;
   text-align: left;
   margin-left: -22%;
+  margin-bottom: 80px;
+}
+
+#attendance_link_area2 {
+  width: 100%;
+  margin-left: 50px;
+  margin-top: 80px;
+  text-align: left;
   margin-bottom: 80px;
 }
 
