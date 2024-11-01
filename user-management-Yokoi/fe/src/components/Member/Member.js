@@ -45,7 +45,11 @@ const Member = () => {
   const now = new Date();
   const year = now.getFullYear(); // 年を取得
   const month = now.getMonth() + 1; // 月を取得（0が1月なので+1します）
-  const date = now.toISOString().split('T');
+
+  const year2 = now.getFullYear();
+  const month2 = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+  const day = String(now.getDate()).padStart(2, '0'); // 日付
+  const date = `${year2}-${month2}-${day}`;
 
   //出勤時間と退勤時間をフォーマット
   const formatTime = (timeString) => {
@@ -79,7 +83,6 @@ const Member = () => {
       try {
         const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${month}`);
         const data = await response.json();
-        console.log(data);
         if (response.ok) {
           setTotalHours(prevData => ({
             ...prevData,
@@ -229,11 +232,13 @@ const Member = () => {
           </tbody>
         </table>
       </div>
-      <div id='member_link_area'>
-        <Link to="/" id='member_link'>← トップページ</Link>
-      </div>
-      <div id='member_page_logo'>
-      <img src={OnesLogo} alt="Ones" />
+      <div id='member_botom'>
+        <div id='member_link_area'>
+          <Link to="/" id='member_link'>← トップページ</Link>
+        </div>
+        <div id='member_page_logo'>
+          <img src={OnesLogo} alt="Ones" />
+        </div>
       </div>
     </div>
   );

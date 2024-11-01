@@ -6,12 +6,15 @@ import { saveAs } from 'file-saver';
 import Dropdown from './AttendancePull';
 import UserModal from './UserModal';
 import TimeModal from './TimeModal';
+import { parseISO, format, addMinutes, isAfter, isBefore, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
+import { ja } from 'date-fns/locale';
 
 const AttendanceTablePage = ( ) => {
   
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
   const [attendanceData, setAttendanceData] = useState([]);
+  const [attendanceCount, setAttendanceCount] = useState(0);
   const [overData, setOverData] = useState({});
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [startTime, setStartTime] = useState('09:00');
@@ -21,12 +24,14 @@ const AttendanceTablePage = ( ) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0);
-  const [provisions, setProvisions] = useState(0);
+  const [provisions, setProvisions] = useState(0); //今月の規定勤務時間
+  const [dayAverage, setDayAverage] = useState(0); //1日平均勤務時間
+  const [monthAverage, setMonthAverage] = useState(0); //月平均勤務時間
+  const [weekAverage, setWeekAverage] = useState(0); //直近の1日平均勤務時間
   const [userWorkHours, setUserWorkHours] = useState(0);
   const [remainingTime, setRemainingTime] = useState('');
   const [userTotal, setUserTotal] = useState(0);
   const [isOvertime, setIsOvertime] = useState(false);
-  const [projectsData, setProjectsData] = useState({});
   const [projects, setProjects] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
@@ -71,8 +76,9 @@ const AttendanceTablePage = ( ) => {
     const fetchAttendance = async () => {
       const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/attendance/${accounts_id}/${month}`);
+        const response = await fetch(`http://localhost:3000/attendance/${accounts_id}/${year}/${month}`);
         const data = await response.json();
+        setAttendanceCount(data.length);
         setUserWorkHours(data);
         setAttendanceData(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -81,8 +87,53 @@ const AttendanceTablePage = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]);
+  }, [year, month, editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]);
+  
+  // useEffect(() => { 
+  //   const today = new Date(); 
+  //   const dayOfWeek = today.getDay(); 
+  //   const lastMonday = startOfWeek(today, { weekStartsOn: 1 }); 
+  //   const lastSunday = endOfWeek(today, { weekStartsOn: 1 });
 
+  //   // 日付の時刻部分をクリア（00:00:00に設定） 
+  //   lastMonday.setHours(0, 0, 0, 0); 
+  //   lastSunday.setHours(23, 59, 59, 999);
+
+  //   const filterLastWeekData = attendanceData.filter(item => { 
+  //     const itemDate = new Date(item.date); 
+  //     const jstItemDate = new Date(itemDate.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })); // JSTに変換 
+  //     return jstItemDate >= lastMonday && jstItemDate <= lastSunday; 
+  //   });
+
+  //   console.log(attendanceData); 
+  //   console.log(filterLastWeekData); 
+      
+  //   // 日数計算するために分単位に変換 
+  //   const convertTimeToMinutes = (timeString) => { 
+  //     if (!timeString) return 0; // または適切なデフォルト値 
+  //     const [hours, minutes] = timeString.split(':').map(Number); 
+  //     return hours * 60 + minutes; 
+  //   }; 
+
+  //   const totalMinutes = filterLastWeekData.reduce((total, item) => { 
+  //     return total + convertTimeToMinutes(item.work_hours || '0:00'); // work_hours が null の場合のデフォルト値を設定 
+  //     }, 0); 
+      
+  //     console.log(totalMinutes); 
+
+  //     const convertMinutesToTime = (totalMinutes) => { 
+  //       const hours = Math.floor(totalMinutes / 60); 
+  //       const minutes = totalMinutes % 60; 
+  //       return `${hours}:${minutes < 10 ? '0' : ''}${minutes}`; 
+  //     }; 
+      
+  //     const totalWorkHoursTime = convertMinutesToTime(totalMinutes); 
+  //     console.log(`先週の合計勤務時間: ${totalWorkHoursTime}`); 
+  //   }, [attendanceData]);
+
+
+
+  
   //ユーザーの交通費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -136,6 +187,60 @@ const AttendanceTablePage = ( ) => {
     const holidays = holidayJp.between(new Date(year, month - 1, 1), new Date(year, month, 0));
     return holidays.map(holiday => new Date(holiday.date));
   };
+
+
+
+  useEffect(() => {
+    const today = new Date();
+    // 1週間前の同じ曜日の日付を取得 
+    const oneWeekAgo = subWeeks(today, 1); 
+    // 先週の月曜日の日付を取得 
+    const lastMonday = startOfWeek(oneWeekAgo, { weekStartsOn: 1 }); 
+    // 先週の日曜日の日付を取得 
+    const lastSunday = endOfWeek(oneWeekAgo, { weekStartsOn: 1 });
+
+    lastMonday.setHours(0, 0, 0, 0);
+    lastSunday.setHours(23, 59, 59, 999);
+
+    const filterLastWeekData = attendanceData.filter(item => {
+      //勤怠データの日付を取得
+      const itemDate = new Date(item.date);
+      itemDate.setUTCDate(itemDate.getUTCDate() + 1);
+      
+      const localItemDate = new Date(Date.UTC(itemDate.getUTCFullYear(), itemDate.getUTCMonth(), itemDate.getUTCDate(), itemDate.getUTCHours(), itemDate.getUTCMinutes(), itemDate.getUTCSeconds()));
+      console.log(localItemDate);
+      //localItemDate.setHours(localItemDate.getHours()); // JST is UTC+9
+      return localItemDate >= lastMonday && localItemDate <= lastSunday;
+    });
+  
+    console.log(attendanceData);
+    console.log(daysInMonth);
+  
+    // Convert time to minutes
+    const convertTimeToMinutes = (timeString) => {
+      if (!timeString) return 0;
+      const [hours, minutes] = timeString.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+  
+    const totalMinutes = filterLastWeekData.reduce((total, item) => {
+      return total + convertTimeToMinutes(item.work_hours || '0:00');
+    }, 0);
+  
+    console.log(totalMinutes);
+  
+    const convertMinutesToTime = (totalMinutes) => {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${hours}:${minutes < 10 ? '0' : ''}${minutes}`;
+    };
+  
+    const totalWorkHoursTime = convertMinutesToTime(totalMinutes);
+    console.log(`先週の合計勤務時間: ${totalWorkHoursTime}`);
+  }, [attendanceData]);
+  
+  
+
 
   //表を出力
   //特定の月の日付を取得し、それをReactの状態に設定する
@@ -414,7 +519,6 @@ const AttendanceTablePage = ( ) => {
     }
   }, [editingOutRemarks2]);
 
-
   //通常勤怠情報の処理
   //ユーザーIDをもとに残業情報を取得、データがあればインプットにデフォルト表示
   useEffect(() => {
@@ -527,6 +631,27 @@ const AttendanceTablePage = ( ) => {
         }, 0);
 
         const totalWorkHoursTime = convertMinutesToTime(totalWorkHours);
+        
+        // workHoursを分単位に変換し、勤務日数で割る
+        const multipliedWorkHoursInMinutes2 = totalWorkHours / attendanceCount;
+        const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2);
+        // 分単位の時間をhh:mm形式に変換
+        const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
+        const minutes2 = (flooredNumber % 60).toString().padStart(2, '0');
+        const multipliedWorkHours2 = `${hours2}:${minutes2}`;
+        
+        //1日平均勤務時間
+        setDayAverage(multipliedWorkHours2);
+
+        const workHoursInMinutes = convertTimeToMinutes(multipliedWorkHours2);
+        const multipliedWorkHoursInMinutes = workHoursInMinutes * holiday;
+        // 分単位の時間をhh:mm形式に変換
+        const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
+        const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
+        const multipliedWorkHours = `${hours}:${minutes}`;
+        //月予測勤務時間
+        setMonthAverage(multipliedWorkHours);
+
         setUserTotal(totalWorkHoursTime);
         const remainingTime1 = subtractTimes(multipliedWorkHours, totalWorkHoursTime);
         setRemainingTime(remainingTime1);
@@ -553,69 +678,6 @@ const AttendanceTablePage = ( ) => {
       setIsOvertime(false);
     }
   },[remainingTime])
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   const accounts_id = localStorage.getItem('user');
-  //   const data = {
-  //     accounts_id,
-  //     start_time: startTime,
-  //     end_time: endTime,
-  //     break_time: breakTime,
-  //     work_hours: workHours
-  //   };
-
-  //   try {
-  //     const response = await fetch('http://localhost:3000/overtime', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify(data)
-  //     });
-  //     if (response.ok) {
-  //       alert('データが保存されました');
-  //     } else {
-  //       alert('データの保存に失敗しました');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error saving data:', error);
-  //     alert('データの保存に失敗しました');
-  //   }
-  // };
-
-//   //プロジェクト情報
-//   useEffect(() => {
-//     const fetchUser = async () => {
-//     const accounts_id = localStorage.getItem('user');
-//     try {
-//         const response = await fetch(`http://localhost:3000/projects/${accounts_id}`);
-//         const data = await response.json();
-//         setItems(data);
-//     } catch (error) {
-//         console.error('Error fetching holiday data:', error);
-//     }
-//     };
-//     fetchUser();
-// }, [id]);
-
-  // useEffect(() => {
-  //   const accounts_id = localStorage.getItem('user');
-  //   fetch(`http://localhost:3000/projects/${accounts_id}`, {
-  //     method: 'get',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     }
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     setProjectsData(data);
-  //     if (data.project ) setProjects(data.project);
-  //     if (data.company) setCompany(data.company);
-  //     if (data.name) setName(data.name);
-  //   })
-  //   .catch(err => console.log(err));
-  // }, [id]);
 
   const exportToExcel = async () => {
     const startDate = new Date(year, month - 1, 1);
@@ -1050,6 +1112,14 @@ const AttendanceTablePage = ( ) => {
     saveAs(blob, `【月末書類】_${userData.fullname}_${userData.company}_${year}_${month}_.xlsx`);
 };
 
+{/* <tr key={date.toISOString()} className={dayClass}>
+<td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td> */}
+
+daysInMonth.map((date) => {
+  
+  const record = findAttendanceRecord(date);
+  console.log(record);
+});
 
 const holidays = getHolidaysInMonth(year, month);
 
@@ -1082,23 +1152,35 @@ const holidays = getHolidaysInMonth(year, month);
         <div id='table_top_menu'>
           <div id='all_overwork'>
             <p>
-              <span className="label">今月の総勤務時間 :</span>
+              <span className="label">今月の総稼働時間 :</span>
               <span className="value">{userTotal}</span>
             </p>
             <p>
+              <span className="label">1日平均稼働時間 :</span>
+              <span className="value">{dayAverage}</span>
+            </p>
+            <p>
+              <span className="label">月予測稼働時間 :</span>
+              <span className="value">{monthAverage}</span>
+            </p>
+            <p>
+              <span className="label">先週の1日平均稼働時間 :</span>
+              <span className="value">{weekAverage}</span>
+            </p>
+            {/* <p>
               <span className="label">今月の規定勤務時間 :</span>
               <span className="value">{provisions}</span>
-            </p>
-            <p>
+            </p> */}
+            {/* <p>
               <span className="label">今月の残り規定勤務時間 :</span>
               <span className="value">{isNegativeTime(remainingTime) ? '0' : remainingTime}</span>
-            </p>
-            <p>
+            </p> */}
+            {/* <p>
               <span className="label">今月の総残業時間 :</span>
               <span className={`${isOvertime ? 'overtime' : 'value'}`}>
                 {isNegativeTime(remainingTime) ? removeNegativeSign(remainingTime) : '0'}
               </span>
-            </p>
+            </p> */}
           </div>
           <div id='at_ym'>
             <input

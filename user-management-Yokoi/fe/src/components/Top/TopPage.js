@@ -17,7 +17,7 @@ const TopPage = () => {
   const [isCheckedIn, setIsCheckedIn] = useState(false); // 出勤状態を管理するフラグ
   const [break_time, setBreakTime] = useState('01:00');  
   const [authorityData, setAuthorityData] = useState(false);
-
+  
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
       method: 'get',
@@ -65,7 +65,10 @@ const TopPage = () => {
   const handleCheckIn = async () => {
     const accounts_id = localStorage.getItem('user');
     const now = new Date();
-    const currentDate = now.toISOString().split('T')[0];
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+    const day = String(now.getDate()).padStart(2, '0'); // 日付
+    const currentDate = `${year}-${month}-${day}`;
     const currentTime = now.toTimeString().split(' ')[0].slice(0, 5);
 
     // 現在の時間を15分単位に繰り上げ
@@ -108,9 +111,12 @@ const TopPage = () => {
   const handleCheckOut = async () => {
     const accounts_id = localStorage.getItem('user');
     const now = new Date();
-    const currentDate = now.toISOString().split('T')[0];
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+    const day = String(now.getDate()).padStart(2, '0'); // 日付
+    const currentDate = `${year}-${month}-${day}`;
     const currentTime = now.toTimeString().split(' ')[0].slice(0, 5);
-    const date = now.toISOString().split('T')[0];
+    const date = `${year}-${month}-${day}`;
 
     // 現在の時間を15分単位に切り捨て
     const roundedCheckOutTime = roundDownToQuarterHour(currentTime);
@@ -144,7 +150,7 @@ const TopPage = () => {
       if (!isValidDate(checkInTime) || !isValidDate(checkOutTime)) {
         //テスト用
 
-        return '計算できませんでした';
+        return '00:00';
       }
   
       // 時間の差を計算
@@ -166,7 +172,7 @@ const TopPage = () => {
       // 日付の有効性をチェック
       const isValidDate = (date) => date instanceof Date && !isNaN(date);
       if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-        return '計算できませんでした';
+        return '00:00';
       }
   
       // 時間の差を計算

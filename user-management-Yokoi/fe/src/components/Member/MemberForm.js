@@ -33,7 +33,6 @@ const teamOptions = [
 ];
 
 const MemberForm = (props) => {
-  const { id } = useParams();
 
   const [state, setState] = useState({
     id: 0,
@@ -42,19 +41,17 @@ const MemberForm = (props) => {
     kananame: '',
     email: '',
     team: '',
-    password: '',
     authority: ''
   });
 
   const [companyState, setCompanyState] = useState({ company: '' });
   const [teamState, setTeamState] = useState({ team: '' });
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (props.item) {
-      const { id,company, fullname,kananame, email, team, password,authority } = props.item;
-      setState({ id,company, fullname,kananame, email, team, password,authority });
+      const { id,company, fullname,kananame, email, team,authority } = props.item;
+      setState({ id,company, fullname,kananame, email, team, authority });
     }
   }, [props.item]);
 
@@ -81,7 +78,6 @@ const MemberForm = (props) => {
       newErrors.email = '有効なEmailを入力してください';
     }
     if (!teamState.team) newErrors.team = '所属するチームを入力してください';
-    if (!state.password) newErrors.password = 'パスワードを入力してください';
     return newErrors;
   };
 
@@ -144,7 +140,6 @@ const MemberForm = (props) => {
           kananame: state.kananame,
           email: state.email,
           team: teamState.team,
-          password: state.password,
           authority: state.authority
         })
       });
@@ -239,13 +234,6 @@ const MemberForm = (props) => {
           </div>
           <div className='new_error2' id='team_error2'>
             {errors.team && <p className="error">{errors.team}</p>}
-          </div>
-        </FormGroup>
-        <FormGroup>
-          <label htmlFor="password" className='new_account_label2'>パスワード</label>
-          <input type="text" name="password" id="password" className='new_account_input2' onChange={onChange} />
-          <div className='new_error2' id='pass_error2'>
-          {errors.password && <p className="error">{errors.password}</p>}
           </div>
         </FormGroup>
         <FormGroup>

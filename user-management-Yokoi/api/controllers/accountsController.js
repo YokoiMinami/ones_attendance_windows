@@ -36,11 +36,11 @@ const postData = async (req, res, db) => {
 }
 
 const putData = async (req, res, db) => {
-  const { id, company, fullname, kananame, email, team, password, authority } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const { id, company, fullname, kananame, email, team, authority } = req.body;
+  
   if(authority === 'true'){
     const authorityTrue = true;
-    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, password: hashedPassword, authority:authority })
+    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, authority:authority })
     .returning('*')
     .then(item => {
       res.json(item);
@@ -50,7 +50,7 @@ const putData = async (req, res, db) => {
     }));
   }else {
     const authorityFalse = false;
-    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, password: hashedPassword, authority:authority })
+    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, authority:authority })
   .returning('*')
   .then(item => {
     res.json(item);
@@ -156,7 +156,7 @@ const attData = async (req, res, db) => {
           .update({
             check_out_time,
             break_time,
-            work_hours: db.raw(`INTERVAL '${work_hours}'`), // INTERVAL 型に変換
+            work_hours, 
             out_remarks1,
             out_remarks2,
             // is_checked_in: false
@@ -296,11 +296,13 @@ const getMonthlyTotalHours = async (req, res, db) => {
 };
 
 const monthData = async (req, res, db) => {
-  const { accounts_id, month } = req.params;
-    db('attendance')
-    .whereRaw('EXTRACT(MONTH FROM date) = ?', [month])
+  const { accounts_id, year, month } = req.params;
+
+  db('attendance')
+    .whereRaw(`TO_CHAR(date, 'YYYY-MM') = ?`, [`${year}-${month}`])
     .andWhere('accounts_id', accounts_id)
     .then(attendance => {
+      console.log(attendance);
       res.json(attendance);
     })
     .catch(error => {
@@ -308,6 +310,24 @@ const monthData = async (req, res, db) => {
       res.status(500).json({ error: 'Internal server error. Please try again later.' });
     });
 };
+
+// const monthData = async (req, res, db) => {
+//   const { accounts_id, year, month } = req.params;
+
+//   db('attendance')
+//     .whereRaw(`TO_CHAR(date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tokyo', 'YYYY-MM') = ?`, [`${year}-${month}`])
+//     .andWhere('accounts_id', accounts_id)
+//     .then(attendance => {
+//       console.log(attendance); // Log to server console
+//       res.json(attendance);
+//     })
+//     .catch(error => {
+//       console.error('Error fetching attendance data:', error);
+//       res.status(500).json({ error: 'Internal server error. Please try again later.' });
+//     });
+// };
+
+
 
 const overUser = async (req, res, db) => {
   const { accounts_id } = req.params;

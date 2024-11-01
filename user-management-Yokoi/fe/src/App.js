@@ -1,11 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './components/Login/LoginPage';
 import TopPage from './components/Top/TopPage';
 import Account from './components/Account';
 import ProtectedRoute from './ProtectedRoute';
 import { AuthProvider } from './AuthContext';
-
 import AttendanceTablePage from './components/Attendance/AttendanceTable';
 import NewAccountPage from './components/NewAccount/NewAccountPage';
 import NewAccountAfter from './components/NewAccount/NewAccountAfter';
@@ -17,22 +16,21 @@ import HolidayPage from './components/holiday/holiday';
 import PassPage from './components/Pass/PassPage';
 
 const AppContent = () => {
-  
   return (
     <>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/account" element={<Account />} />
         <Route path="/" element={<ProtectedRoute component={TopPage} />} />
-        <Route path="/attendance_table" element={<AttendanceTablePage />} />
-        <Route path="/pass" element={<PassPage />} />
-        <Route path="/expenses" element={<ExpensesPage />} />
-        <Route path="/holiday" element={<HolidayPage />} />
-        <Route path="/new_account" element={<NewAccountPage />} />
-        <Route path="/new_account_after/:id" element={<NewAccountAfter />} />
-        <Route path="/member" element={<Member />} />
-        <Route path="/user/:id" element={<MemberData />} />
-        <Route path="/attendance/:id" element={<MemberAttendanceTable />} />
+        <Route path="/account" element={<ProtectedRoute component={Account} />} />
+        <Route path="/attendance_table" element={<ProtectedRoute component={AttendanceTablePage} />} />
+        <Route path="/pass" element={<ProtectedRoute component={PassPage} />} />
+        <Route path="/expenses" element={<ProtectedRoute component={ExpensesPage} />} />
+        <Route path="/holiday" element={<ProtectedRoute component={HolidayPage} />} />
+        <Route path="/new_account" element={<ProtectedRoute component={NewAccountPage} />} />
+        <Route path="/new_account_after/:id" element={<ProtectedRoute component={NewAccountAfter} />} />
+        <Route path="/member" element={<ProtectedRoute component={Member} />} />
+        <Route path="/user/:id" element={<ProtectedRoute component={MemberData} />} />
+        <Route path="/attendance/:id" element={<ProtectedRoute component={MemberAttendanceTable} />} />
       </Routes>
     </>
   );

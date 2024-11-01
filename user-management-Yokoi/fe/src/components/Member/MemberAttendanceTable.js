@@ -14,6 +14,7 @@ const MemberAttendanceTable = ( ) => {
   const { id } = useParams(); //メンバーIDを取得
   const [userData, setUserData] = useState(null); //メンバー情報を取得
   const [attendanceData, setAttendanceData] = useState([]); //メンバーの勤務データをテーブル用で取得
+  const [attendanceCount, setAttendanceCount] = useState(0);
   const [userWorkHours, setUserWorkHours] = useState(0); //メンバーの勤務データを取得
   const [overData, setOverData] = useState({});
   const [daysInMonth, setDaysInMonth] = useState([]);
@@ -70,8 +71,9 @@ const MemberAttendanceTable = ( ) => {
     const fetchAttendance = async () => {
       const accounts_id = id
       try {
-        const response = await fetch(`http://localhost:3000/attendance/${accounts_id}/${month}`);
+        const response = await fetch(`http://localhost:3000/attendance/${accounts_id}/${year}/${month}`);
         const data = await response.json();
+        setAttendanceCount(data.length);
         setUserWorkHours(data);
         setAttendanceData(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -81,6 +83,7 @@ const MemberAttendanceTable = ( ) => {
     };
     fetchAttendance();
   }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut,editingBreak]);
+  
 
   //土日を判定
   const isWeekend = (date) => {
@@ -174,12 +177,16 @@ const MemberAttendanceTable = ( ) => {
       if(newOption === ''){
         setCheckIn(newOption);
         const accounts_id = id;
-        const currentDate = date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+        const day = String(date.getDate()).padStart(2, '0'); // 日付
+        const currentDate = `${year}-${month}-${day}`;
+        //const currentDate = date.toISOString().split('T')[0];
 
         const data = {
           accounts_id,
           date: currentDate,
-          check_in_time: newOption,
+          check_in_time: ''
         };
       
         try {
@@ -213,71 +220,132 @@ const MemberAttendanceTable = ( ) => {
           alert('データの保存に失敗しました');
         }
       }else{
-        //勤務時間の合計を再計算
-        const startDate = new Date(`1970-01-01T${newOption}`);
-        const endDate = new Date(`1970-01-01T${check_out_time}`);
-        const diff = endDate - startDate;
-        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-        const all_work_time = `${hours}:${minutes}`;
-
-        //勤務時間の合計から休憩時間を引く
-        const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
-        const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
-
-        // 日付の有効性をチェック
-        const isValidDate = (date) => date instanceof Date && !isNaN(date);
-        if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-          return '計算できませんでした';
-        }
-
-        // 時間の差を計算
-        const diff2 =  checkOllTime - checkBreakTime;
-        const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
-        const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
-        const edit_work =  `${hours2}:${minutes2}`;
-
-        setCheckIn(newOption);
-
-        const accounts_id = id;
-        const currentDate = date.toISOString().split('T')[0];
-
-        const data = {
-          accounts_id,
-          date: currentDate,
-          check_in_time: newOption,
-          work_hours: edit_work
-        };
-      
-        try {
-          const response = await fetch('http://localhost:3000/time', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-          if (response.ok) {
-            // 編集モードを解除
-            setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
-            // 新しいデータを追加
-            setAttendanceData(prev => {
-              const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
-              if (existingRecordIndex !== -1) {
-                return prev.map(record => 
-                  record.date === currentDate ? { ...record, checkIn: newOption } : record
-                );
-              } else {
-                return [...prev, data];
-              }
+        if(check_out_time.length && breakTime.length){
+          //勤務時間の合計を再計算
+          const startDate = new Date(`1970-01-01T${newOption}`);
+          const endDate = new Date(`1970-01-01T${check_out_time}`);
+          const diff = endDate - startDate;
+          const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+          const all_work_time = `${hours}:${minutes}`;
+    
+          //勤務時間の合計から休憩時間を引く
+          const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
+          const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
+    
+          // 日付の有効性をチェック
+          const isValidDate = (date) => date instanceof Date && !isNaN(date);
+          if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
+            return '計算できませんでした';
+          }
+    
+          // 時間の差を計算
+          const diff2 =  checkOllTime - checkBreakTime;
+          const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
+          const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
+          const edit_work =  `${hours2}:${minutes2}`;
+    
+          setCheckIn(newOption);
+    
+          const accounts_id = id;
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+          const day = String(date.getDate()).padStart(2, '0'); // 日付
+          const currentDate = `${year}-${month}-${day}`;
+          // const currentDate = date.toISOString().split('T')[0];
+    
+          const data = {
+            accounts_id,
+            date: currentDate,
+            check_in_time: newOption,
+            work_hours: edit_work
+          };
+          
+          try {
+            const response = await fetch('http://localhost:3000/time', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
             });
-            
-          } else {
+            if (response.ok) {
+              // 編集モードを解除
+              setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
+              // 新しいデータを追加
+              setAttendanceData(prev => {
+                const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+                if (existingRecordIndex !== -1) {
+                  return prev.map(record => 
+                    record.date === currentDate ? { ...record, checkIn: newOption } : record
+                  );
+                } else {
+                  return [...prev, data];
+                }
+              });
+              
+            } else {
+              alert('データの保存に失敗しました');
+            }
+          } catch (error) {
+            console.error('Error saving data:', error);
             alert('データの保存に失敗しました');
           }
-        } catch (error) {
-          console.error('Error saving data:', error);
-          alert('データの保存に失敗しました');
+        }else if(check_out_time.length){
+          //勤務時間の合計を再計算
+          const startDate = new Date(`1970-01-01T${newOption}`);
+          const endDate = new Date(`1970-01-01T${check_out_time}`);
+          const diff = endDate - startDate;
+          const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+          const all_work_time = `${hours}:${minutes}`;
+    
+          setCheckIn(newOption);
+    
+          const accounts_id = id;
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+          const day = String(date.getDate()).padStart(2, '0'); // 日付
+          const currentDate = `${year}-${month}-${day}`;
+          // const currentDate = date.toISOString().split('T')[0];
+    
+          const data = {
+            accounts_id,
+            date: currentDate,
+            check_in_time: newOption,
+            work_hours: all_work_time
+          };
+          
+          try {
+            const response = await fetch('http://localhost:3000/time', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+            if (response.ok) {
+              // 編集モードを解除
+              setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: false }));
+              // 新しいデータを追加
+              setAttendanceData(prev => {
+                const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
+                if (existingRecordIndex !== -1) {
+                  return prev.map(record => 
+                    record.date === currentDate ? { ...record, checkIn: newOption } : record
+                  );
+                } else {
+                  return [...prev, data];
+                }
+              });
+              
+            } else {
+              alert('データの保存に失敗しました');
+            }
+          } catch (error) {
+            console.error('Error saving data:', error);
+            alert('データの保存に失敗しました');
+          }
         }
       }
     }
@@ -285,14 +353,18 @@ const MemberAttendanceTable = ( ) => {
       setCheckIn(newOption);
 
       const accounts_id = id;
-      const currentDate = date.toISOString().split('T')[0];
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+      const day = String(date.getDate()).padStart(2, '0'); // 日付
+      const currentDate = `${year}-${month}-${day}`;
+      //const currentDate = date.toISOString().split('T')[0];
 
       const data = {
         accounts_id,
         date: currentDate,
         check_in_time: newOption,
       };
-      console.log(currentDate);
+      
       try {
         const response = await fetch('http://localhost:3000/time', {
           method: 'POST',
@@ -326,6 +398,7 @@ const MemberAttendanceTable = ( ) => {
     }
   };
 
+
   const toggleCheckInEditing = (date) => {
     setEditingCheckIn(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
@@ -337,14 +410,18 @@ const MemberAttendanceTable = ( ) => {
     if(newOption === ''){
       setCheckOut(newOption);
       const accounts_id = id;
-      const currentDate = date.toISOString().split('T')[0];
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+      const day = String(date.getDate()).padStart(2, '0'); // 日付
+      const currentDate = `${year}-${month}-${day}`;
+      // const currentDate = date.toISOString().split('T')[0];
 
       const data = {
         accounts_id,
         date: currentDate,
         check_out_time: '',
       };
-      console.log(currentDate);
+
       try {
         const response = await fetch('http://localhost:3000/time', {
           method: 'POST',
@@ -404,7 +481,11 @@ const MemberAttendanceTable = ( ) => {
         setCheckOut(newOption);
   
         const accounts_id = id;
-        const currentDate = date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+        const day = String(date.getDate()).padStart(2, '0'); // 日付
+        const currentDate = `${year}-${month}-${day}`;
+        // const currentDate = date.toISOString().split('T')[0];
   
         const data = {
           accounts_id,
@@ -412,7 +493,7 @@ const MemberAttendanceTable = ( ) => {
           check_out_time: newOption,
           work_hours: edit_work
         };
-        console.log(currentDate);
+        
         try {
           const response = await fetch('http://localhost:3000/time', {
             method: 'POST',
@@ -455,7 +536,11 @@ const MemberAttendanceTable = ( ) => {
         setCheckOut(newOption);
   
         const accounts_id = id;
-        const currentDate = date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+        const day = String(date.getDate()).padStart(2, '0'); // 日付
+        const currentDate = `${year}-${month}-${day}`;
+        // const currentDate = date.toISOString().split('T')[0];
   
         const data = {
           accounts_id,
@@ -463,7 +548,7 @@ const MemberAttendanceTable = ( ) => {
           check_out_time: newOption,
           work_hours: all_work_time
         };
-        console.log(currentDate);
+        
         try {
           const response = await fetch('http://localhost:3000/time', {
             method: 'POST',
@@ -510,7 +595,11 @@ const MemberAttendanceTable = ( ) => {
       setBreakTimeEdit(newOption);
 
       const accounts_id = id;
-      const currentDate = date.toISOString().split('T')[0];
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+      const day = String(date.getDate()).padStart(2, '0'); // 日付
+      const currentDate = `${year}-${month}-${day}`;
+      //const currentDate = date.toISOString().split('T')[0];
 
       const data = {
         accounts_id,
@@ -578,7 +667,11 @@ const MemberAttendanceTable = ( ) => {
         setBreakTimeEdit(newOption);
   
         const accounts_id = id;
-        const currentDate = date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+        const day = String(date.getDate()).padStart(2, '0'); // 日付
+        const currentDate = `${year}-${month}-${day}`;
+        // const currentDate = date.toISOString().split('T')[0];
   
         const data = {
           accounts_id,
@@ -622,7 +715,11 @@ const MemberAttendanceTable = ( ) => {
         setBreakTimeEdit(newOption);
   
         const accounts_id = id;
-        const currentDate = date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+        const day = String(date.getDate()).padStart(2, '0'); // 日付
+        const currentDate = `${year}-${month}-${day}`;
+        //const currentDate = date.toISOString().split('T')[0];
   
         const data = {
           accounts_id,
@@ -729,7 +826,12 @@ const MemberAttendanceTable = ( ) => {
   const handleRemarksChange1 = async (date, newOption) => {
     setRemarks1(newOption);
     const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+    const day = String(date.getDate()).padStart(2, '0'); // 日付
+    const currentDate = `${year}-${month}-${day}`;
+
+    //const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
@@ -775,7 +877,12 @@ const MemberAttendanceTable = ( ) => {
   const handleOutRemarksChange1 = async (date, newOption) => {
     setOutRemarks1(newOption);
     const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+    const day = String(date.getDate()).padStart(2, '0'); // 日付
+    const currentDate = `${year}-${month}-${day}`;
+
+    //const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
@@ -824,7 +931,12 @@ const MemberAttendanceTable = ( ) => {
   
   const handleRemarksSave = async (date) => {
     const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+    const day = String(date.getDate()).padStart(2, '0'); // 日付
+    const currentDate = `${year}-${month}-${day}`;
+
+    //const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
@@ -881,7 +993,12 @@ const MemberAttendanceTable = ( ) => {
   
   const handleOutRemarksSave = async (date) => {
     const accounts_id = id;
-    const currentDate = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+    const day = String(date.getDate()).padStart(2, '0'); // 日付
+    const currentDate = `${year}-${month}-${day}`;
+
+    //const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
@@ -1144,111 +1261,6 @@ const MemberAttendanceTable = ( ) => {
     })
     .catch(err => console.log(err));
   }, [id]);
-
-  const exportToExcel = async () => {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-    const allDates = [];
-  
-    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-      allDates.push(new Date(d));
-    }
-  
-    const workbook = new ExcelJS.Workbook();
-    const worksheetName = `${year}年${month}月`;
-    const worksheet = workbook.addWorksheet(worksheetName);
-    
-    // タイトルを追加
-    worksheet.mergeCells('A1:J1'); // セルを結合
-    const titleCell = worksheet.getCell('A1');
-    titleCell.value = '勤務表';
-    titleCell.font = { size: 20, bold: true };
-    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-
-    worksheet.mergeCells('H2:J2'); 
-    const workMonth = worksheet.getCell('H2');
-    workMonth.value = `${year}年${month}月`;
-    workMonth.font = { size: 18 };
-    workMonth.alignment = { vertical: 'middle', horizontal: 'left' };
-
-    worksheet.mergeCells('A3:D3'); 
-    const workName = worksheet.getCell('A3');
-    workName.value = `プロジェクト名 : ${projects}`;
-    workName.font = { size: 18 };
-    workName.alignment = { vertical: 'middle', horizontal: 'left' };
-
-    worksheet.mergeCells('H4:J4'); 
-    const companyName = worksheet.getCell('H4');
-    companyName.value = `所属会社 : ${company}`;
-    companyName.font = { size: 18 };
-    companyName.alignment = { vertical: 'middle', horizontal: 'left' };
-
-    worksheet.mergeCells('H5:J5'); 
-    const userName = worksheet.getCell('H5');
-    userName.value = `作業者氏名 : ${name}`;
-    userName.font = { size: 18 };
-    userName.alignment = { vertical: 'middle', horizontal: 'left' };
-
-    // ヘッダーを手動で追加
-    worksheet.addRow(['日付', '曜日', '出勤時間', '特記', '出勤備考', '退勤時間', '特記', '退勤備考', '休憩時間', '勤務時間']);
-    worksheet.columns = [
-      { key: 'date', width: 15 },
-      { key: 'day', width: 10 },
-      { key: 'check_in', width: 15 },
-      { key: 'remarks1', width: 15 },
-      { key: 'remarks2', width: 30 },
-      { key: 'check_out', width: 15 },
-      { key: 'out_remarks1', width: 15 },
-      { key: 'out_remarks2', width: 30 },
-      { key: 'break_time', width: 15 },
-      { key: 'work_hours', width: 15 }
-    ];
-  
-    allDates.forEach(date => {
-      const record = attendanceData.find(record => new Date(record.date).toLocaleDateString('ja-JP') === date.toLocaleDateString('ja-JP'));
-      worksheet.addRow({
-        date: date.toLocaleDateString('ja-JP').replace(/\//g, '/'),
-        day: getDayOfWeek(date),
-        check_in: record ? formatTime(record.check_in_time) : '',
-        remarks1: record ? record.remarks1 : '',
-        remarks2: record ? record.remarks2 : '',
-        check_out: record ? formatTime(record.check_out_time) : '',
-        out_remarks1: record ? record.out_remarks1 : '',
-        out_remarks2: record ? record.out_remarks2 : '',
-        break_time: record ? formatTime(record.break_time) : '',
-        work_hours: record ? formatTime(record.work_hours) : ''
-      });
-    });
-  
-    // スタイルの適用
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber >= 6) { // 6行目から罫線を適用
-        row.eachCell((cell, colNumber) => {
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-          };
-          if (rowNumber === 6) {
-            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FF266EBD' }
-            };
-            cell.alignment = { horizontal: 'center' };
-          }
-        });
-        row.height = 25;
-      }
-    });
-  
-    // バッファを生成してBlobとして保存
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, `勤怠一覧_${year}_${month}_${userData.fullname}.xlsx`);
-};
 
 const holidays = getHolidaysInMonth(year, month);
 
