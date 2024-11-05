@@ -82,7 +82,7 @@ const HolidayPage = () => {
     return (
         <div id='expenses_page'>
             <div id='expenses_user_area'>
-                {userData && <p id='atUser'>ユーザー名: {userData.fullname} さん</p>}
+                {userData && <p id='atUser'>{userData.fullname} さん</p>}
             </div>
             <h1>代休未消化記録表</h1>
             <div id='expenses_H2_area'>
