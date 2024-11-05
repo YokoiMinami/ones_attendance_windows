@@ -150,6 +150,23 @@ const AttendanceTablePage = ( ) => {
     fetchHoliday();
   }, [year, month]);
 
+  //プロジェクト情報
+  useEffect(() => {
+    const fetchUser = async () => {
+    try {
+        const response = await fetch(`http://localhost:3000/projects/${accounts_id}`);
+        const data = await response.json();
+        setItems(data);
+        if (data.project ) setProjects(data.project);
+        if (data.company) setCompany(data.company);
+        if (data.name) setName(data.name);
+    } catch (error) {
+        console.error('Error fetching holiday data:', error);
+    }
+    };
+    fetchUser();
+}, [year,month]);
+
   const addItemToState = (item) => {
     window.location.reload();
     setItems(prevItems => [...prevItems, item]);
@@ -665,6 +682,11 @@ const AttendanceTablePage = ( ) => {
     }
   }, [formattedAttendanceData]);
 
+
+
+  console.log(projects);
+  console.log(company);
+  console.log(name);
   const exportToExcel = async () => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
