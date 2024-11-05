@@ -37,20 +37,20 @@ const Dropdown = ({ value, onChange }) => {
       onMouseEnter={() => setMenuIsOpen(true)}
       onMouseLeave={() => setMenuIsOpen(false)}
     >
-      <Select
-        value={options.find(option => option.value === value)}
-        onChange={selectedOption => {
-          onChange(selectedOption.value);
-          setMenuIsOpen(false); // 選択後にメニューを閉じる
-        }}
-        options={options}
-        classNamePrefix="custom-select"
-        placeholder=""
-        menuIsOpen={menuIsOpen}
-        styles={customStyles}
-        menuPortalTarget={document.body} // 必要に応じてターゲットを指定
-      />
-    </div>
+    <Select
+      value={options.find(option => option.value === value)}
+      onChange={selectedOption => {
+        onChange(selectedOption.value);
+        setMenuIsOpen(false); // 選択後にメニューを閉じる
+      }}
+      options={options}
+      classNamePrefix="custom-select"
+      placeholder=""
+      menuIsOpen={menuIsOpen}
+      styles={customStyles}
+      menuPortalTarget={document.body} // 必要に応じてターゲットを指定
+    />
+  </div>
   );
 };
 

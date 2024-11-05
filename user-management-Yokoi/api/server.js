@@ -32,6 +32,7 @@ const corsOptions = {
     }
   }
 }
+
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
@@ -63,12 +64,15 @@ app.post('/attendance', (req, res) => accountsController.attData(req, res, db));
 app.get('/attendance/status/:id', (req, res) => accountsController.attgetData(req, res, db));
 app.get('/attendance/checkin/:accounts_id/:date', (req, res) => accountsController.checkIn(req, res, db));
 app.get('/attendance/attendance/:accounts_id/:date', (req, res) => accountsController.dateData(req, res, db));
-app.get('/attendance/total_hours/:accounts_id/:year/:month', (req, res) => accountsController.getMonthlyTotalHours(req, res, db));
 app.get('/attendance/:accounts_id/:year/:month', (req, res) => accountsController.monthData(req, res, db));
-app.post('/overtime', (req, res) => accountsController.overData(req, res, db));
+//標準勤務時間
 app.get('/overuser/:accounts_id', (req, res) => accountsController.overUser(req, res, db));
+app.post('/overtime', (req, res) => accountsController.overData(req, res, db));
+//プロジェクト情報
 app.post('/projects', (req, res) => accountsController.projectsData(req, res, db));
 app.get('/projects/:accounts_id', (req, res) => accountsController.projectUser(req, res, db));
+//メンバー勤怠
+app.get('/attendance/total_hours/:accounts_id/:year/:month/:lastMonday/:lastSunday', (req, res) => accountsController.getMonthlyTotalHours(req, res, db));
 app.post('/remarks', (req, res) => accountsController.newRemarks(req, res, db));
 app.post('/time', (req, res) => accountsController.newTime(req, res, db));
 //交通費
@@ -80,7 +84,6 @@ app.get('/holiday/:accounts_id', (req, res) => accountsController.holidayData(re
 app.delete('/holiday_delete', (req, res) => accountsController.delHolidayData(req, res, db));
 //管理者パスワード
 app.get('/pass', (req, res) => accountsController.passData(req, res, db));
-app.post('/pass_post', (req, res) => accountsController.passPost(req, res, db));
 app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 
 //サーバ接続

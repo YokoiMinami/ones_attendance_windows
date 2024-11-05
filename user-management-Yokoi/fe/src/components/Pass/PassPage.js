@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PassModal from './PassModal';
-import FirstModal from './FirstModal';
+import OnesLogo from '../../images/ones-logo.png';
+//import FirstModal from './FirstModal';
 
 const PassPage = () => {
   const id = localStorage.getItem('user');
@@ -45,21 +46,21 @@ const PassPage = () => {
 
   return (
     <div id='expenses_page'>
-      <div id='expenses_user_area'>
-        {userData && <p id='atUser'>ユーザー名: {userData.fullname} さん</p>}
-      </div>
-      <h1>管理者パスワード変更</h1>
+      {/* <div id='expenses_user_area'>
+        {userData && <p id='atUser'>{userData.fullname} さん</p>}
+      </div> */}
+      {/* <h1 id='a_h1'>管理者パスワード変更</h1> */}
       <div id='h_flex'>
         <div id='a_box1'>
+          <div id='admin_user_area'>
+            {userData && <p id='atUser'>{userData.fullname} さん</p>}
+          </div>
           <div id='member_new_button'>
-            { items && items.length > 0 ? (
-              <PassModal buttonLabel="変更" addItemToState={addItemToState} />
-            ) : (
-              <FirstModal buttonLabel="登録" addItemToState={addItemToState} />
-            )}
+            <PassModal buttonLabel="変更" addItemToState={addItemToState} />
           </div>
         </div>
         <div id ='a_box2'>
+          <h1 id='a_h1'>管理者パスワード変更</h1>
           <table id ='admin_table'>
             <thead id ='expenses_Th'>
               <tr>
@@ -84,10 +85,15 @@ const PassPage = () => {
               )}
             </tbody>
           </table>
+          <div id='admin_page_logo'>
+            <img src={OnesLogo} alt="Ones" />
+          </div>
         </div>
       </div>
-      <div id='expenses_link_area'>
-        <Link to="/" id='expenses_link'>← トップページ</Link>
+      <div id='member_botom'>
+        <div id='member_link_area'>
+          <Link to="/" id='member_link'>← トップページ</Link>
+        </div>
       </div>
     </div>
   );

@@ -26,8 +26,8 @@ const AppContent = () => {
         <Route path="/pass" element={<ProtectedRoute component={PassPage} />} />
         <Route path="/expenses" element={<ProtectedRoute component={ExpensesPage} />} />
         <Route path="/holiday" element={<ProtectedRoute component={HolidayPage} />} />
-        <Route path="/new_account" element={<ProtectedRoute component={NewAccountPage} />} />
-        <Route path="/new_account_after/:id" element={<ProtectedRoute component={NewAccountAfter} />} />
+        <Route path="/new_account" element={<NewAccountPage />} />
+        <Route path="/new_account_after/:id" element={<NewAccountAfter />} />
         <Route path="/member" element={<ProtectedRoute component={Member} />} />
         <Route path="/user/:id" element={<ProtectedRoute component={MemberData} />} />
         <Route path="/attendance/:id" element={<ProtectedRoute component={MemberAttendanceTable} />} />

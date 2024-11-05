@@ -5,7 +5,7 @@ import MemberModal from './MemberModal';
 const MemberTable = (props) => {
   const navigate = useNavigate();
   const deleteItem = id => {
-    let confirmDelete = window.confirm('削除しますか？');
+    let confirmDelete = window.confirm('メンバーを削除しますか？');
     if (confirmDelete) {
       fetch('http://localhost:3000/delete', {
         method: 'delete',

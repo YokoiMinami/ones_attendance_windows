@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
-import { useNavigate,useParams } from 'react-router-dom';
 import { TextField, Autocomplete } from '@mui/material';
 
 const options = [
@@ -52,6 +51,8 @@ const MemberForm = (props) => {
     if (props.item) {
       const { id,company, fullname,kananame, email, team,authority } = props.item;
       setState({ id,company, fullname,kananame, email, team, authority });
+      setCompanyState({ company });
+      setTeamState({ team });
     }
   }, [props.item]);
 
@@ -236,9 +237,18 @@ const MemberForm = (props) => {
             {errors.team && <p className="error">{errors.team}</p>}
           </div>
         </FormGroup>
+        {!props.item && ( 
+          <FormGroup>
+            <label htmlFor="password" className='new_account_label2'>パスワード</label>
+            <input type="text" name="password" id="password" className='new_account_input2' onChange={onChange} value={state.password || ''} />
+            <div className='new_error' id='pass_error'>
+              {errors.password && <p className="error">{errors.password}</p>}
+            </div>
+          </FormGroup>
+        )}
         <FormGroup>
           <label htmlFor="authority" className='new_account_label2'>利用権限</label>
-          <input type="text" name="authority" placeholder='管理者のみ入力' id="authority" className='new_account_input2' onChange={onChange} value={state.authority || ''} />
+          <input type="text" name="authority" placeholder='管理者のみ入力' id="authority" className='new_account_input2' onChange={onChange} />
           <div className='new_error2' id='authority_error2'>
           {errors.authority && <p className="error">{errors.authority}</p>}
           </div>
