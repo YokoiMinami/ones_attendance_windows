@@ -558,12 +558,10 @@ const AttendanceTablePage = ( ) => {
       // workHoursを分単位に変換し、勤務日数で割る
       const multipliedWorkHoursInMinutes2 = totalWorkHours / workHoursCount;
       const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2 * 10) / 10;
-      //const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2);
       // 分単位の時間をhh:mm形式に変換
       const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = (flooredNumber % 60).toString().padStart(2, '0');
+      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
       const multipliedWorkHours2 = `${hours2}:${minutes2}`;
-      
       //1日平均勤務時間
       setDayAverage(multipliedWorkHours2);
 
@@ -632,7 +630,7 @@ const AttendanceTablePage = ( ) => {
       
       // 分単位の時間をhh:mm形式に変換
       const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = (flooredNumber % 60).toString().padStart(2, '0');
+      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
       const multipliedWorkHours2 = `${hours2}:${minutes2}`;
       
       //先週の1日平均勤務時間
