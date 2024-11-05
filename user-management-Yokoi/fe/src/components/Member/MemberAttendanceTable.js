@@ -953,7 +953,6 @@ const MemberAttendanceTable = ( ) => {
         body: JSON.stringify(data)
       });
       setEditingRemarks2(remarks2);
-      console.log(remarks2);
       if (response.ok) {
         //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         setAttendanceData(prev => {
@@ -989,7 +988,6 @@ const MemberAttendanceTable = ( ) => {
 
   //退勤備考の編集
   const handleRemarksOutChange2 = (newOption) => {
-    console.log(newOption);
     setOutRemarks2(newOption);
   };
   
@@ -1176,12 +1174,10 @@ const MemberAttendanceTable = ( ) => {
       // workHoursを分単位に変換し、勤務日数で割る
       const multipliedWorkHoursInMinutes2 = totalWorkHours / workHoursCount;
       const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2 * 10) / 10;
-      //const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2);
       // 分単位の時間をhh:mm形式に変換
       const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = (flooredNumber % 60).toString().padStart(2, '0');
+      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
       const multipliedWorkHours2 = `${hours2}:${minutes2}`;
-      
       //1日平均勤務時間
       setDayAverage(multipliedWorkHours2);
 
@@ -1189,7 +1185,7 @@ const MemberAttendanceTable = ( ) => {
 
       //月予測勤務時間の分数
       const multipliedWorkHoursInMinutes = workHoursInMinutes * holidaysAndWeekendsCount;
-
+      
       if (multipliedWorkHoursInMinutes > 12000) { 
         setIsOvertime(true); 
       } else { 
@@ -1231,11 +1227,18 @@ const MemberAttendanceTable = ( ) => {
     // 日付の時刻部分をクリア（00:00:00に設定）
     lastMonday.setHours(0, 0, 0, 0);
     lastSunday.setHours(23, 59, 59, 999);
-  
-    // 配列から先週一週間のデータをフィルタリング
+
+    // 現在の年月を取得
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // 0から始まるので注意
+
+    // 配列から先週一週間のデータをフィルタリングし、今月のデータのみを取得
     const filterLastWeekData = formattedAttendanceData.filter(item => {
       const itemDate = new Date(item.formattedDate);
-      return itemDate >= lastMonday && itemDate <= lastSunday;
+      const itemYear = itemDate.getFullYear();
+      const itemMonth = itemDate.getMonth() + 1;
+      
+      return itemDate >= lastMonday && itemDate <= lastSunday && itemYear === currentYear && itemMonth === currentMonth;
     });
     
     if(filterLastWeekData.length){
@@ -1252,7 +1255,7 @@ const MemberAttendanceTable = ( ) => {
       
       // 分単位の時間をhh:mm形式に変換
       const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = (flooredNumber % 60).toString().padStart(2, '0');
+      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
       const multipliedWorkHours2 = `${hours2}:${minutes2}`;
       
       //先週の1日平均勤務時間
@@ -1296,7 +1299,6 @@ const MemberAttendanceTable = ( ) => {
 
 
 
-
   const truncateMinutes = (timeString) => {
     const [hours, minutes] = timeString.split(':');
     return `${hours}`;
@@ -1307,7 +1309,6 @@ const MemberAttendanceTable = ( ) => {
     if(minus){
       const remove = removeNegativeSign(remainingTime);
       const removeH = truncateMinutes(remove);
-      console.log(removeH);
       // 残業時間が35時間を超えるかどうかをチェック
       if (removeH > 35) {
         setIsOvertime(true);

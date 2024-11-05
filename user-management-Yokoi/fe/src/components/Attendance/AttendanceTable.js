@@ -357,7 +357,6 @@ const AttendanceTablePage = ( ) => {
         body: JSON.stringify(data)
       });
       setEditingRemarks2(remarks2);
-      console.log(remarks2);
       if (response.ok) {
         //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         setAttendanceData(prev => {
@@ -412,7 +411,6 @@ const AttendanceTablePage = ( ) => {
         body: JSON.stringify(data)
       });
       setEditingOutRemarks2(out_set_remarks2);
-      console.log(out_set_remarks2);
       if (response.ok) {
         //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         setAttendanceData(prev => {
@@ -626,11 +624,18 @@ const AttendanceTablePage = ( ) => {
     // 日付の時刻部分をクリア（00:00:00に設定）
     lastMonday.setHours(0, 0, 0, 0);
     lastSunday.setHours(23, 59, 59, 999);
-  
-    // 配列から先週一週間のデータをフィルタリング
+
+    // 現在の年月を取得
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // 0から始まるので注意
+
+    // 配列から先週一週間のデータをフィルタリングし、今月のデータのみを取得
     const filterLastWeekData = formattedAttendanceData.filter(item => {
       const itemDate = new Date(item.formattedDate);
-      return itemDate >= lastMonday && itemDate <= lastSunday;
+      const itemYear = itemDate.getFullYear();
+      const itemMonth = itemDate.getMonth() + 1;
+      
+      return itemDate >= lastMonday && itemDate <= lastSunday && itemYear === currentYear && itemMonth === currentMonth;
     });
     
     if(filterLastWeekData.length){
@@ -682,11 +687,6 @@ const AttendanceTablePage = ( ) => {
     }
   }, [formattedAttendanceData]);
 
-
-
-  console.log(projects);
-  console.log(company);
-  console.log(name);
   const exportToExcel = async () => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
