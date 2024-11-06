@@ -58,6 +58,10 @@ const AttendanceTablePage = ( ) => {
   const holidayClick = () => {
     navigate('/holiday');
   };
+
+  const costClick = () => {
+    navigate('/cost');
+  };
   
   //ユーザー情報を取得
   useEffect(() => {
@@ -1123,6 +1127,9 @@ const holidays = getHolidaysInMonth(year, month);
           </div>
           <div id='expenses_button_area'>
             <button className='all_button' id='expenses_button' onClick={expensesClick}>交通費精算</button>
+          </div>
+          <div id='cost_button_area'>
+            <button className='all_button' id='cost_button' onClick={costClick}>経費精算</button>
           </div>
           <div id='holiday_button_area'>
             <button className='all_button' id='holiday_button' onClick={holidayClick}>代休未消化</button>

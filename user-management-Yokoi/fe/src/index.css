@@ -444,6 +444,12 @@ html {
   margin-bottom: 5px;
 }
 
+#cost_button_area {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
 #holiday_button_area {
   width: 100%;
   text-align: center;
