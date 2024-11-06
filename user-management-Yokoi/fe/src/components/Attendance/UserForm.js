@@ -7,6 +7,7 @@ import { TextField, Autocomplete } from '@mui/material';
 const UserForm = (props) => {
   const [items, setItems] = useState([]); //プロジェクト情報
   const [projects, setProjects] = useState('');
+  const [details, setDetails] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
 
@@ -19,6 +20,7 @@ const UserForm = (props) => {
           const data = await response.json();
           setItems(data);
           if (data.project ) setProjects(data.project);
+          if (data.details ) setDetails(data.details);
           if (data.company) setCompany(data.company);
           if (data.name) setName(data.name);
       } catch (error) {
@@ -35,6 +37,7 @@ const UserForm = (props) => {
     const data = {
       accounts_id,
       project: projects,
+      details: details,
       company: company,
       name: name
     };
@@ -68,8 +71,12 @@ const UserForm = (props) => {
     <form onSubmit={submitFormAdd}>
       <div id='projects_area'>
         <div className='projects_area_box'>
-          <label className='pj_label'>プロジェクト : </label>
+          <label className='pj_label'>プロジェクト名称 : </label>
           <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
+        </div>
+        <div className='projects_area_box'>
+          <label className='pj_label'>プロジェクト詳細 : </label>
+          <input type='text' className='projects_input' value={details} onChange={(e) => setDetails(e.target.value)} />
         </div>
         <div className='projects_area_box'> 
           <label className='pj_label'>所属会社 : </label>

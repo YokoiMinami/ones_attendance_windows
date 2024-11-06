@@ -1126,13 +1126,13 @@ const holidays = getHolidaysInMonth(year, month);
             <UserModal buttonLabel="PJ情報登録" addItemToState={addItemToState} />
           </div>
           <div id='expenses_button_area'>
-            <button className='all_button' id='expenses_button' onClick={expensesClick}>交通費精算</button>
+            <button className='all_button' onClick={expensesClick}>交通費精算</button>
           </div>
           <div id='cost_button_area'>
-            <button className='all_button' id='cost_button' onClick={costClick}>経費精算</button>
+            <button className='all_button' onClick={costClick}>経費精算</button>
           </div>
           <div id='holiday_button_area'>
-            <button className='all_button' id='holiday_button' onClick={holidayClick}>代休未消化</button>
+            <button className='all_button' onClick={holidayClick}>代休未消化</button>
           </div>
           <div id='time_button_area'>
             <TimeModal buttonLabel="標準勤務時間" addItemToState={addItemToState2} />

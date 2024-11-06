@@ -423,10 +423,10 @@ const overData = async (req, res, db) => {
 
 //プロジェクト情報を登録
 const projectsData = async (req, res, db) => {
-  const { accounts_id, project, company, name } = req.body;
+  const { accounts_id, project, details, company, name } = req.body;
   const projectUser = await db('projectdata').where({ accounts_id }).first();
   if(projectUser){
-    await db('projectdata').where({ accounts_id }).update({ project, company, name })
+    await db('projectdata').where({ accounts_id }).update({ project, details, company, name })
     .returning('*')
     .then(item => {
       res.json(item);
@@ -435,7 +435,7 @@ const projectsData = async (req, res, db) => {
       dbError: 'error'
     }));
   }else {
-    await db('projectdata').insert({accounts_id, project, company, name})
+    await db('projectdata').insert({accounts_id, project, details, company, name})
     .returning('*')
     .then(item => {
       res.json(item);

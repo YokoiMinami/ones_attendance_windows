@@ -1205,7 +1205,6 @@ html {
 
 
 /* 代休ページ */
-
 #h_table {
   width: 50%;
   border-collapse: collapse;
@@ -1307,23 +1306,6 @@ html {
   background-color: #023e8a;
 } 
 
-
-/* #h_button {
-  background-color: #266ebd;
-  color: white;
-  width: 100px;
-  height: 30px;
-  border: 1px solid #266ebd;
-  margin-top: 30px;
-}
-
-#h_button:hover {
-  background-color: #023e8a;
-} */
-
-
-
-
 /* メンバー詳細ページ */
 #member_data_page {
   width: 100%;
@@ -1407,9 +1389,162 @@ html {
 }
 
 
+/* 経費申請 */
+#cost_page {
+  width: 100%;
+  background-color: #eeeeee;
+  margin-top: 50px;
+  font-family: "Yu Gothic Medium","遊ゴシック Medium",YuGothic,"遊ゴシック体","ヒラギノ角ゴ Pro W3",sans-serif;
+  color: #808080;
+  padding: 0;
+  text-align: center;
+  align-items: center;
+  width: 100%;
+}
+
+#cost_box1 {
+  width: 20%;
+}
+
+#cost_box2 {
+  width: 80%;
+}
+
+#cost_ym {
+  width: 80%;
+  /* margin-top: 50px; */
+  margin-left: auto;
+  margin-right: auto;
+  text-align: right;
+}
+
+#cost_H2_area {
+  width: 80%;
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: right;
+}
+
+.cost_flex {
+  display: flex;
+}
+
+#costpage_button_area {
+  width: 10%;
+  margin: auto;
+  text-align: right;
+}
+
+.cost_button {
+  margin-top: 10px;
+  background-color: #266ebd;
+  color: white;
+  font-size: large;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  width: 150px;
+  height: 50px;
+  border: 6px outset #266ebd;
+  transition: 0.5s;
+} 
+
+.cost_label {
+  width: 120px;
+  background-color: #266ebd;
+  color: white;
+  border-collapse: collapse;
+  border: 1px solid #266ebd;
+  margin-left: 4%;
+}
+
+.cost_data {
+  width: 500px;
+  background-color: white;
+  border-collapse: collapse;
+  border: 1px solid #266ebd;
+  display: flex;
+  justify-content: space-between;
+}
+
+#cost_company_data {
+  margin-left: 20px;
+}
+
+.cost_data2 {
+  display: flex;
+  justify-content: space-between;
+  width: 500px;
+  height: 40px;
+  padding-top: 5px;
+  background-color: white;
+  border-collapse: collapse;
+  border: 1px solid #266ebd;
+  border-top: none; /* 上の罫線を非表示にする */
+}
+
+#cost_name_data {
+  margin-left: 20px;
+}
+
+#cost_sign {
+  margin-left: auto; /* 右側に配置 */
+  margin-right: 30px;
+}
 
 
+#cost_Th1 {
+  background-color: #266ebd;
+  color: white;
+}
 
+#cost_tbody1 {
+  background-color: white;
+}
+
+#cost_table {
+  width: 83%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  table-layout: fixed;
+  margin: auto;
+  border: 1px solid #266ebd;
+  float: left;
+  margin-left: 4%;
+}
+
+#cost_Th {
+  background-color: #266ebd;
+  color: white;
+}
+
+#cost_tbody {
+  background-color: white;
+}
+
+#h_tbody td {
+  padding: 5px;
+  border-top: 1px solid #266ebd; /* 上の線のみ表示 */
+  border-bottom: 1px solid #266ebd; /* 下の線のみ表示 */
+  word-wrap: break-word; /* 行を折り返す */
+  white-space: normal; /* 通常の空白処理 */
+}
+
+#h_tbody tr:first-child td {
+  border-top: none; /* 最初の行の上の線を非表示 */
+}
+
+#h_tbody tr:last-child td {
+  border-bottom: none; /* 最後の行の下の線を非表示 */
+}
+
+#h_tbody td:first-child {
+  border-left: 1px solid #266ebd; /* 左の線を表示 */
+}
+
+#h_tbody td:last-child {
+  border-right: 1px solid #266ebd; /* 右の線を表示 */
+}
 
 
 
