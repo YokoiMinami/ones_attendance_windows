@@ -19,7 +19,8 @@ let db = require('knex')({
     host: '127.0.0.1',
     user: 'postgres', //自分のOSのユーザに変更
     password: '07310727',
-    database: 'attendancedb'
+    database: 'attendancedb',
+    // charset: 'utf8'
   }
 });
 
@@ -59,10 +60,12 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    const utf8FileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    cb(null, Date.now() + '-' + utf8FileName);
   }
 });
 const upload = multer({ storage: storage });
+
 
 //ルーター
 app.get('/', (req, res) => res.send('サーバーが実行中です!'));
@@ -99,17 +102,8 @@ app.delete('/holiday_delete', (req, res) => accountsController.delHolidayData(re
 app.get('/pass', (req, res) => accountsController.passData(req, res, db));
 app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 //経費
+//画像アップロード
 app.post('/upload',upload.single('image'), (req, res) => accountsController.imagePost(req, res, db));
-// // 画像アップロードのエンドポイント
-// app.post('/upload', upload.single('image'), async (req, res) => {
-//   const { filename } = req.file;
-//   try {
-//     await db('costdata').insert({ filename });
-//     res.status(200).json({ message: 'Image uploaded successfully' });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Error uploading image', error });
-//   }
-// });
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {

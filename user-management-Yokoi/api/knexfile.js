@@ -1,18 +1,19 @@
 // knexfile.js
 module.exports = {
-development: {
+    development: {
     client: 'pg',
     connection: {
-    host: '127.0.0.1',
-    user: 'postgres', // 自分のOSのユーザに変更
-    password: '07310727',
-    database: 'attendancedb'
+        host: '127.0.0.1',
+        user: 'postgres',
+        password: '07310727',
+        database: 'attendancedb',
+        client_encoding: 'UTF8'
     },
     migrations: {
-    directory: './migrations' // マイグレーションファイルのディレクトリ
+        directory: './migrations'
     },
     seeds: {
-    directory: './seeds' // シードファイルのディレクトリ
+        directory: './seeds'
     }
-}
+    }
 };
