@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CostModal from './CostModal';
-import OnesLogo from '../../images/ones-logo.png';
+import Cost from '../../images/cost.jpg';
 import axios from 'axios';
 
 const CostPage = () => {
@@ -53,7 +53,6 @@ const CostPage = () => {
         }
     };
     
-
     useEffect(() => {
         const fetchImages = async () => {
         try {
@@ -231,74 +230,36 @@ const CostPage = () => {
                                 <span id='cost_project_data'>{items2.details}</span>		
                             </div>
                         </div>
-                    </div>
-
-                    <form onSubmit={handleSubmit}>
-                        <input type="file" onChange={handleFileChange} />
-                        <button type="submit">Upload</button>
-                    </form>
-
-                    <div>
-                        {images.map((image, index) => (
-                        <img key={index} src={`data:image/png;base64,${image.data}`} alt={`Uploaded ${index}`} />
-                        ))}
-                    </div>
-                    <div className="App">
-                        <p onClick={handleClick} style={{ cursor: 'pointer', color: 'blue' }}>
-                            クリックして画像を表示
-                        </p>
-                        {showImage && <img src={OnesLogo} alt="Ones" />}
-                    </div>
-                    
-                    {/* <div className='cost_flex'>
-                        <div className='cost_label'>
-                            所属社名
-                        </div>
-                        <div className='cost_data'>
-                            <span id='cost_company_data'>
-                                {items2.company}
-                            </span>
-                        </div>
-                    </div>
-                    <div className='cost_flex' id='cost_name'>
-                        <div className='cost_label'>
-                            氏名
-                        </div>
-                        <div className='cost_data2'>
-                            <span id='cost_name_data'>{items2.name}</span><span id='cost_sign'>㊞</span>			
-                        </div>
-                    </div>
-                    
-                    <table id ='cost_table'>
-                        <thead id ='cost_Th'>
-                            <tr>
-                                <th colSpan="5">経費精算</th>
-                            </tr>
-                        </thead>
-                        <tbody id='cost_tbody'>
-                            { items && items.length > 0 ? (
-                                items.map((holiday, index) => (
-                                    <tr key={index}>
-                                        <td>
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedItems.includes(holiday.id)}
-                                            onChange={(event) => handleCheckboxChange(event, holiday.id)}
-                                        />
-                                        </td>
-                                        <td>{holiday.year} 年</td>
-                                        <td>{holiday.month} 月</td>
-                                        <td>{holiday.day} 日</td>
-                                        <td>{holiday.week}</td>
-                                    </tr>
-                                ))
-                            ) : (
+                        <table id ='cost_table'>
+                            <thead id ='cost_Th'>
                                 <tr>
-                                    <td colSpan="5">代休情報がありません</td>
+                                    <th className='cost_check'></th>
+                                    <th>日付</th>
+                                    <th>経費科目</th>
+                                    <th>内容</th>
+                                    <th>金額(税込)</th>
+                                    <th class="receipt">レシート</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table> */}
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style={{ textAlign: 'center' }}><input type='checkbox'></input></td>
+                                    <td>2024/10/20</td>
+                                    <td>接待費</td>
+                                    <td>現場プロパーと事業者訪問による外食</td>
+                                    <td>4000</td>
+                                    <td style={{ textAlign: 'center' }}>
+                                    <span onClick={handleClick} id="image_text" style={{ cursor: 'pointer' }}>
+                                        {showImage ? '非表示' : '表示'}
+                                    </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {showImage && (
+                        <img src={Cost} alt="Cost" id="overlay_image"/>
+                    )}
                 </div>
             </div>
             <div id='expenses_link_area'>

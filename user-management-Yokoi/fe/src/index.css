@@ -1424,6 +1424,7 @@ html {
 
 #cost_box2 {
   width: 80%;
+  position: relative; /* 親要素を相対位置に設定 */
 }
 
 #cost_paper {
@@ -1535,7 +1536,13 @@ html {
   justify-content: space-between;
 }
 
-
+#overlay_image {
+  position: absolute; /* 絶対位置に設定 */
+  top: 50px; /* 親要素の上端に配置 */
+  left: 75%; /* 親要素の左端から75%の位置に配置 */
+  transform: translateX(-50%); /* 画像の中央を境目に配置 */
+  z-index: 10; /* 画像を前面に表示 */
+}
 
 
 
@@ -1586,10 +1593,6 @@ html {
   margin-right: 30px;
 }
 
-
-
-
-
 #costpage_button_area {
   width: 10%;
   margin: auto;
@@ -1609,8 +1612,6 @@ html {
   transition: 0.5s;
 } 
 
-
-
 #cost_Th1 {
   background-color: #266ebd;
   color: white;
@@ -1621,52 +1622,31 @@ html {
 }
 
 #cost_table {
-  width: 83%;
+  width: 82.5%;
   border-collapse: collapse;
-  white-space: nowrap;
-  table-layout: fixed;
-  margin: auto;
-  border: 1px solid #266ebd;
-  float: left;
-  margin-left: 4%;
+  /* white-space: nowrap;
+  table-layout: fixed; */
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  /* border: 1px solid black; */
+}
+
+#cost_table th, #cost_table td {
+  border: 1px solid black; /* テーブル全体にボーダーを設定 */
+  text-align: left; 
+  padding-left: 5px;
+  font-weight: normal; 
 }
 
 #cost_Th {
-  background-color: #266ebd;
-  color: white;
+  background-color: lightgray;
 }
 
-#cost_tbody {
-  background-color: white;
+#image_text {
+  cursor: pointer;
+  text-decoration: underline;
 }
-
-#h_tbody td {
-  padding: 5px;
-  border-top: 1px solid #266ebd; /* 上の線のみ表示 */
-  border-bottom: 1px solid #266ebd; /* 下の線のみ表示 */
-  word-wrap: break-word; /* 行を折り返す */
-  white-space: normal; /* 通常の空白処理 */
-}
-
-#h_tbody tr:first-child td {
-  border-top: none; /* 最初の行の上の線を非表示 */
-}
-
-#h_tbody tr:last-child td {
-  border-bottom: none; /* 最後の行の下の線を非表示 */
-}
-
-#h_tbody td:first-child {
-  border-left: 1px solid #266ebd; /* 左の線を表示 */
-}
-
-#h_tbody td:last-child {
-  border-right: 1px solid #266ebd; /* 右の線を表示 */
-}
-
-
-
-
 
 
 
