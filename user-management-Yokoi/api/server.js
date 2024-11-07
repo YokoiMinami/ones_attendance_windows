@@ -3,6 +3,7 @@ const app = express();
 const accountsController = require('./controllers/accountsController'); //dbクエリ
 require('dotenv').config();
 const cron = require('cron');
+const path = require('path');
 
 //ミドルウェアを設定する
 const cors = require('cors'); //CORS(Cross-Origin Resource Sharing)を有効にする
@@ -10,36 +11,66 @@ const bodyParser = require('body-parser'); //レスポンスのフォーマッ�
 const morgan = require('morgan'); //HTTPレクエストロガー
 const helmet = require('helmet'); //Cross-Site-Scripting(XSS)のような攻撃を防ぐ、参考に：https://www.geeksforgeeks.org/node-js-securing-apps-with-helmet-js/
 const multer = require('multer');
-const path = require('path');
 
-//knexを使ってdbに接続する
+
+// knexを使ってdbに接続する
 let db = require('knex')({
   client: 'pg',
   connection: {
     host: '127.0.0.1',
-    user: 'postgres', //自分のOSのユーザに変更
+    user: 'postgres', // 自分のOSのユーザに変更
     password: '07310727',
     database: 'attendancedb',
-    // charset: 'utf8'
   }
 });
 
+// module.exports = {
+//   development: {
+//   client: 'pg',
+//   connection: {
+//       host: '127.0.0.1',
+//       user: 'postgres',
+//       password: '07310727',
+//       database: 'attendancedb',
+//       client_encoding: 'UTF8'
+//   },
+//   migrations: {
+//       directory: './migrations'
+//   },
+//   seeds: {
+//       directory: './seeds'
+//   }
+//   }
+// };
+
+
 //ミドルウェア
 const whitelist = ['http://localhost:3001'];
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-}
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (whitelist.indexOf(origin) !== -1 || !origin) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   }
+// }
 
-app.use(helmet());
+const corsOptions = {
+  origin: 'http://localhost:3001', // フロントエンドのオリジンを指定
+  optionsSuccessStatus: 200
+};
+
+
+
 app.use(cors(corsOptions));
+app.use(helmet());
 app.use(bodyParser.json());
 app.use(morgan('combined'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const resetCheckInFlags = async () => {
   try {
@@ -53,18 +84,6 @@ const resetCheckInFlags = async () => {
 // 毎日深夜3時に実行
 const job = new cron.CronJob('0 3 * * *', resetCheckInFlags, null, true, 'Asia/Tokyo');
 job.start();
-
-// Multerの設定
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    const utf8FileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-    cb(null, Date.now() + '-' + utf8FileName);
-  }
-});
-const upload = multer({ storage: storage });
 
 
 //ルーター
@@ -103,7 +122,8 @@ app.get('/pass', (req, res) => accountsController.passData(req, res, db));
 app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 //経費
 //画像アップロード
-app.post('/upload',upload.single('image'), (req, res) => accountsController.imagePost(req, res, db));
+app.post('/upload', upload.single('image'), (req, res) => accountsController.imagePost(req, res, db));
+app.get('/images', (req, res) => accountsController.imageData(req, res, db));
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {

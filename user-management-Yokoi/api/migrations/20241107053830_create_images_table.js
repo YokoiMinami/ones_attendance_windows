@@ -3,9 +3,9 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.createTable('images', (table) => {
+    return knex.schema.createTable('images_table', (table) => {
         table.increments('id').primary();
-        table.string('filename').notNullable();
+        table.binary('data').notNullable(); // バイナリデータを保存するカラム
         table.timestamps(true, true);
     });
 };
@@ -15,5 +15,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-    return knex.schema.dropTable('images');
+    return knex.schema.dropTable('images_table');
 };

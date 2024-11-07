@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs'); 
+const { console } = require('inspector');
 const jwt = require('jsonwebtoken');
 const secretKey = 'yourSecretKey';
+const path = require('path');
 
 //アカウント登録
 const postData = async (req, res, db) => {
@@ -678,26 +680,87 @@ const passPut = async (req, res, db) => {
 
 //経費
 //画像をアップロード
+// const imagePost = async (req, res, db) => {
+//   try {
+//     const filePath = path.join('uploads', req.file.filename);
+//     await db('costdata').insert({ path: filePath });
+//     res.status(200).json({ message: 'Image uploaded successfully', path: filePath });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Error uploading image' });
+//   }
+// };
+
+// const imagePost = async (req, res, db) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: 'No file uploaded' });
+//     }
+//     const filePath = path.join('uploads', req.file.filename);
+//     console.log(filePath);
+//     await db('images_table').insert({ path: filePath });
+//     res.status(200).json({ message: 'Image uploaded successfully', path: filePath });
+//   } catch (error) {
+//     console.error('Error uploading image:', error); // ここでエラーメッセージをログに出力
+//     res.status(500).json({ error: 'Error uploading image' });
+//   }
+// };
+
+// //画像を取得
+// const imageData = async (req, res, db) => {
+//   try {
+//     const items = await db('images_table').select('filename');
+//     res.json(items);
+//   } catch (err) {
+//     res.status(400).json({ dbError: 'error' });
+//   }
+// }
+
+// const imagePost = async (req, res, db) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: 'No file uploaded' });
+//     }
+//     const filePath = path.join('uploads', req.file.filename);
+//     console.log(filePath);
+//     await db('images_table').insert({ path: filePath }); // 'path'を'filename'に変更
+//     res.status(200).json({ message: 'Image uploaded successfully', path: filePath });
+//   } catch (error) {
+//     console.error('Error uploading image:', error); // ここでエラーメッセージをログに出力
+//     res.status(500).json({ error: 'Error uploading image' });
+//   }
+// };
+
 const imagePost = async (req, res, db) => {
-  //const { accounts_id, date } = req.body;
-  const { filename } = req.file;
   try {
-    await db('costdata').insert({ filename });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const imageData = req.file.buffer; // バイナリデータを取得
+    await db('images_table').insert({ data: imageData });
     res.status(200).json({ message: 'Image uploaded successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error uploading image', error });
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Error uploading image' });
   }
-}
+};
+
 
 //画像を取得
 const imageData = async (req, res, db) => {
   try {
-    const items = await db('costdata').select();
-    res.json(items);
+    const items = await db('images_table').select('data');
+    const images = items.map(item => {
+      return {
+        data: item.data.toString('base64')
+      };
+    });
+    res.json(images);
   } catch (err) {
     res.status(400).json({ dbError: 'error' });
   }
-}
+};
+
+
 
 
 module.exports = {

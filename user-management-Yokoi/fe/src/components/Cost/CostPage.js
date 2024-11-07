@@ -23,6 +23,7 @@ const CostPage = () => {
     const day = String(now.getDate()).padStart(2, '0'); // 日付
     const currentDate = `${year}/${month}/${day}`;
 
+    const [file, setFile] = useState(null);
     const [images, setImages] = useState([]);
     const [showImage, setShowImage] = useState(false); //画像の表示、非表示
 
@@ -30,7 +31,6 @@ const CostPage = () => {
         setShowImage(!showImage);
     };
 
-    const [file, setFile] = useState(null);
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -40,21 +40,32 @@ const CostPage = () => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('image', file);
-
+    
         try {
-        const response = await axios.post('http://localhost:3000/upload', formData, {
+            const response = await axios.post('http://localhost:3000/upload', formData, {
             headers: {
-            'Content-Type': 'multipart/form-data',
+                'Content-Type': 'multipart/form-data',
             },
-        });
-        console.log(response.data);
+            });
+            console.log(response.data);
         } catch (error) {
-        console.error('Error uploading image:', error);
+            console.error('Error uploading image:', error);
         }
     };
+    
 
-
-
+    useEffect(() => {
+        const fetchImages = async () => {
+        try {
+            const response = await axios.get('http://localhost:3000/images');
+            setImages(response.data);
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        }
+        };
+    
+        fetchImages();
+    }, []);
 
     // ユーザー情報を取得
     useEffect(() => {
@@ -227,6 +238,11 @@ const CostPage = () => {
                         <button type="submit">Upload</button>
                     </form>
 
+                    <div>
+                        {images.map((image, index) => (
+                        <img key={index} src={`data:image/png;base64,${image.data}`} alt={`Uploaded ${index}`} />
+                        ))}
+                    </div>
                     <div className="App">
                         <p onClick={handleClick} style={{ cursor: 'pointer', color: 'blue' }}>
                             クリックして画像を表示
