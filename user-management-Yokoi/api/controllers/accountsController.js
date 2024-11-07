@@ -676,6 +676,30 @@ const passPut = async (req, res, db) => {
   }));
 }
 
+//経費
+//画像をアップロード
+const imagePost = async (req, res, db) => {
+  //const { accounts_id, date } = req.body;
+  const { filename } = req.file;
+  try {
+    await db('costdata').insert({ filename });
+    res.status(200).json({ message: 'Image uploaded successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error uploading image', error });
+  }
+}
+
+//画像を取得
+const imageData = async (req, res, db) => {
+  try {
+    const items = await db('costdata').select();
+    res.json(items);
+  } catch (err) {
+    res.status(400).json({ dbError: 'error' });
+  }
+}
+
+
 module.exports = {
   getData,
   postData,
@@ -701,6 +725,8 @@ module.exports = {
   holidayData,
   delHolidayData,
   passData,
-  passPut
+  passPut,
+  imagePost,
+  imageData
 }
   

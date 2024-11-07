@@ -1402,14 +1402,6 @@ html {
   width: 100%;
 }
 
-#cost_box1 {
-  width: 20%;
-}
-
-#cost_box2 {
-  width: 80%;
-}
-
 #cost_ym {
   width: 80%;
   /* margin-top: 50px; */
@@ -1426,9 +1418,177 @@ html {
   text-align: right;
 }
 
+#cost_box1 {
+  width: 20%;
+}
+
+#cost_box2 {
+  width: 80%;
+}
+
+#cost_paper {
+  width: 75%;
+  background-color: white;
+  color: black;
+}
+
 .cost_flex {
   display: flex;
 }
+
+
+#cost_label1 {
+  width: 100px;
+  text-align: left;
+  background-color: lightgray;
+  border-collapse: collapse;
+  border: 1px solid black;
+  padding-left: 10px;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  margin-left: 70%;
+  text-align: center;
+}
+
+#cost_data1 {
+  width: 150px;
+  border-collapse: collapse;
+  border: 1px solid black;
+  display: flex;
+  justify-content: space-between;
+  border-left: none;
+  padding-left: 10px;
+  margin-bottom: 50px;
+  margin-top: 50px;
+}
+
+#cost_title {
+  font-size: x-large;
+  text-decoration: underline;
+  margin-bottom: 100px;
+}
+
+#cost_company,#cost_name,#cost_project {
+  margin-left: 5%;
+}
+
+#cost_label2 {
+  width: 120px;
+  background-color: lightgray;
+  border-collapse: collapse;
+  border: 1px solid black;
+  margin-left: 4%;
+  border-right: none;
+}
+
+#cost_data2 {
+  width: 500px;
+  border-collapse: collapse;
+  border: 1px solid black;
+  display: flex;
+  justify-content: space-between;
+}
+
+#cost_label3 {
+  width: 120px;
+  height: 40px;
+  padding-top: 7px;
+  background-color: lightgray;
+  border-collapse: collapse;
+  border: 1px solid black;
+  margin-left: 4%;
+  border-right: none;
+  border-top: none;
+  margin-bottom: 20px;
+}
+
+#cost_data3 {
+  width: 500px;
+  height: 40px;
+  padding-top: 7px;
+  border-collapse: collapse;
+  border: 1px solid black;
+  display: flex;
+  justify-content: space-between;
+  border-top: none;
+  margin-bottom: 20px;
+}
+
+#cost_label4 {
+  width: 120px;
+  height: 40px;
+  padding-top: 7px;
+  background-color: lightgray;
+  border-collapse: collapse;
+  border: 1px solid black;
+  margin-left: 4%;
+  border-right: none;
+}
+
+#cost_data4 {
+  width: 500px;
+  height: 40px;
+  padding-top: 7px;
+  border-collapse: collapse;
+  border: 1px solid black;
+  display: flex;
+  justify-content: space-between;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+.cost_label {
+  width: 120px;
+  background-color: lightgray;
+  border-collapse: collapse;
+  border: 1px solid black;
+  margin-left: 4%;
+}
+
+.cost_data {
+  width: 500px;
+  border-collapse: collapse;
+  border: 1px solid black;
+  display: flex;
+  justify-content: space-between;
+}
+
+#cost_company_data {
+  margin-left: 20px;
+}
+
+.cost_data2 {
+  display: flex;
+  justify-content: space-between;
+  width: 500px;
+  height: 40px;
+  padding-top: 5px;
+  border-collapse: collapse;
+  border: 1px solid black;
+  border-top: none; /* 上の罫線を非表示にする */
+}
+
+#cost_name_data,#cost_project_data {
+  margin-left: 20px;
+}
+
+#cost_sign {
+  margin-left: auto; /* 右側に配置 */
+  margin-right: 30px;
+}
+
+
+
+
 
 #costpage_button_area {
   width: 10%;
@@ -1449,48 +1609,6 @@ html {
   transition: 0.5s;
 } 
 
-.cost_label {
-  width: 120px;
-  background-color: #266ebd;
-  color: white;
-  border-collapse: collapse;
-  border: 1px solid #266ebd;
-  margin-left: 4%;
-}
-
-.cost_data {
-  width: 500px;
-  background-color: white;
-  border-collapse: collapse;
-  border: 1px solid #266ebd;
-  display: flex;
-  justify-content: space-between;
-}
-
-#cost_company_data {
-  margin-left: 20px;
-}
-
-.cost_data2 {
-  display: flex;
-  justify-content: space-between;
-  width: 500px;
-  height: 40px;
-  padding-top: 5px;
-  background-color: white;
-  border-collapse: collapse;
-  border: 1px solid #266ebd;
-  border-top: none; /* 上の罫線を非表示にする */
-}
-
-#cost_name_data {
-  margin-left: 20px;
-}
-
-#cost_sign {
-  margin-left: auto; /* 右側に配置 */
-  margin-right: 30px;
-}
 
 
 #cost_Th1 {

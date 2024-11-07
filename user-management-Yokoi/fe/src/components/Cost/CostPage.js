@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CostModal from './CostModal';
+import OnesLogo from '../../images/ones-logo.png';
+import axios from 'axios';
 
 const CostPage = () => {
     const id = localStorage.getItem('user');
@@ -15,6 +17,44 @@ const CostPage = () => {
     const [details, setDetails] = useState('');
     const [company, setCompany] = useState('');
     const [name, setName] = useState('');
+    const now = new Date();
+    const now_year = now.getFullYear();
+    const now_month = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
+    const day = String(now.getDate()).padStart(2, '0'); // 日付
+    const currentDate = `${year}/${month}/${day}`;
+
+    const [images, setImages] = useState([]);
+    const [showImage, setShowImage] = useState(false); //画像の表示、非表示
+
+    const handleClick = () => {
+        setShowImage(!showImage);
+    };
+
+    const [file, setFile] = useState(null);
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+        const response = await axios.post('http://localhost:3000/upload', formData, {
+            headers: {
+            'Content-Type': 'multipart/form-data',
+            },
+        });
+        console.log(response.data);
+        } catch (error) {
+        console.error('Error uploading image:', error);
+        }
+    };
+
+
+
 
     // ユーザー情報を取得
     useEffect(() => {
@@ -144,7 +184,57 @@ const CostPage = () => {
                     </div>
                 </div>
                 <div id ='cost_box2'>
-                    <div className='cost_flex'>
+                    <div id='cost_paper'>
+                        <div className='cost_flex' id='cost_making'>
+                            <div id='cost_label1'>
+                                作成日
+                            </div>
+                            <div id='cost_data1'>
+                                {currentDate}
+                            </div>
+                        </div>
+                        <div id='cost_title'>経費明細書</div>
+                        <div className='cost_flex' id='cost_company'>
+                            <div id='cost_label2'>
+                                所属社名
+                            </div>
+                            <div id='cost_data2'>
+                                <span id='cost_company_data'>
+                                    {items2.company}
+                                </span>
+                            </div>
+                        </div>
+                        <div className='cost_flex' id='cost_name'>
+                            <div id='cost_label3'>
+                                氏名
+                            </div>
+                            <div id='cost_data3'>
+                                <span id='cost_name_data'>{items2.name}</span><span id='cost_sign'>㊞</span>			
+                            </div>
+                        </div>
+                        <div className='cost_flex' id='cost_project'>
+                            <div id='cost_label4'>
+                                プロジェクト
+                            </div>
+                            <div id='cost_data4'>
+                                <span id='cost_project_data'>{items2.details}</span>		
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit}>
+                        <input type="file" onChange={handleFileChange} />
+                        <button type="submit">Upload</button>
+                    </form>
+
+                    <div className="App">
+                        <p onClick={handleClick} style={{ cursor: 'pointer', color: 'blue' }}>
+                            クリックして画像を表示
+                        </p>
+                        {showImage && <img src={OnesLogo} alt="Ones" />}
+                    </div>
+                    
+                    {/* <div className='cost_flex'>
                         <div className='cost_label'>
                             所属社名
                         </div>
@@ -192,7 +282,7 @@ const CostPage = () => {
                                 </tr>
                             )}
                         </tbody>
-                    </table>
+                    </table> */}
                 </div>
             </div>
             <div id='expenses_link_area'>

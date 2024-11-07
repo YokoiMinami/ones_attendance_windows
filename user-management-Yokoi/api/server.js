@@ -9,6 +9,8 @@ const cors = require('cors'); //CORS(Cross-Origin Resource Sharing)を有効に�
 const bodyParser = require('body-parser'); //レスポンスのフォーマットを変換する
 const morgan = require('morgan'); //HTTPレクエストロガー
 const helmet = require('helmet'); //Cross-Site-Scripting(XSS)のような攻撃を防ぐ、参考に：https://www.geeksforgeeks.org/node-js-securing-apps-with-helmet-js/
+const multer = require('multer');
+const path = require('path');
 
 //knexを使ってdbに接続する
 let db = require('knex')({
@@ -51,6 +53,17 @@ const resetCheckInFlags = async () => {
 const job = new cron.CronJob('0 3 * * *', resetCheckInFlags, null, true, 'Asia/Tokyo');
 job.start();
 
+// Multerの設定
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage: storage });
+
 //ルーター
 app.get('/', (req, res) => res.send('サーバーが実行中です!'));
 app.get('/get', (req, res) => accountsController.getData(req, res, db));
@@ -85,6 +98,18 @@ app.delete('/holiday_delete', (req, res) => accountsController.delHolidayData(re
 //管理者パスワード
 app.get('/pass', (req, res) => accountsController.passData(req, res, db));
 app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
+//経費
+app.post('/upload',upload.single('image'), (req, res) => accountsController.imagePost(req, res, db));
+// // 画像アップロードのエンドポイント
+// app.post('/upload', upload.single('image'), async (req, res) => {
+//   const { filename } = req.file;
+//   try {
+//     await db('costdata').insert({ filename });
+//     res.status(200).json({ message: 'Image uploaded successfully' });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error uploading image', error });
+//   }
+// });
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {
