@@ -680,6 +680,34 @@ const passPut = async (req, res, db) => {
 
 //経費
 //画像をアップロード
+const imagePost = async (req, res, db) => {
+  const { accounts_id, date, category, description, amount } = req.body;
+  const receipt_url = path.posix.join('uploads', req.file.filename);
+  try {
+    await db('images_table').insert({ 
+      accounts_id,
+      date,
+      category,
+      description,
+      amount,
+      receipt_url });
+    res.status(200).json({ message: 'Image uploaded successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error uploading image', error });
+  }
+}
+
+
+//画像を取得
+const imageData = async (req, res, db) => {
+  try {
+    const items = await db('images_table').select();
+    res.json(items);
+  } catch (err) {
+    res.status(400).json({ dbError: 'error' });
+  }
+}
+
 // const imagePost = async (req, res, db) => {
 //   try {
 //     const filePath = path.join('uploads', req.file.filename);
@@ -730,35 +758,76 @@ const passPut = async (req, res, db) => {
 //   }
 // };
 
-const imagePost = async (req, res, db) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    const imageData = req.file.buffer; // バイナリデータを取得
-    await db('images_table').insert({ data: imageData });
-    res.status(200).json({ message: 'Image uploaded successfully' });
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    res.status(500).json({ error: 'Error uploading image' });
-  }
-};
+// const imagePost = async (req, res, db) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: 'No file uploaded' });
+//     }
+//     const imageData = req.file.buffer; // バイナリデータを取得
+//     await db('images_table').insert({ data: imageData });
+//     res.status(200).json({ message: 'Image uploaded successfully' });
+//   } catch (error) {
+//     console.error('Error uploading image:', error);
+//     res.status(500).json({ error: 'Error uploading image' });
+//   }
+// };
 
+
+// const imagePost = async (req, res, db) => {
+//   const { accounts_id, fileDate } = req.params;
+//   console.log(fileDate);
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: 'No file uploaded' });
+//     }
+//     const imageData = req.file.buffer; // バイナリデータを取得
+//     await db('images_table').insert({ accounts_id, date: fileDate, data: imageData });
+//     res.status(200).json({ message: 'Image uploaded successfully' });
+//   } catch (error) {
+//     console.error('Error uploading image:', error);
+//     res.status(500).json({ error: 'Error uploading image' });
+//   }
+// };
+
+const costPost = async (req, res, db) => {
+  const { accounts_id, date, subject, money, details} = req.body;
+  const imageData = await db('images_table').where({ accounts_id, date }).first();
+
+  if(imageData){
+    await db('images_table').where({ accounts_id, date }).update({ subject, money, details })
+    .returning('*')
+    .then(item => {
+      res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    await db('images_table').insert({accounts_id, date, subject, money, details})
+    .returning('*')
+    .then(item => {
+      res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
 
 //画像を取得
-const imageData = async (req, res, db) => {
-  try {
-    const items = await db('images_table').select('data');
-    const images = items.map(item => {
-      return {
-        data: item.data.toString('base64')
-      };
-    });
-    res.json(images);
-  } catch (err) {
-    res.status(400).json({ dbError: 'error' });
-  }
-};
+// const imageData = async (req, res, db) => {
+//   try {
+//     const items = await db('images_table').select('data');
+//     const images = items.map(item => {
+//       return {
+//         data: item.data.toString('base64')
+//       };
+//     });
+//     res.json(images);
+//   } catch (err) {
+//     res.status(400).json({ dbError: 'error' });
+//   }
+// };
 
 
 
@@ -790,6 +859,7 @@ module.exports = {
   passData,
   passPut,
   imagePost,
+  costPost,
   imageData
 }
   

@@ -19,7 +19,7 @@ const CostModal = (props) => {
     title = '編集';
   } else {
     button = <Button id='account_add_button' onClick={toggle}>{label}</Button>;
-    title = '未消化代休登録';
+    title = '経費登録';
   }
 
   return (

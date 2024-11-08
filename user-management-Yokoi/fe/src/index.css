@@ -1538,14 +1538,52 @@ html {
 
 #overlay_image {
   position: absolute; /* 絶対位置に設定 */
-  top: 50px; /* 親要素の上端に配置 */
-  left: 75%; /* 親要素の左端から75%の位置に配置 */
+  top: 100px; /* 親要素の上端に配置 */
+  left: 65%; /* 親要素の左端から75%の位置に配置 */
   transform: translateX(-50%); /* 画像の中央を境目に配置 */
   z-index: 10; /* 画像を前面に表示 */
 }
 
+#textarea-cost {
+  width: 400px;
+  height: 250px;
+  border: 1px solid #808080;
+  outline: none;
+  margin-left: 40px;
+}
 
+#textarea-cost:focus {
+  border: 1px solid #808080
+}
 
+#money_label {
+  width: 20%;
+  height: 50px; 
+  text-align: left;
+  margin-left: 23px;
+  margin-right: 20px;
+}
+
+#money_input {
+  display: inline-block;
+  width: 300px;
+  height: 50px; 
+  line-height: 40px; 
+  vertical-align: middle; 
+  border: 1px solid #808080;
+  outline: none;
+  padding-left: 10px;
+}
+
+#money_input:focus {
+  border: 1px solid #808080
+}
+
+#details_error {
+  color: crimson;
+  height: 30px;
+  margin-left: 35%;
+}
 
 
 

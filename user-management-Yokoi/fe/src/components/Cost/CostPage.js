@@ -27,44 +27,58 @@ const CostPage = () => {
     const [images, setImages] = useState([]);
     const [showImage, setShowImage] = useState(false); //画像の表示、非表示
 
+
+    const [expenses, setExpenses] = useState([]);
+    const [formData, setFormData] = useState({
+        date: '',
+        category: '',
+        description: '',
+        amount: '',
+        receipt: null
+    });
+
+    useEffect(() => {
+        axios.get('http://localhost:3000/api/expenses')
+        .then(response => setExpenses(response.data))
+        .catch(error => console.error('Error fetching expenses:', error));
+    }, []);
+    
+    
     const handleClick = () => {
         setShowImage(!showImage);
     };
 
-
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-    };
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append('image', file);
-    
-        try {
-            const response = await axios.post('http://localhost:3000/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-            });
-            console.log(response.data);
-        } catch (error) {
-            console.error('Error uploading image:', error);
+        const data = new FormData();
+        for (const key in formData) {
+        data.append(key, formData[key]);
         }
+        axios.post('http://localhost:3000/api/expenses', data)
+        .then(response => {
+            setExpenses([...expenses, response.data]);
+        })
+        .catch(error => {
+            console.error('There was an error adding the expense!', error);
+        });
+    };
+
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
     };
     
-    useEffect(() => {
-        const fetchImages = async () => {
-        try {
-            const response = await axios.get('http://localhost:3000/images');
-            setImages(response.data);
-        } catch (error) {
-            console.error('Error fetching images:', error);
-        }
-        };
+    const handleFileChange = (e) => {
+        setFormData({
+            ...formData,
+            receipt_image: e.target.files[0]
+        });
+    };
     
-        fetchImages();
-    }, []);
 
     // ユーザー情報を取得
     useEffect(() => {
@@ -79,41 +93,6 @@ const CostPage = () => {
         .catch(err => console.log(err));
     }, [id]);
 
-    //プロジェクト情報
-    useEffect(() => {
-        const fetchUser = async () => {
-        const accounts_id = localStorage.getItem('user');
-        try {
-            const response = await fetch(`http://localhost:3000/projects/${accounts_id}`);
-            const data = await response.json();
-            setItems2(data);
-            if (data.project ) setProjects(data.project);
-            if (data.details ) setDetails(data.details);
-            if (data.company) setCompany(data.company);
-            if (data.name) setName(data.name);
-        } catch (error) {
-            console.error('Error fetching holiday data:', error);
-        }
-        };
-        fetchUser();
-    }, []);
-
-    //ユーザーの代休情報を取得
-    useEffect(() => {
-        const fetchHoliday = async () => {
-        const accounts_id = localStorage.getItem('user');
-        try {
-            const response = await fetch(`http://localhost:3000/holiday/${accounts_id}`);
-            const data = await response.json();
-            setItems(data);
-            //setAttendanceData(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error('Error fetching holiday data:', error);
-            //setAttendanceData([]);
-        }
-        };
-        fetchHoliday();
-    }, [id]);
 
     const handleCheckboxChange = (event, itemId) => {
         if (event.target.checked) {
@@ -153,12 +132,6 @@ const CostPage = () => {
             setSelectedItems([]);
         }
     };
-
-    const data = [
-        { label: '項目1', value: 'データ1' },
-        { label: '項目2', value: 'データ2' },
-        { label: '項目3', value: 'データ3' },
-    ];
 
     return (
         <div id='cost_page'>
@@ -238,7 +211,7 @@ const CostPage = () => {
                                     <th>経費科目</th>
                                     <th>内容</th>
                                     <th>金額(税込)</th>
-                                    <th class="receipt">レシート</th>
+                                    <th className="receipt">レシート</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -262,6 +235,27 @@ const CostPage = () => {
                     )}
                 </div>
             </div>
+            <div>
+        <h1>Expense Tracker</h1>
+        <form onSubmit={handleSubmit}>
+    <input type="text" name="accounts_id" value={formData.accounts_id} onChange={handleChange} required />
+    <input type="date" name="date" value={formData.date} onChange={handleChange} required />
+    <input type="text" name="category" value={formData.category} onChange={handleChange} required />
+    <input type="text" name="description" value={formData.description} onChange={handleChange} required />
+    <input type="number" name="amount" value={formData.amount} onChange={handleChange} required />
+    <input type="file" name="receipt_image" onChange={handleFileChange} required />
+    <button type="submit">Add Expense</button>
+</form>
+<ul>
+    {expenses.map(expense => (
+        <li key={expense.id}>
+            {expense.date} - {expense.category} - {expense.description} - {expense.amount} - 
+            <img src={`http://localhost:3000/uploads/${expense.receipt_url}`} alt="Receipt" />
+        </li>
+    ))}
+</ul>
+
+    </div>
             <div id='expenses_link_area'>
                 <Link to="/attendance_table" id='expenses_link'>← 勤怠一覧ページ</Link>
             </div>
@@ -270,3 +264,22 @@ const CostPage = () => {
 };
 
 export default CostPage;
+
+
+
+{/* <form onSubmit={handleSubmit}>
+                        <input type="file" onChange={handleFileChange} />
+                        <button type="submit">Upload</button>
+                    </form>
+
+                    <div>
+                        {images.map((image, index) => (
+                        <img key={index} src={`data:image/png;base64,${image.data}`} alt={`Uploaded ${index}`} />
+                        ))}
+                    </div>
+                    <div className="App">
+                        <p onClick={handleClick} style={{ cursor: 'pointer', color: 'blue' }}>
+                            クリックして画像を表示
+                        </p>
+                        {showImage && <img src={OnesLogo} alt="Ones" />}
+                    </div> */}
