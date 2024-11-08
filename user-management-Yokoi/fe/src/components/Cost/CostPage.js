@@ -38,12 +38,17 @@ const CostPage = () => {
     });
 
     useEffect(() => {
-        axios.get('http://localhost:3000/api/expenses')
-        .then(response => setExpenses(response.data))
-        .catch(error => console.error('Error fetching expenses:', error));
-    }, []);
-    
-    
+        fetch('http://localhost:3000/api/expenses2', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => setExpenses(data))
+        .catch(err => console.log(err));
+    }, [id]);
+
     const handleClick = () => {
         setShowImage(!showImage);
     };
@@ -132,7 +137,7 @@ const CostPage = () => {
             setSelectedItems([]);
         }
     };
-
+    
     return (
         <div id='cost_page'>
             <div id='expenses_user_area'>
@@ -246,14 +251,23 @@ const CostPage = () => {
     <input type="file" name="receipt_image" onChange={handleFileChange} required />
     <button type="submit">Add Expense</button>
 </form>
-<ul>
-    {expenses.map(expense => (
-        <li key={expense.id}>
-            {expense.date} - {expense.category} - {expense.description} - {expense.amount} - 
-            <img src={`http://localhost:3000/uploads/${expense.receipt_url}`} alt="Receipt" />
-        </li>
-    ))}
-</ul>
+
+{/* <ul>
+    {expenses.map(expense => {
+        const encodedFileName = expense.receipt_url;
+        const filePath = `http://localhost:3000/uploads/${encodedFileName}`;
+        console.log(filePath);
+        return (
+            <li key={expense.id}>
+                {expense.date} - {expense.category} - {expense.description} - {expense.amount} - 
+                <img src={filePath} alt="Receipt" />
+            </li>
+        );
+    })}
+</ul> */}
+
+<img src="http://localhost:3000/uploads/cost.png" alt="Cost" />
+
 
     </div>
             <div id='expenses_link_area'>

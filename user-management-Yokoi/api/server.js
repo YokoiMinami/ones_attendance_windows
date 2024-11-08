@@ -2,10 +2,25 @@ const express = require('express'); //ウェブフレームワーク
 const app = express();
 const accountsController = require('./controllers/accountsController'); //dbクエリ
 require('dotenv').config();
-const cron = require('cron');
 
 //ミドルウェアを設定する
 const cors = require('cors'); //CORS(Cross-Origin Resource Sharing)を有効にする
+const whitelist = ['http://localhost:3001', 'http://localhost:3000'];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+
+const cron = require('cron');
 const bodyParser = require('body-parser'); //レスポンスのフォーマットを変換する
 const morgan = require('morgan'); //HTTPレクエストロガー
 const helmet = require('helmet'); //Cross-Site-Scripting(XSS)のような攻撃を防ぐ、参考に：https://www.geeksforgeeks.org/node-js-securing-apps-with-helmet-js/
@@ -23,6 +38,16 @@ let db = require('knex')({
   }
 });
 
+
+
+app.use(cors(corsOptions));
+app.use(helmet());
+app.use(bodyParser.json());
+app.use(express.json({ type: 'application/json; charset=utf-8' }));
+app.use(express.urlencoded({ extended: true, type: 'application/x-www-form-urlencoded; charset=utf-8' }));
+app.use(morgan('combined'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Multerの設定
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -34,26 +59,6 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-
-//ミドルウェア
-const whitelist = ['http://localhost:3001'];
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-}
-
-app.use(helmet());
-app.use(cors(corsOptions));
-app.use(bodyParser.json());
-app.use(express.json({ type: 'application/json; charset=utf-8' }));
-app.use(express.urlencoded({ extended: true, type: 'application/x-www-form-urlencoded; charset=utf-8' }));
-app.use(morgan('combined'));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 const resetCheckInFlags = async () => {
@@ -106,17 +111,8 @@ app.get('/pass', (req, res) => accountsController.passData(req, res, db));
 app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 //経費
 app.post('/api/expenses',upload.single('receipt_image'), (req, res) => accountsController.imagePost(req, res, db));
+app.get('/api/expenses2', (req, res) => accountsController.imageData(req, res, db));
 
-
-app.get('/api/expenses', (req, res) => {
-  db.select('*').from('images_table')
-    .then(data => {
-      res.json(data);
-    })
-    .catch(err => {
-      res.status(400).json({ error: err.message });
-    });
-});
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {
   console.log(`port ${process.env.PORT || 3000}`);

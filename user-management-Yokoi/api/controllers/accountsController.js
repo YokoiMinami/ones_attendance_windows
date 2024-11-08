@@ -682,7 +682,8 @@ const passPut = async (req, res, db) => {
 //画像をアップロード
 const imagePost = async (req, res, db) => {
   const { accounts_id, date, category, description, amount } = req.body;
-  const receipt_url = path.posix.join('uploads', req.file.filename);
+  // const receipt_url = path.posix.join('uploads', req.file.filename);
+  const receipt_url =  req.file.filename;
   try {
     await db('images_table').insert({ 
       accounts_id,
@@ -696,7 +697,6 @@ const imagePost = async (req, res, db) => {
     res.status(500).json({ message: 'Error uploading image', error });
   }
 }
-
 
 //画像を取得
 const imageData = async (req, res, db) => {
