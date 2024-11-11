@@ -332,6 +332,7 @@ const Member = () => {
               <th id='over_cl2'>月予測</th>
               <th id='over_cl3'>直近予測</th>
               <th id='revision_cl'>勤怠修正</th>
+              <th id='cost_cl'>経費申請</th>
             </tr>
           </thead>
           <tbody>
@@ -370,6 +371,7 @@ const Member = () => {
                 </span>
                 </td>
                 <td><Link to={`/attendance/${item.id}`} className='member_link'>修正</Link></td>
+                <td></td>
               </tr>
             ))}
           </tbody>

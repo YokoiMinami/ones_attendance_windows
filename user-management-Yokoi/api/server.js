@@ -17,6 +17,17 @@ const corsOptions = {
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
+// const corsOptions = { origin: '*', // 全てのオリジンを許可 
+//   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] 
+// };
+
+// Cross-Origin関連ヘッダーを設定するミドルウェアを追加 
+app.use((req, res, next) => { 
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp'); //追加 
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin'); //追加 
+  next(); 
+});
 
 app.use(cors(corsOptions));
 
@@ -26,6 +37,7 @@ const morgan = require('morgan'); //HTTPレクエストロガー
 const helmet = require('helmet'); //Cross-Site-Scripting(XSS)のような攻撃を防ぐ、参考に：https://www.geeksforgeeks.org/node-js-securing-apps-with-helmet-js/
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 let db = require('knex')({
   client: 'pg',
@@ -34,19 +46,20 @@ let db = require('knex')({
     user: 'postgres', // 自分のOSのユーザに変更
     password: '07310727',
     database: 'attendancedb',
-    charset: 'utf8' // ここを追加
+    charset: 'utf8' 
   }
 });
 
-
-
-app.use(cors(corsOptions));
 app.use(helmet());
 app.use(bodyParser.json());
 app.use(express.json({ type: 'application/json; charset=utf-8' }));
 app.use(express.urlencoded({ extended: true, type: 'application/x-www-form-urlencoded; charset=utf-8' }));
 app.use(morgan('combined'));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// 静的ファイルの提供 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { 
+  setHeaders: (res) => { res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+
+  } }));
 
 // Multerの設定
 const storage = multer.diskStorage({
@@ -59,7 +72,6 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-
 
 const resetCheckInFlags = async () => {
   try {
@@ -94,7 +106,8 @@ app.get('/overuser/:accounts_id', (req, res) => accountsController.overUser(req,
 app.post('/overtime', (req, res) => accountsController.overData(req, res, db));
 //プロジェクト情報
 app.post('/projects', (req, res) => accountsController.projectsData(req, res, db));
-app.get('/projects/:accounts_id', (req, res) => accountsController.projectUser(req, res, db));
+app.post('/projects_put', (req, res) => accountsController.projectsPut(req, res, db));
+app.get('/projects/:accounts_id/:year/:month', (req, res) => accountsController.projectUser(req, res, db));
 //メンバー勤怠
 app.get('/attendance/total_hours/:accounts_id/:year/:month/:lastMonday/:lastSunday', (req, res) => accountsController.getMonthlyTotalHours(req, res, db));
 app.post('/remarks', (req, res) => accountsController.newRemarks(req, res, db));
@@ -111,7 +124,34 @@ app.get('/pass', (req, res) => accountsController.passData(req, res, db));
 app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 //経費
 app.post('/api/expenses',upload.single('receipt_image'), (req, res) => accountsController.imagePost(req, res, db));
-app.get('/api/expenses2', (req, res) => accountsController.imageData(req, res, db));
+app.get('/api/expenses2/:accounts_id/:month', (req, res) => { 
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+  accountsController.imageData(req, res, db); 
+});
+// 画像を提供するためのエンドポイントにヘッダーを設定 
+app.get('/uploads/:filename', (req, res) => { 
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+  res.sendFile(path.join(__dirname, 'uploads', req.params.filename)); 
+});
+//画像を削除する
+app.delete('/uploads/:filename', (req, res) => { 
+  const filePath = path.join(__dirname, 'uploads', req.params.filename); 
+  console.log(`Deleting file at: ${filePath}`); // ファイルが存在するか確認 
+  if (fs.existsSync(filePath)) { // ファイルシステムから画像を削除 
+    fs.unlink(filePath, (err) => { 
+      if (err) { console.error('ファイルの削除中にエラーが発生しました:', err); 
+        res.status(500).json({ error: 'ファイルの削除に失敗しました' }); 
+      } else { 
+        console.log('File deleted successfully.'); 
+        res.json({ delete: 'true' }); 
+      } 
+    }); 
+  } else { 
+    console.error('ファイルが見つかりません:', filePath); 
+    res.status(404).json({ error: 'ファイルが見つかりません' }); 
+  } 
+});
+app.delete('/cost_delete', (req, res) => accountsController.costDelete(req, res, db));
 
 //サーバ接続
 app.listen(process.env.PORT || 3000, () => {

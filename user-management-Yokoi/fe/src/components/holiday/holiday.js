@@ -70,7 +70,7 @@ const HolidayPage = () => {
             })
             .then(response => response.json())
             .then(() => {
-                setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+              setItems(prevItems => prevItems.filter(item => item.id !== itemId));
             })
             .catch(err => console.log(err));
         });

@@ -1,8 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
-import { useNavigate,useParams } from 'react-router-dom';
-import { TextField, Autocomplete } from '@mui/material';
-
 
 const UserForm = (props) => {
   const [items, setItems] = useState([]); //プロジェクト情報
@@ -10,27 +6,38 @@ const UserForm = (props) => {
   const [details, setDetails] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
+  const [date, setDate] = useState('');
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const currentDate = `${year}/${month}`;
 
-    //プロジェクト情報
-    useEffect(() => {
-      const fetchUser = async () => {
+  //プロジェクト情報
+  useEffect(() => {
+    const fetchUser = async () => {
       const accounts_id = localStorage.getItem('user');
       try {
-          const response = await fetch(`http://localhost:3000/projects/${accounts_id}`);
-          const data = await response.json();
-          setItems(data);
-          if (data.project ) setProjects(data.project);
-          if (data.details ) setDetails(data.details);
-          if (data.company) setCompany(data.company);
-          if (data.name) setName(data.name);
+        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+        const data = await response.json();
+        setItems(data);
+        setProjects(data.project);
+        setDetails(data.details);
+        setCompany(data.company);
+        setName(data.name);
+        setDate(data.create_date);
       } catch (error) {
-          console.error('Error fetching holiday data:', error);
+        console.error('Error fetching holiday data:', error);
+        setItems();
+        setProjects('');
+        setDetails('');
+        setCompany('');
+        setName('');
+        setDate('');
       }
-      };
-      fetchUser();
-  }, []);
+    };
+    fetchUser();
+  }, [year, month]);
 
-    //プロジェクト情報登録
+  //プロジェクト情報登録
   const submitFormAdd = async (e) => {
     e.preventDefault();
     const accounts_id = localStorage.getItem('user');
@@ -39,7 +46,8 @@ const UserForm = (props) => {
       project: projects,
       details: details,
       company: company,
-      name: name
+      name: name,
+      create_date: currentDate
     };
     try {
       const response = await fetch('http://localhost:3000/projects', {
@@ -68,14 +76,19 @@ const UserForm = (props) => {
 
 
     return (
-    <form onSubmit={submitFormAdd}>
+      <div>
+        <div id='cost_ym'> 
+        <input id='at_year2' type="number" value={year} onChange={(e) => setYear(e.target.value)} /> /
+        <input id='at_month2' type="number" value={month} onChange={(e) => setMonth(e.target.value)} min="1" max="12" /> 
+      </div> 
+        <form onSubmit={submitFormAdd}>
       <div id='projects_area'>
         <div className='projects_area_box'>
-          <label className='pj_label'>プロジェクト名称 : </label>
+          <label className='pj_label'>PJ名称 : </label>
           <input type='text' className='projects_input' value={projects} onChange={(e) => setProjects(e.target.value)} />
         </div>
         <div className='projects_area_box'>
-          <label className='pj_label'>プロジェクト詳細 : </label>
+          <label className='pj_label'>PJ詳細 : </label>
           <input type='text' className='projects_input' value={details} onChange={(e) => setDetails(e.target.value)} />
         </div>
         <div className='projects_area_box'> 
@@ -91,6 +104,7 @@ const UserForm = (props) => {
         </div>
       </div>
       </form>
+      </div>
     );
 };
 

@@ -3,6 +3,7 @@ const { console } = require('inspector');
 const jwt = require('jsonwebtoken');
 const secretKey = 'yourSecretKey';
 const path = require('path');
+const fs = require('fs');
 
 //アカウント登録
 const postData = async (req, res, db) => {
@@ -425,10 +426,10 @@ const overData = async (req, res, db) => {
 
 //プロジェクト情報を登録
 const projectsData = async (req, res, db) => {
-  const { accounts_id, project, details, company, name } = req.body;
-  const projectUser = await db('projectdata').where({ accounts_id }).first();
+  const { accounts_id, project, details, company, name, create_date } = req.body;
+  const projectUser = await db('projectdata').where({ accounts_id, create_date:create_date }).first();
   if(projectUser){
-    await db('projectdata').where({ accounts_id }).update({ project, details, company, name })
+    await db('projectdata').where({ accounts_id, create_date }).update({ project, details, company, name })
     .returning('*')
     .then(item => {
       res.json(item);
@@ -437,7 +438,31 @@ const projectsData = async (req, res, db) => {
       dbError: 'error'
     }));
   }else {
-    await db('projectdata').insert({accounts_id, project, details, company, name})
+    await db('projectdata').insert({accounts_id, project, details, company, name, create_date})
+    .returning('*')
+    .then(item => {
+      res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
+
+const projectsPut = async (req, res, db) => {
+  const { accounts_id, create_date, create_day } = req.body;
+  const projectUser = await db('projectdata').where({ accounts_id, create_date:create_date }).first();
+  if(projectUser){
+    await db('projectdata').where({ accounts_id, create_date }).update({ create_day, app_flag:true })
+    .returning('*')
+    .then(item => {
+      res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }else {
+    await db('projectdata').insert({accounts_id, create_date, create_day, app_flag:true})
     .returning('*')
     .then(item => {
       res.json(item);
@@ -450,9 +475,10 @@ const projectsData = async (req, res, db) => {
 
 //プロジェクト情報を取得
 const projectUser = async (req, res, db) => {
-  const { accounts_id } = req.params;
+  const { accounts_id, year, month } = req.params;
+  const create_date = `${year}/${month}`;
   try {
-    const item = await db('projectdata').where({ accounts_id }).first();
+    const item = await db('projectdata').where({ accounts_id, create_date:create_date }).first();
     if (item) {
       res.json( item );
     } else {
@@ -683,7 +709,7 @@ const passPut = async (req, res, db) => {
 const imagePost = async (req, res, db) => {
   const { accounts_id, date, category, description, amount } = req.body;
   // const receipt_url = path.posix.join('uploads', req.file.filename);
-  const receipt_url =  req.file.filename;
+  const receipt_url = req.file ? req.file.filename : '';
   try {
     await db('images_table').insert({ 
       accounts_id,
@@ -691,7 +717,8 @@ const imagePost = async (req, res, db) => {
       category,
       description,
       amount,
-      receipt_url });
+      receipt_url 
+    });
     res.status(200).json({ message: 'Image uploaded successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error uploading image', error });
@@ -699,138 +726,46 @@ const imagePost = async (req, res, db) => {
 }
 
 //画像を取得
-const imageData = async (req, res, db) => {
-  try {
-    const items = await db('images_table').select();
-    res.json(items);
-  } catch (err) {
-    res.status(400).json({ dbError: 'error' });
-  }
-}
-
-// const imagePost = async (req, res, db) => {
-//   try {
-//     const filePath = path.join('uploads', req.file.filename);
-//     await db('costdata').insert({ path: filePath });
-//     res.status(200).json({ message: 'Image uploaded successfully', path: filePath });
-//   } catch (error) {
-//     res.status(500).json({ error: 'Error uploading image' });
-//   }
-// };
-
-// const imagePost = async (req, res, db) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).json({ error: 'No file uploaded' });
-//     }
-//     const filePath = path.join('uploads', req.file.filename);
-//     console.log(filePath);
-//     await db('images_table').insert({ path: filePath });
-//     res.status(200).json({ message: 'Image uploaded successfully', path: filePath });
-//   } catch (error) {
-//     console.error('Error uploading image:', error); // ここでエラーメッセージをログに出力
-//     res.status(500).json({ error: 'Error uploading image' });
-//   }
-// };
-
-// //画像を取得
 // const imageData = async (req, res, db) => {
 //   try {
-//     const items = await db('images_table').select('filename');
+//     const items = await db('images_table').select();
 //     res.json(items);
 //   } catch (err) {
 //     res.status(400).json({ dbError: 'error' });
 //   }
 // }
 
-// const imagePost = async (req, res, db) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).json({ error: 'No file uploaded' });
-//     }
-//     const filePath = path.join('uploads', req.file.filename);
-//     console.log(filePath);
-//     await db('images_table').insert({ path: filePath }); // 'path'を'filename'に変更
-//     res.status(200).json({ message: 'Image uploaded successfully', path: filePath });
-//   } catch (error) {
-//     console.error('Error uploading image:', error); // ここでエラーメッセージをログに出力
-//     res.status(500).json({ error: 'Error uploading image' });
-//   }
-// };
-
-// const imagePost = async (req, res, db) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).json({ error: 'No file uploaded' });
-//     }
-//     const imageData = req.file.buffer; // バイナリデータを取得
-//     await db('images_table').insert({ data: imageData });
-//     res.status(200).json({ message: 'Image uploaded successfully' });
-//   } catch (error) {
-//     console.error('Error uploading image:', error);
-//     res.status(500).json({ error: 'Error uploading image' });
-//   }
-// };
-
-
-// const imagePost = async (req, res, db) => {
-//   const { accounts_id, fileDate } = req.params;
-//   console.log(fileDate);
-//   try {
-//     if (!req.file) {
-//       return res.status(400).json({ error: 'No file uploaded' });
-//     }
-//     const imageData = req.file.buffer; // バイナリデータを取得
-//     await db('images_table').insert({ accounts_id, date: fileDate, data: imageData });
-//     res.status(200).json({ message: 'Image uploaded successfully' });
-//   } catch (error) {
-//     console.error('Error uploading image:', error);
-//     res.status(500).json({ error: 'Error uploading image' });
-//   }
-// };
-
-const costPost = async (req, res, db) => {
-  const { accounts_id, date, subject, money, details} = req.body;
-  const imageData = await db('images_table').where({ accounts_id, date }).first();
-
-  if(imageData){
-    await db('images_table').where({ accounts_id, date }).update({ subject, money, details })
-    .returning('*')
-    .then(item => {
-      res.json(item);
-    })
-    .catch(err => res.status(400).json({
-      dbError: 'error'
+const imageData = async (req, res, db) => {
+  const { accounts_id, month } = req.params;
+  db('images_table')
+  .whereRaw('EXTRACT(MONTH FROM date) = ?', [month])
+  .andWhere('accounts_id', accounts_id)
+  .then(expenses => {
+    // 日付をローカルタイムゾーンに変換
+    const adjustedExpenses = expenses.map(expense => ({
+      ...expense,
+      date: new Date(expense.date).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
     }));
-  }else {
-    await db('images_table').insert({accounts_id, date, subject, money, details})
-    .returning('*')
-    .then(item => {
-      res.json(item);
-    })
-    .catch(err => res.status(400).json({
-      dbError: 'error'
-    }));
-  }
+    res.json(adjustedExpenses);
+  })
+  .catch(error => {
+    console.error('Error fetching attendance data:', error);
+    res.status(500).json({ error: 'Internal server error. Please try again later.' });
+  });
+};
+
+const costDelete = (req, res, db) => {
+  const { id } = req.body;
+  db('images_table').where({ id }).del()
+  .then(() => {
+    res.json({
+      delete: 'true'
+    });
+  })
+  .catch(err => res.status(400).json({
+    dbError: 'error'
+  }));
 }
-
-//画像を取得
-// const imageData = async (req, res, db) => {
-//   try {
-//     const items = await db('images_table').select('data');
-//     const images = items.map(item => {
-//       return {
-//         data: item.data.toString('base64')
-//       };
-//     });
-//     res.json(images);
-//   } catch (err) {
-//     res.status(400).json({ dbError: 'error' });
-//   }
-// };
-
-
-
 
 module.exports = {
   getData,
@@ -848,6 +783,7 @@ module.exports = {
   overData,
   overUser,
   projectsData,
+  projectsPut,
   projectUser,
   newRemarks,
   newTime,
@@ -859,7 +795,7 @@ module.exports = {
   passData,
   passPut,
   imagePost,
-  costPost,
-  imageData
+  imageData,
+  costDelete
 }
   

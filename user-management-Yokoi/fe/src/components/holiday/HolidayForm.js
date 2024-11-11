@@ -47,7 +47,7 @@ const HolidayForm = (props) => {
             body: JSON.stringify(data)
             });
             if (response.ok) {
-                window.location.reload();
+              window.location.reload();
             } else {
             alert('データの保存に失敗しました');
             }
