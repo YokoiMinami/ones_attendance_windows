@@ -330,6 +330,17 @@ const Member = () => {
     getItems();
   }, []);
 
+  const getTextColor = (status) => {
+    switch (status) {
+      case '承認待ち':
+        return 'crimson';
+      case '承認済み':
+        return 'blue';
+      default:
+        return '#808080';
+    }
+  };
+
   return (
     <div id='member_page'>
       <div id='member_top'>
@@ -414,7 +425,7 @@ const Member = () => {
                   {/* {costData[item.id] && Array.isArray(costData[item.id])
                   ? costData[item.id].map(att => formatCost(att.create_day,att.app_flag))
                   : ''} */}
-                  {costState[item.id] !== undefined ? costState[item.id] : ''}
+                  <span style={{ color: getTextColor(costState[item.id])}}>{costState[item.id] !== undefined ? costState[item.id] : ''}</span>
                 </td>
               </tr>
             ))}
