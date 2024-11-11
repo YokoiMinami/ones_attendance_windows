@@ -11,6 +11,7 @@ const HolidayForm = (props) => {
     const [input_year, setInputYear] = useState('');
     const [input_month, setInputMonth] = useState('');
     const [day, setDay] = useState('');
+    const [input_date, setInputDate] = useState('');
     const [weekday, setWeekday] = useState('');
 
 
@@ -22,20 +23,17 @@ const HolidayForm = (props) => {
 
     // 年、月、日が変更されたときに曜日を計算
     useEffect(() => {
-        if (input_year && input_month && day) {
+        if (input_date) {
             calculateWeekday();
         }
-    }, [input_year, input_month, day]);
+    }, [input_date]);
 
     const submitFormAdd = async (e) => {
         e.preventDefault();
         const accounts_id = localStorage.getItem('user');
-
         const data = {
             accounts_id,
-            year:input_year,
-            month:input_month,
-            day:day,
+            date: input_date,
             week: weekday
         };
         try {
@@ -47,7 +45,7 @@ const HolidayForm = (props) => {
             body: JSON.stringify(data)
             });
             if (response.ok) {
-              window.location.reload();
+                window.location.reload();
             } else {
             alert('データの保存に失敗しました');
             }
@@ -59,7 +57,11 @@ const HolidayForm = (props) => {
 
     return (
     <form onSubmit={submitFormAdd}>
-                        <div>
+        <div id='holiday_input_area'>
+            <input type="date" name="date" id="holiday_input" onChange={(e) => setInputDate(e.target.value)} value={input_date}/>
+        </div>
+        
+                        {/* <div>
                         <input
                         type="number"
                         placeholder="年"
@@ -82,11 +84,11 @@ const HolidayForm = (props) => {
                             onChange={(e) => setDay(e.target.value)}
                         />
                         <span>&nbsp;&nbsp;{weekday}&nbsp;&nbsp;</span>
-                        </div>
-                        <div id='h_button_area'>
-                            <button type='submit' id='h_button'>登録</button>
-                        </div>
-                    </form>
+                        </div> */}
+        <div id='h_button_area'>
+            <button type='submit' id='h_button'>登録</button>
+        </div>
+    </form>
     );
 };
 

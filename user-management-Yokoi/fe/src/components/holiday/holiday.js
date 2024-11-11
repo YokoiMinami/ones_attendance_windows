@@ -79,6 +79,15 @@ const HolidayPage = () => {
         }
     };
 
+    const formatDate = (dateString) => { 
+        const date = new Date(dateString); 
+        const year = date.getFullYear(); 
+        const month = String(date.getMonth() + 1).padStart(2, '0'); 
+        const day = String(date.getDate()).padStart(2, '0'); 
+        return `${year}/${month}/${day}`; 
+    };
+    
+
     return (
         <div id='expenses_page'>
             <div id='expenses_user_area'>
@@ -99,7 +108,10 @@ const HolidayPage = () => {
                     <table id ='h_table'>
                         <thead id ='expenses_Th'>
                             <tr>
-                                <th colSpan="5">代休未消化記録表</th>
+                                <th id='holiday_th1'></th>
+                                <th id='holiday_th2'>代休未消化記録表</th>
+                                <th id='holiday_th3'></th>
+                                {/* <th colSpan="3">代休未消化記録表</th> */}
                             </tr>
                         </thead>
                         <tbody id='h_tbody'>
@@ -113,15 +125,15 @@ const HolidayPage = () => {
                                             onChange={(event) => handleCheckboxChange(event, holiday.id)}
                                         />
                                         </td>
-                                        <td>{holiday.year} 年</td>
-                                        <td>{holiday.month} 月</td>
-                                        <td>{holiday.day} 日</td>
-                                        <td>{holiday.week}</td>
+                                        <td>{formatDate(holiday.date)}</td>
+                                        <td style={{ textAlign: 'left'}}>{holiday.week}</td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5">代休情報がありません</td>
+                                    <td></td>
+                                    <td>代休情報がありません</td>
+                                    <td></td>
                                 </tr>
                             )}
                         </tbody>

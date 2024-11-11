@@ -631,8 +631,8 @@ const newExpenses = async (req, res, db) => {
 
 //代休を登録
 const holidayPost = async (req, res, db) => {
-  const { accounts_id, year, month, day, week  } = req.body;
-  await db('holiday').insert({accounts_id, year, month, day, week})
+  const { accounts_id, date, week  } = req.body;
+  await db('holiday').insert({accounts_id, date, week})
   .returning('*')
   .then(item => {
     res.json(item);

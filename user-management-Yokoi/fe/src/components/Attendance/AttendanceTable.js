@@ -158,7 +158,7 @@ const AttendanceTablePage = ( ) => {
   useEffect(() => {
     const fetchUser = async () => {
     try {
-        const response = await fetch(`http://localhost:3000/projects/${accounts_id}`);
+        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
         setItems(data);
         if (data.project ) setProjects(data.project);
@@ -697,6 +697,14 @@ const AttendanceTablePage = ( ) => {
     const allDates = [];
     const allDates2 = [];
     const allDates3 = [];
+
+    const formatDate = (dateString) => { 
+      const date = new Date(dateString); 
+      const year = date.getFullYear(); 
+      const month = String(date.getMonth() + 1).padStart(2, '0'); 
+      const day = String(date.getDate()).padStart(2, '0'); 
+      return `${year}/${month}/${day}`; 
+    };
   
     for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
       allDates.push(new Date(d));
@@ -1005,19 +1013,21 @@ const AttendanceTablePage = ( ) => {
     holidaySheet.mergeCells('A4:D4'); 
 
     holidaySheet.columns = [
-      { key: 'year', width: 15 },
+      // { key: 'year', width: 15 },
       { key: 'month', width: 15 },
-      { key: 'day', width: 15 },
+      { key: 'date', width: 15 },
       { key: 'week', width: 15 },
+      { key: 'day', width: 15 },
     ];
 
     // データの追加
     holidayData.forEach(record => {
       holidaySheet.addRow({
-        year: `${record.year}年`,
-        month: `${record.month}月`,
-        day: `${record.day}日`,
+        // year: `${record.year}年`,
+        month:'',
+        date: formatDate(record.date),
         week: record.week,
+        day: '',
       });
     });
 

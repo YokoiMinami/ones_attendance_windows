@@ -128,7 +128,7 @@ const CostForm = (props) => {
       <Form onSubmit={props.item ? submitFormEdit : submitFormAdd}>
         <FormGroup>
           <label htmlFor="date" className='new_account_label2'>日付</label>
-          <input type="date" name="date" id="date" className='new_account_input2' onChange={onChange} value={formData.date || ''} placeholder='YYYY/MM/DD' />
+          <input type="date" name="date" id="date" className='new_account_input2' onChange={onChange} value={formData.date || ''}/>
           <div className='new_error2' id='date_error2'>
             {errors.date && <p className="error">{errors.date}</p>}
           </div>
