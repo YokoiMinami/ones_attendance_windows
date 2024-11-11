@@ -157,9 +157,6 @@ const Member = () => {
   }, [filteredItems]);
   
 
-
-
-
   //各メンバーの経費申請状況を取得
   useEffect(() => {
     const fetchCostData = async (accounts_id) => {
@@ -194,8 +191,6 @@ const Member = () => {
       fetchCostData(item.id);
     });
   }, [filteredItems]);
-
-
 
 
   useEffect(() => {
