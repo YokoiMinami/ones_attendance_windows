@@ -14,6 +14,8 @@ const Member = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
   const [attendanceData, setAttendanceData] = useState({}); 
+  const [costData, setCostData] = useState({}); 
+  const [costState, setCostState] = useState(''); 
   const [formattedAttendanceData, setFormattedAttendanceData] = useState([]); //日付を修正した勤怠データ
   const [attendanceCount, setAttendanceCount] = useState(0);
   const [monthData, setMonthData] = useState({}); 
@@ -78,6 +80,7 @@ const Member = () => {
   const month2 = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
   const day = String(now.getDate()).padStart(2, '0'); // 日付
   const date = `${year2}-${month2}-${day}`;
+  const date2 = `${year2}/${month2}`;
 
   //土日を判定
   const isWeekend = (date) => {
@@ -152,6 +155,47 @@ const Member = () => {
       fetchAttendanceData(item.id);
     });
   }, [filteredItems]);
+  
+
+
+
+
+  //各メンバーの経費申請状況を取得
+  useEffect(() => {
+    const fetchCostData = async (accounts_id) => {
+      
+      try {
+        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+        const data = await response.json();
+        const create_day  = data.create_day;
+        const app_flag = data.app_flag;
+
+        if(app_flag){
+          setCostState(prevData => ({
+            ...prevData,
+            [accounts_id]: '承認待ち' || [] 
+          }));
+        }else if(create_day.length){
+          setCostState(prevData => ({
+            ...prevData,
+            [accounts_id]: '承認済み' || [] 
+          }));
+        }else{
+          setCostState(prevData => ({
+            ...prevData,
+            [accounts_id]: '' || [] 
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+      }
+    };
+    filteredItems.forEach(item => {
+      fetchCostData(item.id);
+    });
+  }, [filteredItems]);
+
+
 
 
   useEffect(() => {
@@ -164,7 +208,7 @@ const Member = () => {
         const data = await response.json();
         const monthAverage = data.average_time_per_day;
         const weekAverage = data.week_average_time_per_day;
-        console.log(data);
+
         if (monthAverage) {
           // 月勤務時間の分数
           const multipliedWorkHoursInMinutes = monthAverage * holidaysAndWeekendsCount;
@@ -290,7 +334,7 @@ const Member = () => {
   useEffect(() => {
     getItems();
   }, []);
-  
+
   return (
     <div id='member_page'>
       <div id='member_top'>
@@ -371,7 +415,12 @@ const Member = () => {
                 </span>
                 </td>
                 <td><Link to={`/attendance/${item.id}`} className='member_link'>修正</Link></td>
-                <td></td>
+                <td>
+                  {/* {costData[item.id] && Array.isArray(costData[item.id])
+                  ? costData[item.id].map(att => formatCost(att.create_day,att.app_flag))
+                  : ''} */}
+                  {costState[item.id] !== undefined ? costState[item.id] : ''}
+                </td>
               </tr>
             ))}
           </tbody>

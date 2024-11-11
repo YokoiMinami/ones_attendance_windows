@@ -100,6 +100,7 @@ app.post('/attendance', (req, res) => accountsController.attData(req, res, db));
 app.get('/attendance/status/:id', (req, res) => accountsController.attgetData(req, res, db));
 app.get('/attendance/checkin/:accounts_id/:date', (req, res) => accountsController.checkIn(req, res, db));
 app.get('/attendance/attendance/:accounts_id/:date', (req, res) => accountsController.dateData(req, res, db));
+app.get('/attendance/cost/:accounts_id/:date2', (req, res) => accountsController.memberCostData(req, res, db));
 app.get('/attendance/:accounts_id/:year/:month', (req, res) => accountsController.monthData(req, res, db));
 //標準勤務時間
 app.get('/overuser/:accounts_id', (req, res) => accountsController.overUser(req, res, db));

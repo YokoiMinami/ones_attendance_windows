@@ -275,6 +275,26 @@ const dateData = async (req, res, db) => {
   }
 };
 
+// メンバーの経費申請状況を取得
+const memberCostData = async (req, res, db) => {
+  const { accounts_id, date2 } = req.params;
+  const numericAccountsId = parseInt(accounts_id, 10); 
+  console.log(`アカウントID${accounts_id}`);
+  console.log(`申請フラグ${date2}`);
+  try {
+    const memberCost = await db('projectdata').where({ accounts_id: numericAccountsId, create_date: date2 });
+    if (memberCost.length > 0) {
+      res.json(memberCost);
+      console.log(memberCost);
+    } else {
+      res.json([]); // 申請情報が見つからない場合、空の配列を返す
+    }
+  } catch (error) {
+    console.error('Error fetching attendance data:', error);
+    res.status(500).json({ error: 'サーバーエラー' }); // JSON形式でエラーメッセージを返す
+  }
+};
+
 //メンバーの今月の勤務時間、先週の勤務時間を取得
 const getMonthlyTotalHours = async (req, res, db) => {
   const { accounts_id, year, month, lastMonday, lastSunday } = req.params;
@@ -476,7 +496,7 @@ const projectsPut = async (req, res, db) => {
 //プロジェクト情報を取得
 const projectUser = async (req, res, db) => {
   const { accounts_id, year, month } = req.params;
-  const create_date = `${year}/${month}`;
+  const create_date = `${year}-${month}`;
   try {
     const item = await db('projectdata').where({ accounts_id, create_date:create_date }).first();
     if (item) {
@@ -779,6 +799,7 @@ module.exports = {
   checkIn,
   monthData,
   dateData,
+  memberCostData,
   getMonthlyTotalHours,
   overData,
   overUser,

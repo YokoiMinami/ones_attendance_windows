@@ -105,10 +105,12 @@ const CostPage = () => {
         setAppDay(data.create_day);
         setAppFlag(data.app_flag);
 
+        console.log(data.create_day);
+
         if(data.app_flag){
           setAppText('承認待ち')
         }
-        else if(data.create_date && !data.app_flag){
+        else if(data.create_day && !data.app_flag){
           setAppText('承認済み')
         }else{
           setAppText('未申請')

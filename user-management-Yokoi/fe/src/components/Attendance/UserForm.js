@@ -9,7 +9,7 @@ const UserForm = (props) => {
   const [date, setDate] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const currentDate = `${year}/${month}`;
+  const currentDate = `${year}-${month}`;
 
   //プロジェクト情報
   useEffect(() => {
