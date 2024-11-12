@@ -363,10 +363,10 @@ const MemberCost = () => {
                 </div>
                 <div id='sign_area2'>
                     <div id='sign_data1'>
-                        <span className='inkan'>{approver}</span>
+                        {approver? <span className='inkan'>{approver}</span> : <span></span>} 
                     </div>
                     <div id='sign_data2'>
-                        <span className='inkan'>{president}</span>
+                        {president? <span className='inkan'>{president}</span> : <span></span>} 
                     </div>
                     <div id='sign_data3'>
                         {remarks}

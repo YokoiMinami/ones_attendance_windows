@@ -1511,6 +1511,7 @@ html {
   margin-bottom: 50px;
   margin-left: 70%;
   text-align: center;
+  padding-top: 3px;
 }
 
 .appState {
@@ -1525,6 +1526,7 @@ html {
   margin-right: 30px;
   text-align: right;
   padding-right: 10px;
+  padding-top: 3px;
 }
 
 #cost_year {
