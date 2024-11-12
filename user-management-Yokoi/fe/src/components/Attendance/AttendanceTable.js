@@ -1506,33 +1506,75 @@ useEffect(() => {
 
     const imageSheet = workbook.addWorksheet('レシート');
     imageSheet.getColumn('A').width = 10; 
-    
+
     // データの追加
-    expenses.forEach((record, index) => {
+    for (const [index, record] of expenses.entries()) {
       const colOffset = index * 2; // 各データを2列右にオフセット
       const col = String.fromCharCode('B'.charCodeAt(0) + colOffset); // 列を計算
       const dateCell = imageSheet.getCell(`${col}2`);
-      const categoryCell = imageSheet.getCell(`${col}3`);
+      const categoryCell = imageSheet.getCell(`${col}3}`);
       
       dateCell.value = `日付 : ${formatDate(record.date)}`;
       categoryCell.value = `経費科目 : ${record.category}`;
 
       // 各データ列の幅を50に設定
-      imageSheet.getColumn(col.charCodeAt(0) - 64).width = 50;
+      const colIndex = col.charCodeAt(0) - 64;
+      imageSheet.getColumn(colIndex).width = 55;
 
       // データが出力されるセルにのみ罫線を適用
       dateCell.border = { bottom: { style: 'thin' } };
       categoryCell.border = { bottom: { style: 'thin' } };
 
-    });
-  
-    // スタイルの適用
-    imageSheet.eachRow((row, rowNumber) => {
-      if (rowNumber >= 1) { // 1行目から行の高さを設定
+      // 画像を読み込んで追加
+      const imageUrl = `http://localhost:3000/uploads/${record.receipt_url}`;
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+          console.error(`Failed to load image: ${imageUrl}`);
+          continue; // 画像の読み込みに失敗した場合はスキップ
+      }
+      const imageBlob = await response.blob();
+      const imageBuffer = await imageBlob.arrayBuffer();
+
+      // ファイル名から拡張子を取得
+      const fileExtension = record.receipt_url.split('.').pop();
+
+      // canvasを使用して画像の元のサイズを取得
+      const img = new Image();
+      img.src = URL.createObjectURL(imageBlob);
+      await new Promise((resolve) => {
+          img.onload = resolve;
+      });
+
+      const originalWidth = img.width;
+      const originalHeight = img.height;
+
+      // 列幅に合わせた新しい幅と高さを計算
+      const newWidth = 50 * 7.5 * 0.8; // 列幅の80%に設定 (1列 = 7.5ポイント)
+      const aspectRatio = originalHeight / originalWidth;
+      const newHeight = newWidth * aspectRatio;
+
+      const imageId = workbook.addImage({
+          buffer: imageBuffer,
+          extension: fileExtension, // ファイルの拡張子を動的に設定
+      });
+      imageSheet.addImage(imageId, {
+          tl: { col: colIndex - 1 + 0.9, row: 4 }, // 画像の左上の位置
+          ext: { width: newWidth, height: newHeight }, // アスペクト比を維持したサイズ
+      });
+
+      // 経費科目が入力されているセルの2つ下のセルの高さを指定
+      const targetRow = 3 + 2; // 経費科目のセルの2つ下の行番号
+      imageSheet.getRow(targetRow).height = 700 * 0.75; // 高さを指定
+  }
+
+  // スタイルの適用
+  imageSheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 2) { // 2行目から行の高さを設定
           row.height = 30;
       }
-    });
-
+  });
+    
+    
 
 
 
