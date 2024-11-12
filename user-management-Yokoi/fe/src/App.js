@@ -15,6 +15,7 @@ import ExpensesPage from './components/Expenses/Expenses';
 import HolidayPage from './components/holiday/holiday';
 import PassPage from './components/Pass/PassPage';
 import CostPage from './components/Cost/CostPage';
+import MemberCost from './components/Member/MemberCost';
 
 const AppContent = () => {
   return (
@@ -33,6 +34,7 @@ const AppContent = () => {
         <Route path="/user/:id" element={<ProtectedRoute component={MemberData} />} />
         <Route path="/attendance/:id" element={<ProtectedRoute component={MemberAttendanceTable} />} />
         <Route path="/cost" element={<ProtectedRoute component={CostPage} />} />
+        <Route path="/cost/:id" element={<ProtectedRoute component={MemberCost} />} />
       </Routes>
     </>
   );

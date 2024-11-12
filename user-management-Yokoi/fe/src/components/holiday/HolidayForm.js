@@ -60,31 +60,6 @@ const HolidayForm = (props) => {
         <div id='holiday_input_area'>
             <input type="date" name="date" id="holiday_input" onChange={(e) => setInputDate(e.target.value)} value={input_date}/>
         </div>
-        
-                        {/* <div>
-                        <input
-                        type="number"
-                        placeholder="年"
-                        value={input_year}
-                        className='h_input'
-                        onChange={(e) => setInputYear(e.target.value)}
-                        />
-                        <input
-                            type="number"
-                            placeholder="月"
-                            value={input_month}
-                            className='h_input'
-                            onChange={(e) => setInputMonth(e.target.value)}
-                        />
-                        <input
-                            type="number"
-                            placeholder="日"
-                            value={day}
-                            className='h_input'
-                            onChange={(e) => setDay(e.target.value)}
-                        />
-                        <span>&nbsp;&nbsp;{weekday}&nbsp;&nbsp;</span>
-                        </div> */}
         <div id='h_button_area'>
             <button type='submit' id='h_button'>登録</button>
         </div>

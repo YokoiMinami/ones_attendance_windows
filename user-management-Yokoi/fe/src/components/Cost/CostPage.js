@@ -16,33 +16,34 @@ const CostPage = () => {
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
   const [appDay, setAppDay] = useState('');
+  const [appState , setAppState ] = useState(false);
   const [appFlag , setAppFlag ] = useState('');
   const [appText , setAppText ] = useState('');
   const [year2, setYear2] = useState(new Date().getFullYear());
   const [month2, setMonth2] = useState(new Date().getMonth() + 1);
-  const now = new Date();
   const [day, setDay] = useState(new Date().getDate());
   const currentDate = `${year2}/${month2}/${day}`;
   const [showImage, setShowImage] = useState(false); //画像の表示、非表示
   const [expenses, setExpenses] = useState([]);
   const [selectedImage, setSelectedImage] = useState(''); 
   const [total, setTotal] = useState();
+  
 
   const handleClick = () => {
     setShowImage(!showImage);
   };
 
-  useEffect(() => {
-    fetch('http://localhost:3000/api/expenses2', {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => setExpenses(data))
-    .catch(err => console.log(err));
-  }, [id]);
+  // useEffect(() => {
+  //   fetch('http://localhost:3000/api/expenses2', {
+  //     method: 'get',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     }
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => setExpenses(data))
+  //   .catch(err => console.log(err));
+  // }, [id]);
 
   //ユーザーの交通費情報を取得
   useEffect(() => {
@@ -108,13 +109,16 @@ const CostPage = () => {
         console.log(data.create_day);
 
         if(data.app_flag){
-          setAppText('承認待ち')
-        }
-        else if(data.create_day && !data.app_flag){
-          setAppText('承認済み')
-        }else{
-          setAppText('未申請')
-        }
+          setAppText('承認待ち');
+          setAppState(true);
+          }
+          else if(data.create_day && !data.app_flag){
+          setAppText('承認済み');
+          setAppState(true);
+          }else{
+          setAppText('未申請');
+          setAppState(false);
+          }
       } catch (error) {
         console.error('Error fetching holiday data:', error);
         setItems2();
@@ -263,7 +267,7 @@ const CostPage = () => {
     return expenses.sort((a, b) => new Date(a.date) - new Date(b.date)); 
   };
 
-  const getTextColor = () => { switch (appText) { case '承認待ち': return 'crimson'; case '承認済み': return 'blue'; default: return '#808080'; } };
+  const getTextColor = () => { switch (appText) { case '承認待ち': return 'crimson'; case '承認済み': return '#266ebd'; default: return '#808080'; } };
 
   return ( 
     <div id='cost_page'> 
@@ -293,12 +297,14 @@ const CostPage = () => {
           <div id='cost_paper'> 
             <div className='cost_flex' id='cost_making'> 
               <div id='cost_label1'> 作成日 </div> 
+                {appState? <span className='appState'>{appDay}</span> : 
                 <div id='cost_data1'>
                   <input id='cost_year' type="number" value={year} onChange={(e) => setYear(e.target.value)} />/
                   <input id='cost_month' type="number" value={month} onChange={(e) => setMonth(e.target.value)} min="1" max="12" />/
                   <input id='cost_day' type="number" value={day} onChange={(e) => setDay(e.target.value)} min="1" max="31" />
                 </div>
-            </div> 
+                } 
+              </div> 
             <div id='cost_title'>経費明細書</div> 
             <div className='cost_flex' id='cost_company'> 
               <div id='cost_label2'> 所属社名 </div> 

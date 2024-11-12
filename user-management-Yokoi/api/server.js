@@ -108,6 +108,7 @@ app.post('/overtime', (req, res) => accountsController.overData(req, res, db));
 //プロジェクト情報
 app.post('/projects', (req, res) => accountsController.projectsData(req, res, db));
 app.post('/projects_put', (req, res) => accountsController.projectsPut(req, res, db));
+app.post('/projects_flag', (req, res) => accountsController.projectsFlag(req, res, db));
 app.get('/projects/:accounts_id/:year/:month', (req, res) => accountsController.projectUser(req, res, db));
 //メンバー勤怠
 app.get('/attendance/total_hours/:accounts_id/:year/:month/:lastMonday/:lastSunday', (req, res) => accountsController.getMonthlyTotalHours(req, res, db));

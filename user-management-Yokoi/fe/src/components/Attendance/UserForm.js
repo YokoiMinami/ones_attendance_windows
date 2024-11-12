@@ -69,12 +69,6 @@ const UserForm = (props) => {
     }
   };
 
-//   const addItemToState = (item) => {
-//     window.location.reload();
-//     setItems(prevItems => [...prevItems, item]);
-// };
-
-
     return (
       <div>
         <div id='cost_ym'> 

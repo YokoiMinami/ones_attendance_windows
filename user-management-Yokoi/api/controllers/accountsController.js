@@ -493,6 +493,21 @@ const projectsPut = async (req, res, db) => {
   }
 }
 
+const projectsFlag = async (req, res, db) => {
+  const { id, registration, registration_date, approver, president, remarks} = req.body;
+  const projectUser = await db('projectdata').where({ id }).first();
+  if(projectUser){
+    await db('projectdata').where({ id }).update({ registration:registration, registration_date:registration_date, approver:approver, president:president, remarks:remarks, app_flag:false })
+    .returning('*')
+    .then(item => {
+      res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
+  }
+}
+
 //プロジェクト情報を取得
 const projectUser = async (req, res, db) => {
   const { accounts_id, year, month } = req.params;
@@ -805,6 +820,7 @@ module.exports = {
   overUser,
   projectsData,
   projectsPut,
+  projectsFlag,
   projectUser,
   newRemarks,
   newTime,

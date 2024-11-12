@@ -335,7 +335,7 @@ const Member = () => {
       case '承認待ち':
         return 'crimson';
       case '承認済み':
-        return 'blue';
+        return '#266ebd';
       default:
         return '#808080';
     }
@@ -422,10 +422,7 @@ const Member = () => {
                 </td>
                 <td><Link to={`/attendance/${item.id}`} className='member_link'>修正</Link></td>
                 <td>
-                  {/* {costData[item.id] && Array.isArray(costData[item.id])
-                  ? costData[item.id].map(att => formatCost(att.create_day,att.app_flag))
-                  : ''} */}
-                  <span style={{ color: getTextColor(costState[item.id])}}>{costState[item.id] !== undefined ? costState[item.id] : ''}</span>
+                  <Link to={`/cost/${item.id}`} style={{ color: getTextColor(costState[item.id])}}>{costState[item.id] !== undefined ? costState[item.id] : ''}</Link>
                 </td>
               </tr>
             ))}
