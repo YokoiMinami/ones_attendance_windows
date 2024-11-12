@@ -761,16 +761,6 @@ const imagePost = async (req, res, db) => {
   }
 }
 
-//画像を取得
-// const imageData = async (req, res, db) => {
-//   try {
-//     const items = await db('images_table').select();
-//     res.json(items);
-//   } catch (err) {
-//     res.status(400).json({ dbError: 'error' });
-//   }
-// }
-
 const imageData = async (req, res, db) => {
   const { accounts_id, year, month } = req.params;
   db('images_table')

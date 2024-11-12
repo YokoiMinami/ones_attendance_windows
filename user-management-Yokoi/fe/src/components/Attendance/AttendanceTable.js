@@ -58,7 +58,8 @@ const AttendanceTablePage = ( ) => {
   const [holidayData, setHolidayData] = useState([]); //代休データ
   const [items, setItems] = useState([]); //プロジェクト情報
   const [items2, setItems2] = useState([]); //標準勤務時間情報
-  const [expenses, setExpenses] = useState([]);
+  const [expenses, setExpenses] = useState([]); //経費データ
+  const [image, setImage] = useState([]);
 
   const navigate = useNavigate();
 
@@ -229,7 +230,6 @@ useEffect(() => {
     };
     fetchExpenses();
   }, [year, month]);
-
 
   const addItemToState = (item) => {
     window.location.reload();
@@ -752,6 +752,7 @@ useEffect(() => {
   }, [formattedAttendanceData]);
 
   const exportToExcel = async () => {
+
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
     const allDates = [];
@@ -1502,6 +1503,49 @@ useEffect(() => {
       bottom: { style: 'thin' },
       right: { style: 'thin' }
     };
+
+    const imageSheet = workbook.addWorksheet('レシート');
+    imageSheet.getColumn('A').width = 10; 
+    
+    // データの追加
+    expenses.forEach((record, index) => {
+      const colOffset = index * 2; // 各データを2列右にオフセット
+      const col = String.fromCharCode('B'.charCodeAt(0) + colOffset); // 列を計算
+      const dateCell = imageSheet.getCell(`${col}2`);
+      const categoryCell = imageSheet.getCell(`${col}3`);
+      
+      dateCell.value = `日付 : ${formatDate(record.date)}`;
+      categoryCell.value = `経費科目 : ${record.category}`;
+
+      // 各データ列の幅を50に設定
+      imageSheet.getColumn(col.charCodeAt(0) - 64).width = 50;
+
+      // データが出力されるセルにのみ罫線を適用
+      dateCell.border = { bottom: { style: 'thin' } };
+      categoryCell.border = { bottom: { style: 'thin' } };
+
+    });
+  
+    // スタイルの適用
+    imageSheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 1) { // 1行目から行の高さを設定
+          row.height = 30;
+      }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   
     // バッファを生成してBlobとして保存

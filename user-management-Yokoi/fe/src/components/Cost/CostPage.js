@@ -58,7 +58,7 @@ const CostPage = () => {
       ...prevShowImage, 
       [index]: !prevShowImage[index],
     }));
-    setSelectedImage(showImage[index] ? '' : filePath); // 修正：表示状態に応じてファイルパスを設定
+    setSelectedImage(showImage[index] ? '' : filePath); 
   };
   
   useEffect(() => {
