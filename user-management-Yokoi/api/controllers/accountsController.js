@@ -605,8 +605,9 @@ const newTime = async (req, res, db) => {
 
 //交通費情報を取得
 const expensesData = async (req, res, db) => {
-  const { accounts_id, month } = req.params;
+  const { accounts_id, year, month } = req.params;
   db('expenses')
+  .whereRaw('EXTRACT(YEAR FROM date) = ?', [year])
   .whereRaw('EXTRACT(MONTH FROM date) = ?', [month])
   .andWhere('accounts_id', accounts_id)
   .then(expenses => {
@@ -771,8 +772,9 @@ const imagePost = async (req, res, db) => {
 // }
 
 const imageData = async (req, res, db) => {
-  const { accounts_id, month } = req.params;
+  const { accounts_id, year, month } = req.params;
   db('images_table')
+  .whereRaw('EXTRACT(YEAR FROM date) = ?', [year])
   .whereRaw('EXTRACT(MONTH FROM date) = ?', [month])
   .andWhere('accounts_id', accounts_id)
   .then(expenses => {

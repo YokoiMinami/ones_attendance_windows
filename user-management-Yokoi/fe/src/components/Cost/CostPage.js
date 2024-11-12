@@ -18,6 +18,11 @@ const CostPage = () => {
   const [appDay, setAppDay] = useState('');
   const [appState , setAppState ] = useState(false);
   const [appFlag , setAppFlag ] = useState('');
+  const [registration, setRegistration] = useState('');
+  const [registrationDate, setregistrationDate] = useState('');
+  const [approver, setApprover] = useState('');
+  const [president, setPresident] = useState('');
+  const [remarks, setRemarks] = useState('');
   const [appText , setAppText ] = useState('');
   const [year2, setYear2] = useState(new Date().getFullYear());
   const [month2, setMonth2] = useState(new Date().getMonth() + 1);
@@ -29,28 +34,16 @@ const CostPage = () => {
   const [total, setTotal] = useState();
   
 
-  const handleClick = () => {
-    setShowImage(!showImage);
-  };
+  // const handleClick = () => {
+  //   setShowImage(!showImage);
+  // };
 
-  // useEffect(() => {
-  //   fetch('http://localhost:3000/api/expenses2', {
-  //     method: 'get',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     }
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => setExpenses(data))
-  //   .catch(err => console.log(err));
-  // }, [id]);
-
-  //ユーザーの交通費情報を取得
+  //ユーザーの経費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
       const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${month}`);
+        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
         const data = await response.json();
         setExpenses(data)
       } catch (error) {
@@ -105,6 +98,11 @@ const CostPage = () => {
         setDate(data.create_date);
         setAppDay(data.create_day);
         setAppFlag(data.app_flag);
+        setRegistration(data.registration);
+        setregistrationDate(data.registration_date);
+        setApprover(data.approver);
+        setPresident(data.president);
+        setRemarks(data.remarks);
 
         console.log(data.create_day);
 
@@ -128,6 +126,11 @@ const CostPage = () => {
         setDate();
         setAppDay();
         setAppFlag();
+        setRegistration();
+        setregistrationDate();
+        setApprover();
+        setPresident();
+        setRemarks();
         setAppText('未申請')
       }
     };
@@ -380,9 +383,15 @@ const CostPage = () => {
               <div id='sign_label3'>備考</div>
             </div>
             <div id='sign_area2'>
-              <div id='sign_data1'></div>
-              <div id='sign_data2'></div>
-              <div id='sign_data3'></div>
+              <div id='sign_data1'>
+                {approver? <span className='inkan'>{approver}</span> : <span></span>} 
+              </div>
+              <div id='sign_data2'>
+                {president? <span className='inkan'>{president}</span> : <span></span>} 
+              </div>
+              <div id='sign_data3'>
+                {remarks}
+              </div>
             </div>
             {selectedImage && <img src={selectedImage} alt="Receipt" id="overlay_image" style={{ maxWidth: '800px', maxHeight: '400px' }}/>}
           </div> 

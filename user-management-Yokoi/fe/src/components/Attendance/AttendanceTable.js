@@ -33,9 +33,19 @@ const AttendanceTablePage = ( ) => {
   const [weekMonthAverage, setWeekMonthAverage] = useState(0); //直近の月平均勤務時間
   const [isOvertime, setIsOvertime] = useState(false); //月予測勤務時間が規定を超えるか
   const [isOvertime2, setIsOvertime2] = useState(false); //直近予測勤務時間が規定を超えるか
+  const [details, setDetails] = useState('');
   const [projects, setProjects] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
+  const [date2, setDate2] = useState('');
+  const [appDay, setAppDay] = useState('');
+  const [appFlag , setAppFlag ] = useState('');
+  const [registration, setRegistration] = useState('');
+  const [registrationDate, setregistrationDate] = useState('');
+  const [approver, setApprover] = useState('');
+  const [president, setPresident] = useState('');
+  const [costRemarks, setCostRemarks] = useState('');
+  const [appState , setAppState ] = useState(false);
   const [editingRemarks, setEditingRemarks] = useState({}); // 出勤特記の編集モードを管理するステート
   const [editingRemarks2, setEditingRemarks2] = useState({}); //出勤備考の編集モードを管理するステート
   const [editingOutRemarks, setEditingOutRemarks] = useState({}); // 退勤特記の編集モードを管理するステート
@@ -48,6 +58,7 @@ const AttendanceTablePage = ( ) => {
   const [holidayData, setHolidayData] = useState([]); //代休データ
   const [items, setItems] = useState([]); //プロジェクト情報
   const [items2, setItems2] = useState([]); //標準勤務時間情報
+  const [expenses, setExpenses] = useState([]);
 
   const navigate = useNavigate();
 
@@ -154,22 +165,71 @@ const AttendanceTablePage = ( ) => {
     fetchHoliday();
   }, [year, month]);
 
-  //プロジェクト情報
-  useEffect(() => {
-    const fetchUser = async () => {
+//プロジェクト情報
+useEffect(() => {
+  const fetchUser = async () => {
+    const accounts_id = localStorage.getItem('user');
     try {
-        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
-        setItems(data);
-        if (data.project ) setProjects(data.project);
-        if (data.company) setCompany(data.company);
-        if (data.name) setName(data.name);
+      const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+      const data = await response.json();
+
+      setProjects(data.project);
+      setDetails(data.details);
+      setCompany(data.company);
+      setName(data.name);
+      setDate2(data.create_date);
+      setAppDay(data.create_day);
+      setAppFlag(data.app_flag);
+      setRegistration(data.registration);
+      setregistrationDate(data.registration_date);
+      setApprover(data.approver);
+      setPresident(data.president);
+      setCostRemarks(data.remarks);
+
+      console.log(data.create_day);
+
+      if(data.app_flag){
+        setAppState(true);
+        }
+        else if(data.create_day && !data.app_flag){
+        setAppState(true);
+        }else{
+        setAppState(false);
+        }
     } catch (error) {
-        console.error('Error fetching holiday data:', error);
+      console.error('Error fetching holiday data:', error);
+      setProjects();
+      setDetails();
+      setCompany();
+      setName();
+      setDate2();
+      setAppDay();
+      setAppFlag();
+      setRegistration();
+      setregistrationDate();
+      setApprover();
+      setPresident();
+      setCostRemarks();
     }
+  };
+  fetchUser();
+}, [year, month]);
+
+  //ユーザーの経費情報を取得
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      const accounts_id = localStorage.getItem('user');
+      try {
+        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
+        const data = await response.json();
+        setExpenses(data)
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+      }
     };
-    fetchUser();
-}, [year,month]);
+    fetchExpenses();
+  }, [year, month]);
+
 
   const addItemToState = (item) => {
     window.location.reload();
@@ -705,6 +765,12 @@ const AttendanceTablePage = ( ) => {
       const day = String(date.getDate()).padStart(2, '0'); 
       return `${year}/${month}/${day}`; 
     };
+
+    const formatAmount = (amount) => { 
+      const flooredAmount = Math.floor(amount); 
+      return Number(flooredAmount);
+      //return flooredAmount.toLocaleString('ja-JP', { minimumFractionDigits: 0 }); 
+    };
   
     for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
       allDates.push(new Date(d));
@@ -1113,6 +1179,395 @@ const AttendanceTablePage = ( ) => {
         });
       }
     });
+
+
+
+
+
+
+
+
+    // 経費情報を新しいシートに追加
+    const costSheet = workbook.addWorksheet('経費申請書');
+
+    const create_day_label = costSheet.getCell('D2');
+    create_day_label.value = '作成日';
+    create_day_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    create_day_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    create_day_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    // セルの幅と高さを指定
+    costSheet.getColumn('D').width = 20; // 幅を20に設定
+    costSheet.getRow(2).height = 30; // 高さを30に設定
+
+    costSheet.mergeCells('E2:F2'); // セルを結合
+    const workMonth5 = costSheet.getCell('E2');
+    workMonth5.value = appDay;
+    workMonth5.alignment = { vertical: 'middle', horizontal: 'right' };
+    workMonth5.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+    
+    // 経費明細所のタイトルを追加
+    costSheet.mergeCells('A4:E4'); // セルを結合
+    const titleCell4 = costSheet.getCell('A4');
+    titleCell4.value = '経費明細書';
+    titleCell4.font = { size: 20, bold: true };
+    titleCell4.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    const company_label = costSheet.getCell('A7');
+    company_label.value = '所属会社';
+    company_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    company_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    company_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    // セルの幅と高さを指定
+    costSheet.getColumn('A').width = 20; // 幅を20に設定
+    costSheet.getRow(2).height = 30; // 高さを30に設定
+
+    costSheet.mergeCells('B7:C7'); // セルを結合
+    const company_data = costSheet.getCell('B7');
+    company_data.value = company;
+    company_data.alignment = { vertical: 'middle', horizontal: 'left' };
+    company_data.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    const name_label = costSheet.getCell('A8');
+    name_label.value = '氏名';
+    name_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    name_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    name_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    costSheet.getRow(8).height = 30; // 高さを30に設定
+
+    costSheet.mergeCells('B8:C8'); // セルを結合
+    const name_data = costSheet.getCell('B8');
+    name_data.value = name;
+    name_data.alignment = { vertical: 'middle', horizontal: 'left' };
+    name_data.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    const project_label = costSheet.getCell('A10');
+    project_label.value = 'プロジェクト';
+    project_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    project_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    project_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    costSheet.getRow(10).height = 30; // 高さを30に設定
+
+    costSheet.mergeCells('B10:C10'); // セルを結合
+    const project_data = costSheet.getCell('B10');
+    project_data.value = details;
+    project_data.alignment = { vertical: 'middle', horizontal: 'left' };
+    project_data.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    // ヘッダーの1行目
+    costSheet.getCell('A13').value = '日付';
+    costSheet.getCell('B13').value = '経費科目';
+    costSheet.getCell('C13').value = '内容';
+    costSheet.getCell('D13').value = '金額(税込)';
+    
+    costSheet.columns = [
+      { key: 'date', width: 15 },
+      { key: 'category', width: 25 },
+      { key: 'description', width: 35 },
+      { key: 'amount', width: 20 },
+    ];
+    
+    expenses.forEach(record => {
+      costSheet.addRow({
+        date:formatDate(record.date),
+        category: record.category,
+        description: record.description,
+        amount: formatAmount(record.amount)
+      });
+    });
+
+    // 合計を計算
+    const totalAmount = expenses.reduce((sum, record) => sum + Math.floor(record.amount), 0);
+    
+    // スタイルの適用
+    costSheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 13) { // 13行目から罫線を適用
+        row.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          if (rowNumber === 13) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+            };
+            cell.alignment = { horizontal: 'center' };
+          } 
+          // 中央揃えにする列を指定
+          if (![1, 4].includes(colNumber)) {
+            cell.alignment = { horizontal: 'center' };
+          }
+        });
+        row.height = 25;
+      }
+    });
+
+    // 空のセルにも罫線を適用
+    costSheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 13) {
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+    });
+
+    // データの行数を取得
+    const dataRowCount = expenses.length;
+
+    // 合計を出力する行を計算
+    const totalRowNumber = 13 + dataRowCount + 3;
+    //記載欄
+    const companyNumber = 13 + dataRowCount + 7;
+    //承認欄ラベル
+    const appLabel = 13 + dataRowCount + 8;
+    //承認欄データ
+    const appData = 13 + dataRowCount + 9;
+
+    costSheet.mergeCells(`A${totalRowNumber}:B${totalRowNumber}`);
+    const total_label = costSheet.getCell(`A${totalRowNumber}`);
+    total_label.value = '経費合計';
+    total_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    total_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    total_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    costSheet.getRow(totalRowNumber).height = 30; // 高さを30に設定
+
+    costSheet.mergeCells(`C${totalRowNumber}:D${totalRowNumber}`);
+    const total_data = costSheet.getCell(`C${totalRowNumber}`);
+    total_data.value = totalAmount;
+    total_data.alignment = { vertical: 'middle', horizontal: 'center' };
+    total_data.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    costSheet.mergeCells(`A${companyNumber}:C${companyNumber}`);
+    const company_text = costSheet.getCell(`A${companyNumber}`);
+    company_text.value = '株式会社ワンズブルーム記載欄';
+    company_text.alignment = { vertical: 'middle', horizontal: 'left' };
+    
+    const approver_label = costSheet.getCell(`A${appLabel}`);
+    approver_label.value = '承認者';
+    approver_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    approver_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    approver_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    const president_label = costSheet.getCell(`B${appLabel}`);
+    president_label.value = '社長';
+    president_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    president_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    president_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    const remarks_label = costSheet.getCell(`C${appLabel}`);
+    remarks_label.value = '備考';
+    remarks_label.alignment = { vertical: 'middle', horizontal: 'center' };
+    remarks_label.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    remarks_label.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' } // ライトグレーの背景色
+    };
+
+    costSheet.getRow(appData).height = 30; 
+
+    const approver_data = costSheet.getCell(`A${appData}`);
+    approver_data.value = approver;
+    approver_data.alignment = { vertical: 'middle', horizontal: 'center' };
+    approver_data.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    const president_data = costSheet.getCell(`B${appData}`);
+    president_data.value = president;
+    president_data.alignment = { vertical: 'middle', horizontal: 'center' };
+    president_data.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    const remarks_data = costSheet.getCell(`C${appData}`);
+    remarks_data.value = costRemarks;
+    remarks_data.alignment = { vertical: 'middle', horizontal: 'left' };
+    remarks_data.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+
+
+
+
+
+    
+
+    
+    // // 合計行を追加
+    // const totalRow = expensesSheet.addRow({
+    //   date: '',
+    //   day: '',
+    //   route: '合計',
+    //   train: { formula: `SUM(D6:D${expensesSheet.rowCount})` },
+    //   bus: { formula: `SUM(E6:E${expensesSheet.rowCount})` },
+    //   tax: { formula: `SUM(F6:F${expensesSheet.rowCount})` },
+    //   aircraft: { formula: `SUM(G6:G${expensesSheet.rowCount})` },
+    //   other: { formula: `SUM(H6:H${expensesSheet.rowCount})` },
+    //   total: { formula: `SUM(I6:I${expensesSheet.rowCount})` },
+    //   stay: { formula: `SUM(J6:J${expensesSheet.rowCount})` },
+    //   grand_total: { formula: `SUM(K6:K${expensesSheet.rowCount})` },
+    //   expenses_remarks: ''
+    // });
+
+    // // 合計行のスタイルを適用
+    // totalRow.eachCell((cell, colNumber) => {
+    //   cell.font = { bold: true };
+    //   cell.alignment = { horizontal: 'center' };
+    //   cell.border = {
+    //     top: { style: 'thin' },
+    //     left: { style: 'thin' },
+    //     bottom: { style: 'thin' },
+    //     right: { style: 'thin' }
+    //   };
+    // });
+
+    // // 合計金額を手動で計算
+    // let grandTotalSum = 0;
+    // for (let i = 6; i <= totalRow.number - 1; i++) {
+    //   const cellValue = expensesSheet.getCell(`K${i}`).value;
+    //   if (typeof cellValue === 'number') {
+    //     grandTotalSum += cellValue;
+    //   }
+    // }
+
+    // // 1行開けてJからL列を結合
+    // const emptyRowNumber = totalRow.number + 2;
+    // expensesSheet.mergeCells(`J${emptyRowNumber}:L${emptyRowNumber}`);
+    // const mergedCell = expensesSheet.getCell(`J${emptyRowNumber}`);
+    // mergedCell.value = {
+    //   richText: [
+    //     { text: '合計金額 : ', font: { size: 18 } },
+    //     { text: ` ${grandTotalSum} 円`, font: { size: 18, underline: true } }
+    //   ]
+    // };
+    // mergedCell.font = { size: 18 };
+    // mergedCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
   
     // バッファを生成してBlobとして保存
     const buffer = await workbook.xlsx.writeBuffer();

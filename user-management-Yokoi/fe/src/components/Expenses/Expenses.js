@@ -85,7 +85,7 @@ const ExpensesPage = ( ) => {
     const fetchExpenses = async () => {
       const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${month}`);
+        const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${year}/${month}`);
         const data = await response.json();
         setExpensesData(Array.isArray(data) ? data : []);
       } catch (error) {

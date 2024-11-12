@@ -115,7 +115,7 @@ app.get('/attendance/total_hours/:accounts_id/:year/:month/:lastMonday/:lastSund
 app.post('/remarks', (req, res) => accountsController.newRemarks(req, res, db));
 app.post('/time', (req, res) => accountsController.newTime(req, res, db));
 //交通費
-app.get('/expenses/:accounts_id/:month', (req, res) => accountsController.expensesData(req, res, db));
+app.get('/expenses/:accounts_id/:year/:month', (req, res) => accountsController.expensesData(req, res, db));
 app.post('/expenses', (req, res) => accountsController.newExpenses(req, res, db));
 //代休
 app.post('/holiday', (req, res) => accountsController.holidayPost(req, res, db));
@@ -126,7 +126,7 @@ app.get('/pass', (req, res) => accountsController.passData(req, res, db));
 app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 //経費
 app.post('/api/expenses',upload.single('receipt_image'), (req, res) => accountsController.imagePost(req, res, db));
-app.get('/api/expenses2/:accounts_id/:month', (req, res) => { 
+app.get('/api/expenses2/:accounts_id/:year/:month', (req, res) => { 
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
   accountsController.imageData(req, res, db); 
 });
