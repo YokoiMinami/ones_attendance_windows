@@ -1180,13 +1180,6 @@ useEffect(() => {
       }
     });
 
-
-
-
-
-
-
-
     // 経費情報を新しいシートに追加
     const costSheet = workbook.addWorksheet('経費申請書');
 
@@ -1509,64 +1502,6 @@ useEffect(() => {
       bottom: { style: 'thin' },
       right: { style: 'thin' }
     };
-
-
-
-
-
-
-    
-
-    
-    // // 合計行を追加
-    // const totalRow = expensesSheet.addRow({
-    //   date: '',
-    //   day: '',
-    //   route: '合計',
-    //   train: { formula: `SUM(D6:D${expensesSheet.rowCount})` },
-    //   bus: { formula: `SUM(E6:E${expensesSheet.rowCount})` },
-    //   tax: { formula: `SUM(F6:F${expensesSheet.rowCount})` },
-    //   aircraft: { formula: `SUM(G6:G${expensesSheet.rowCount})` },
-    //   other: { formula: `SUM(H6:H${expensesSheet.rowCount})` },
-    //   total: { formula: `SUM(I6:I${expensesSheet.rowCount})` },
-    //   stay: { formula: `SUM(J6:J${expensesSheet.rowCount})` },
-    //   grand_total: { formula: `SUM(K6:K${expensesSheet.rowCount})` },
-    //   expenses_remarks: ''
-    // });
-
-    // // 合計行のスタイルを適用
-    // totalRow.eachCell((cell, colNumber) => {
-    //   cell.font = { bold: true };
-    //   cell.alignment = { horizontal: 'center' };
-    //   cell.border = {
-    //     top: { style: 'thin' },
-    //     left: { style: 'thin' },
-    //     bottom: { style: 'thin' },
-    //     right: { style: 'thin' }
-    //   };
-    // });
-
-    // // 合計金額を手動で計算
-    // let grandTotalSum = 0;
-    // for (let i = 6; i <= totalRow.number - 1; i++) {
-    //   const cellValue = expensesSheet.getCell(`K${i}`).value;
-    //   if (typeof cellValue === 'number') {
-    //     grandTotalSum += cellValue;
-    //   }
-    // }
-
-    // // 1行開けてJからL列を結合
-    // const emptyRowNumber = totalRow.number + 2;
-    // expensesSheet.mergeCells(`J${emptyRowNumber}:L${emptyRowNumber}`);
-    // const mergedCell = expensesSheet.getCell(`J${emptyRowNumber}`);
-    // mergedCell.value = {
-    //   richText: [
-    //     { text: '合計金額 : ', font: { size: 18 } },
-    //     { text: ` ${grandTotalSum} 円`, font: { size: 18, underline: true } }
-    //   ]
-    // };
-    // mergedCell.font = { size: 18 };
-    // mergedCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
   
     // バッファを生成してBlobとして保存
