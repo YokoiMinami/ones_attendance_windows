@@ -1507,17 +1507,18 @@ useEffect(() => {
     const imageSheet = workbook.addWorksheet('レシート');
     imageSheet.getColumn('A').width = 10; 
 
-    // データの追加
-    for (const [index, record] of expenses.entries()) {
-      const colOffset = index * 2; // 各データを2列右にオフセット
+     // データの追加
+     for (const [index, record] of expenses.entries()) {
+      const colOffset = (index % 4) * 2; // 4つごとに2列右にオフセット
+      const rowOffset = Math.floor(index / 4) * 7; // 4つごとに7行下にオフセット
       const col = String.fromCharCode('B'.charCodeAt(0) + colOffset); // 列を計算
-      const dateCell = imageSheet.getCell(`${col}2`);
-      const categoryCell = imageSheet.getCell(`${col}3}`);
+      const dateCell = imageSheet.getCell(`${col}${2 + rowOffset}`);
+      const categoryCell = imageSheet.getCell(`${col}${3 + rowOffset}`);
       
       dateCell.value = `日付 : ${formatDate(record.date)}`;
       categoryCell.value = `経費科目 : ${record.category}`;
 
-      // 各データ列の幅を50に設定
+      // 各データ列の幅を55に設定
       const colIndex = col.charCodeAt(0) - 64;
       imageSheet.getColumn(colIndex).width = 55;
 
@@ -1558,12 +1559,12 @@ useEffect(() => {
           extension: fileExtension, // ファイルの拡張子を動的に設定
       });
       imageSheet.addImage(imageId, {
-          tl: { col: colIndex - 1 + 0.9, row: 4 }, // 画像の左上の位置
+          tl: { col: colIndex - 1 + 0.9, row: 4 + rowOffset }, // 画像の左上の位置
           ext: { width: newWidth, height: newHeight }, // アスペクト比を維持したサイズ
       });
 
       // 経費科目が入力されているセルの2つ下のセルの高さを指定
-      const targetRow = 3 + 2; // 経費科目のセルの2つ下の行番号
+      const targetRow = 3 + 2 + rowOffset; // 経費科目のセルの2つ下の行番号
       imageSheet.getRow(targetRow).height = 700 * 0.75; // 高さを指定
   }
 
@@ -1573,8 +1574,7 @@ useEffect(() => {
           row.height = 30;
       }
   });
-    
-    
+
 
 
 
