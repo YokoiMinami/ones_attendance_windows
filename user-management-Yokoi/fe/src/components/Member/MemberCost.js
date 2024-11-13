@@ -23,6 +23,8 @@ const MemberCost = () => {
     const [president, setPresident] = useState('');
     const [remarks, setRemarks] = useState('');
     const [appText , setAppText ] = useState('');
+    const [appUser , setAppUser ] = useState('');
+    const [appDate , setAppDate ] = useState('');
     const [appState , setAppState ] = useState(false);
     const [year2, setYear2] = useState(new Date().getFullYear());
     const [month2, setMonth2] = useState(new Date().getMonth() + 1);
@@ -38,24 +40,12 @@ const MemberCost = () => {
         setShowImage(!showImage);
     };
 
-    // useEffect(() => {
-    //     fetch('http://localhost:3000/api/expenses2', {
-    //     method: 'get',
-    //     headers: {
-    //         'Content-Type': 'application/json'
-    //     }
-    //     })
-    //     .then(response => response.json())
-    //     .then(data => setExpenses(data))
-    //     .catch(err => console.log(err));
-    // }, [id]);
-
     //ユーザーの経費情報を取得
     useEffect(() => {
         const fetchExpenses = async () => {
-        const accounts_id = id;
+        const accounts_id = localStorage.getItem('user');
         try {
-            const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${month}`);
+            const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
             const data = await response.json();
             setExpenses(data)
         } catch (error) {
@@ -116,8 +106,6 @@ const MemberCost = () => {
             setPresident(data.president);
             setRemarks(data.remarks);
 
-            console.log(data.create_day);
-
             if(data.app_flag){
             setAppText('承認待ち');
             setAppState(true);
@@ -125,6 +113,8 @@ const MemberCost = () => {
             else if(data.create_day && !data.app_flag){
             setAppText('承認済み');
             setAppState(true);
+            setAppUser(registration);
+            setAppDate(data.registration_date);
             }else{
             setAppText('未申請');
             setAppState(false);
@@ -264,8 +254,19 @@ const MemberCost = () => {
         <div id='cost_H2_area'> 
             <h2>{year}年 {month}月</h2> 
         </div> 
-        <div id='cost_state'>
-            ステータス : <span style={{ color: getTextColor() }}>{appText}</span>
+        <div id='cost_state_box'>
+            <div id='cost_state'>
+                <span className='cost_state_label'>ステータス : </span>
+                <span className='cost_state_data' style={{ color: getTextColor() }}>{appText}</span>
+            </div>
+            <div id='cost_state2'>
+                <span className='cost_state_label'>更新者 : </span>
+                <span className='cost_state_data'>{appUser} さん</span>
+            </div>
+            <div id='cost_state3'>
+                <span className='cost_state_label'>更新日 : </span>
+                <span className='cost_state_data'>{appDate}</span>
+            </div>
         </div>
         <div className='cost_flex'> 
             <div id='cost_box1'> 

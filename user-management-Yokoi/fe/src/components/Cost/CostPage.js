@@ -17,6 +17,8 @@ const CostPage = () => {
   const [date, setDate] = useState('');
   const [appDay, setAppDay] = useState('');
   const [appState , setAppState ] = useState(false);
+  const [appUser , setAppUser ] = useState('');
+  const [appDate , setAppDate ] = useState('');
   const [appFlag , setAppFlag ] = useState('');
   const [registration, setRegistration] = useState('');
   const [registrationDate, setregistrationDate] = useState('');
@@ -31,8 +33,8 @@ const CostPage = () => {
   const [showImage, setShowImage] = useState(false); //画像の表示、非表示
   const [expenses, setExpenses] = useState([]);
   const [selectedImage, setSelectedImage] = useState(''); 
-  const [total, setTotal] = useState();
-  
+  const [total, setTotal] = useState(); 
+  const [projectId, setProjectId] = useState();
 
   // const handleClick = () => {
   //   setShowImage(!showImage);
@@ -92,6 +94,7 @@ const CostPage = () => {
         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
         setItems2(data);
+        setProjectId(data.id);
         setDetails(data.details);
         setCompany(data.company);
         setName(data.name);
@@ -104,8 +107,6 @@ const CostPage = () => {
         setPresident(data.president);
         setRemarks(data.remarks);
 
-        console.log(data.create_day);
-
         if(data.app_flag){
           setAppText('承認待ち');
           setAppState(true);
@@ -113,6 +114,8 @@ const CostPage = () => {
           else if(data.create_day && !data.app_flag){
           setAppText('承認済み');
           setAppState(true);
+          setAppUser(data.registration);
+          setAppDate(data.registration_date);
           }else{
           setAppText('未申請');
           setAppState(false);
@@ -153,6 +156,7 @@ const CostPage = () => {
 
   //プロジェクト情報登録
   const putItems = async (e) => {
+    
     let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
     if (confirmDelete) {
       e.preventDefault();
@@ -184,55 +188,92 @@ const CostPage = () => {
     }
   };
 
-  const deleteItems = () => {
+  const deleteItems = async () => {
     if (selectedItems.length === 0) {
       alert('経費が選択されていません');
       return;
     }
-    let confirmDelete = window.confirm('チェックした経費を削除しますか？');
-    if (confirmDelete) {
-      deleteImage.forEach(image => {
-        if (image.length > 0) {
-          console.log('画像があります');
-          const Image = image;
-          fetch(`http://localhost:3000/uploads/${Image}`, {
-            method: 'delete',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({receipt_url:image })
-          })
-          .then(response => response.json())
-          .then(() => {
-          })
-          .catch(err => console.log(err));
-        } else {
-          console.log('画像がありません');
-        }
-      });
-      selectedItems.forEach(itemId => {
-        console.log('DB削除');
-        console.log(selectedItems);
-        fetch('http://localhost:3000/cost_delete', {
-        method: 'delete',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id: itemId })
-        })
-        .then(response => response.json())
-        .then(() => {
-          setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-          window.location.reload();
-        })
-        .catch(err => console.log(err));
-      });
+  
+    const confirmDelete = window.confirm(
+      registration
+        ? '承認済みの経費を削除すると、再度承認が必要になります。チェックした経費を削除しますか？'
+        : 'チェックした経費を削除しますか？'
+    );
+
+    if (!confirmDelete) return;
+  
+    try {
+      if (registration) {
+        await deleteProject();
+        await deleteImages();
+        await deleteSelectedItems();
+      }else{
+        await deleteImages();
+        await deleteSelectedItems();
+      }
+  
       // チェックボックスのリセット
       setSelectedItems([]);
       setdeleteImage([]);
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting items:', error);
     }
   };
+  
+  const deleteImages = async () => {
+    const deleteImagePromises = deleteImage.map(async (image) => {
+      if (image.length > 0) {
+        const response = await fetch(`http://localhost:3000/uploads/${image}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ receipt_url: image }),
+        });
+        return response.json();
+      } else {
+        console.log('画像がありません');
+      }
+    });
+  
+    //await Promise.all(deleteImagePromises);
+  };
+  
+  const deleteSelectedItems = async () => {
+    const deleteItemPromises = selectedItems.map(async (itemId) => {
+      const response = await fetch('http://localhost:3000/cost_delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: itemId }),
+      });
+      const result = await response.json();
+      setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+      return result;
+    });
+  
+    //await Promise.all(deleteItemPromises);
+  };
+  
+  const deleteProject = async () => {
+    const data = { id: projectId };
 
+    const response = await fetch('http://localhost:3000/project_delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  
+    if (!response.ok) {
+      alert('経費の削除に失敗しました');
+      throw new Error('Failed to delete project');
+    }
+  };
+  
   const formatDate = (dateString) => { 
     const date = new Date(dateString); 
     const year = date.getFullYear(); 
@@ -285,8 +326,19 @@ const CostPage = () => {
       <div id='cost_H2_area'> 
         <h2>{year}年 {month}月</h2> 
       </div> 
-      <div id='cost_state'>
-        ステータス : <span style={{ color: getTextColor() }}>{appText}</span>
+      <div id='cost_state_box'>
+        <div id='cost_state'>
+          <span className='cost_state_label'>ステータス : </span>
+          <span className='cost_state_data' style={{ color: getTextColor() }}>{appText}</span>
+        </div>
+        <div id='cost_state2'>
+          <span className='cost_state_label'>更新者 : </span>
+          <span className='cost_state_data'>{appUser} さん</span>
+        </div>
+        <div id='cost_state3'>
+          <span className='cost_state_label'>更新日 : </span>
+          <span className='cost_state_data'>{appDate}</span>
+        </div>
       </div>
       <div className='cost_flex'> 
         <div id='cost_box1'> 

@@ -18,16 +18,48 @@ const CostForm = (props) => {
 
   const accounts_id = localStorage.getItem('user');
   const [expenses, setExpenses] = useState([]);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  //const [registration, setRegistration] = useState(false);
   const [formData, setFormData] = useState({
     accounts_id: accounts_id,
     date: '',
     category: '',
     amount: '',
     description: '',
-    receipt: null
+    receipt_image: null,
+    id: '',
+    registration:false
   });
 
   const [errors, setErrors] = useState({});
+
+  //プロジェクト情報
+  useEffect(() => {
+    const fetchUser = async () => {
+      const accounts_id = localStorage.getItem('user');
+      try {
+        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+        const data = await response.json();
+        console.log(data);
+        const Id = data.id;
+        if(data.registration){
+          setFormData(prevState => ({
+            ...prevState,
+            registration: true
+          }));
+        }
+        setFormData(prevState => ({
+          ...prevState,
+          id: Id
+        }));
+      } catch (error) {
+        console.error('Error fetching holiday data:', error);
+        setFormData(false);
+      }
+    };
+    fetchUser();
+  }, [year, month]);
 
   useEffect(() => {
     if (props.item) {
@@ -68,26 +100,120 @@ const CostForm = (props) => {
     });
   };
 
-  const submitFormAdd = (e) => {
+  //プロジェクト情報登録
+  const submitFormAdd = async (e) => {
     e.preventDefault();
+
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-    const data = new FormData();
-    for (const key in formData) {
-      data.append(key, formData[key]);
+
+    if(formData.registration){
+      let confirmDelete = window.confirm('新しい経費を登録すると、再度承認が必要になります。新しく経費を登録しますか？');
+      if (confirmDelete) {
+        const data = {
+          accounts_id: accounts_id,
+          date: formData.date,
+          category: formData.category,
+          amount: formData.amount,
+          description: formData.description,
+          receipt_image: formData.receipt_image,
+          id: formData.id,
+          registration:formData.registration
+        };
+        try {
+          const response = await fetch('http://localhost:3000/api/expenses', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (response.ok) {
+            // alert('データを保存しました');
+            window.location.reload();
+          } else {
+            alert('経費の登録に失敗しました');
+          }
+        } catch (error) {
+          console.error('Error saving data:', error);
+          alert('経費の登録に失敗しました');
+        }
+      }
+    }else{
+      const data = {
+        accounts_id: accounts_id,
+        date: formData.date,
+        category: formData.category,
+        amount: formData.amount,
+        description: formData.description,
+        receipt_image: formData.receipt_image,
+        id: formData.id,
+        registration:formData.registration
+      };
+      try {
+        const response = await fetch('http://localhost:3000/api/expenses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        if (response.ok) {
+          // alert('データを保存しました');
+          window.location.reload();
+        } else {
+          alert('経費の登録に失敗しました');
+        }
+      } catch (error) {
+        console.error('Error saving data:', error);
+        alert('経費の登録に失敗しました');
+      }
     }
-    axios.post('http://localhost:3000/api/expenses', data)
-    .then(response => {
-      setExpenses([...expenses, response.data]);
-      window.location.reload();
-    })
-    .catch(error => {
-      console.error('There was an error adding the expense!', error);
-    });
   };
+
+  // const submitFormAdd = (e) => {
+  //   e.preventDefault();
+  //   const formErrors = validateForm();
+  //   if (Object.keys(formErrors).length > 0) {
+  //     setErrors(formErrors);
+  //     return;
+  //   }
+
+  //   if(formData.registration){
+  //     let confirmDelete = window.confirm('新しい経費を登録すると、再度承認が必要になります。新しく経費を登録しますか？');
+  //     if (confirmDelete) {
+        
+  //       const data = new FormData();
+  //       for (const key in formData) {
+  //         data.append(key, formData[key]);
+  //       }
+  //       axios.post('http://localhost:3000/api/expenses', data)
+  //       .then(response => {
+  //         setExpenses([...expenses, response.data]);
+  //         window.location.reload();
+  //       })
+  //       .catch(error => {
+  //         console.error('There was an error adding the expense!', error);
+  //       });
+  //     }
+  //   }else{
+  //     const data = new FormData();
+  //     for (const key in formData) {
+  //       data.append(key, formData[key]);
+  //     }
+  //     axios.post('http://localhost:3000/api/expenses', data)
+  //     .then(response => {
+  //       setExpenses([...expenses, response.data]);
+  //       window.location.reload();
+  //     })
+  //     .catch(error => {
+  //       console.error('There was an error adding the expense!', error);
+  //     });
+  //   }
+  // };
 
   const submitFormEdit = async (e) => {
     e.preventDefault();

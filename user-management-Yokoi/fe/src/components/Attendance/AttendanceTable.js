@@ -1507,8 +1507,8 @@ useEffect(() => {
     const imageSheet = workbook.addWorksheet('レシート');
     imageSheet.getColumn('A').width = 10; 
 
-     // データの追加
-     for (const [index, record] of expenses.entries()) {
+      // データの追加
+      for (const [index, record] of expenses.entries()) {
       const colOffset = (index % 4) * 2; // 4つごとに2列右にオフセット
       const rowOffset = Math.floor(index / 4) * 7; // 4つごとに7行下にオフセット
       const col = String.fromCharCode('B'.charCodeAt(0) + colOffset); // 列を計算

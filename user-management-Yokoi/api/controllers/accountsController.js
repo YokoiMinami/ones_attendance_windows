@@ -279,8 +279,7 @@ const dateData = async (req, res, db) => {
 const memberCostData = async (req, res, db) => {
   const { accounts_id, date2 } = req.params;
   const numericAccountsId = parseInt(accounts_id, 10); 
-  console.log(`アカウントID${accounts_id}`);
-  console.log(`申請フラグ${date2}`);
+  
   try {
     const memberCost = await db('projectdata').where({ accounts_id: numericAccountsId, create_date: date2 });
     if (memberCost.length > 0) {
@@ -742,11 +741,82 @@ const passPut = async (req, res, db) => {
 
 //経費
 //画像をアップロード
-const imagePost = async (req, res, db) => {
-  const { accounts_id, date, category, description, amount } = req.body;
-  // const receipt_url = path.posix.join('uploads', req.file.filename);
-  const receipt_url = req.file ? req.file.filename : '';
+// const imagePost = async (req, res, db) => {
+//   const { accounts_id, date, category, description, amount, id, registration } = req.body;
+//   // const receipt_url = path.posix.join('uploads', req.file.filename);
+//   const receipt_url = req.file ? req.file.filename : '';
+
+//   try {
+//     if(registration){
+//       await db('projectdata').where({ id }).update({ app_flag: false, registration: null, registration_date: null, approver:null, president:null, remarks:null })
+//       // .returning('*')
+//       // .then(item => {
+//       //   res.json(item);
+//       // })
+//       // .catch(err => res.status(400).json({
+//       //   dbError: 'error'
+//       // }));
+//     }
+//     await db('images_table').insert({ 
+//       accounts_id,
+//       date,
+//       category,
+//       description,
+//       amount,
+//       receipt_url 
+//     });
+//     res.status(200).json({ message: 'Image uploaded successfully' });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error uploading image', error });
+//   }
+// }
+
+const projectsDelete = async (req, res, db) => {
+  const { id } = req.body;
+  console.log(`テスト${id}`);
   try {
+    const projectData = await db('projectdata').where({ id }).first();
+    if (projectData) {
+      await db('projectdata').where({ id }).update({
+        create_day: null,
+        app_flag: false,
+        registration: null,
+        registration_date: null,
+        approver: null,
+        president: null,
+        remarks: null
+      });
+      res.status(200).json({ message: 'Project deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Project not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    res.status(500).json({ message: 'Error deleting project', error: error.message });
+  }
+};
+
+
+const imagePost = async (req, res, db) => {
+  const { accounts_id, date, category, description, amount, id, registration } = req.body;
+  const receipt_url = req.file ? req.file.filename : '';
+  
+  try {
+    if(registration){
+      const projectData = await db('projectdata').where({ id }).first();
+      if(projectData){
+        await db('projectdata').where({ id }).update({
+          create_day: null,
+          app_flag: false,
+          registration: null,
+          registration_date: null,
+          approver: null,
+          president: null,
+          remarks: null
+        });
+      }
+    }
+    
     await db('images_table').insert({ 
       accounts_id,
       date,
@@ -754,10 +824,11 @@ const imagePost = async (req, res, db) => {
       description,
       amount,
       receipt_url 
-    });
+    });  
     res.status(200).json({ message: 'Image uploaded successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error uploading image', error });
+    console.error('Error uploading image:', error);
+    res.status(500).json({ message: 'Error uploading image', error: error.message });
   }
 }
 
@@ -825,6 +896,7 @@ module.exports = {
   passPut,
   imagePost,
   imageData,
-  costDelete
+  costDelete,
+  projectsDelete
 }
   
