@@ -139,8 +139,9 @@ const AttendanceTablePage = ( ) => {
   //ユーザーの交通費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
+      const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${month}`);
+        const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${year}/${month}`);
         const data = await response.json();
         setExpensesData(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -150,6 +151,7 @@ const AttendanceTablePage = ( ) => {
     };
     fetchExpenses();
   }, [year, month]);
+
 
   //ユーザーの代休情報を取得
   useEffect(() => {
@@ -1325,12 +1327,14 @@ useEffect(() => {
     ];
     
     expenses.forEach(record => {
-      costSheet.addRow({
+      const row = costSheet.addRow({
         date:formatDate(record.date),
         category: record.category,
         description: record.description,
         amount: formatAmount(record.amount)
       });
+      // descriptionセルのみを左寄せに設定
+      row.getCell('description').alignment = { vertical: 'middle', horizontal: 'left' };
     });
 
     // 合計を計算
@@ -1355,7 +1359,7 @@ useEffect(() => {
             cell.alignment = { horizontal: 'center' };
           } 
           // 中央揃えにする列を指定
-          if (![1, 4].includes(colNumber)) {
+          if (![1,3, 4].includes(colNumber)) {
             cell.alignment = { horizontal: 'center' };
           }
         });
