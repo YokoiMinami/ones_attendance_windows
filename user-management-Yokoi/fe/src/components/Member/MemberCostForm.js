@@ -127,7 +127,7 @@ const MemberCostForm = (props) => {
                         <textarea id='textarea_member_cost' value={remarks} onChange={(e) => setRemarks(e.target.value)} />
                     </div>
                     <div id='projects_bt'>
-                        <button type='submit' id='projects_button'>登録</button>
+                        <button type='submit' id='projects_button'>承認</button>
                     </div>
                 </div>
             </form>

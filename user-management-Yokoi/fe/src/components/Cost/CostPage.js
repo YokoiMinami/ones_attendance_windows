@@ -331,14 +331,19 @@ const CostPage = () => {
           <span className='cost_state_label'>ステータス : </span>
           <span className='cost_state_data' style={{ color: getTextColor() }}>{appText}</span>
         </div>
-        <div id='cost_state2'>
-          <span className='cost_state_label'>更新者 : </span>
-          <span className='cost_state_data'>{appUser} さん</span>
+        {appUser && (
+          <div id='cost_state2'>
+            <span className='cost_state_label'>更新者 : </span>
+            <span className='cost_state_data'>{appUser} さん</span>
+          </div>
+        )}
+        {appDate && (
+          <div>
+            <span className='cost_state_label'>更新日 : </span>
+            <span className='cost_state_data'>{appDate}</span>
         </div>
-        <div id='cost_state3'>
-          <span className='cost_state_label'>更新日 : </span>
-          <span className='cost_state_data'>{appDate}</span>
-        </div>
+        )}
+        <div id='cost_state3'></div>
       </div>
       <div className='cost_flex'> 
         <div id='cost_box1'> 

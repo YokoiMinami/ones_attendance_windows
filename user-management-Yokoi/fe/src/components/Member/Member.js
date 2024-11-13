@@ -180,7 +180,7 @@ const Member = () => {
         }else{
           setCostState(prevData => ({
             ...prevData,
-            [accounts_id]: '' || [] 
+            [accounts_id]: '未申請' || [] 
           }));
         }
       } catch (error) {
@@ -420,9 +420,9 @@ const Member = () => {
                   {weekMonthAverage[item.id] !== undefined ? weekMonthAverage[item.id] : ''} 
                 </span>
                 </td>
-                <td><Link to={`/attendance/${item.id}`} className='member_link'>修正</Link></td>
+                <td><Link to={`/attendance/${item.id}`} style={{ color: getTextColor(costState[item.id])}}>修正</Link></td>
                 <td>
-                  <Link to={`/cost/${item.id}`} style={{ color: getTextColor(costState[item.id])}}>{costState[item.id] !== undefined ? costState[item.id] : ''}</Link>
+                  <Link to={`/cost/${item.id}`} style={{ color: getTextColor(costState[item.id])}}>{costState[item.id] !== undefined ? costState[item.id] : '未申請'}</Link>
                 </td>
               </tr>
             ))}
