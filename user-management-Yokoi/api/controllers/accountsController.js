@@ -740,23 +740,12 @@ const passPut = async (req, res, db) => {
 }
 
 //経費
-//画像をアップロード
+// //画像をアップロード
 // const imagePost = async (req, res, db) => {
-//   const { accounts_id, date, category, description, amount, id, registration } = req.body;
+//   const { accounts_id, date, category, description, amount } = req.body;
 //   // const receipt_url = path.posix.join('uploads', req.file.filename);
 //   const receipt_url = req.file ? req.file.filename : '';
-
 //   try {
-//     if(registration){
-//       await db('projectdata').where({ id }).update({ app_flag: false, registration: null, registration_date: null, approver:null, president:null, remarks:null })
-//       // .returning('*')
-//       // .then(item => {
-//       //   res.json(item);
-//       // })
-//       // .catch(err => res.status(400).json({
-//       //   dbError: 'error'
-//       // }));
-//     }
 //     await db('images_table').insert({ 
 //       accounts_id,
 //       date,
@@ -802,6 +791,15 @@ const imagePost = async (req, res, db) => {
   const receipt_url = req.file ? req.file.filename : '';
   
   try {
+    await db('images_table').insert({ 
+      accounts_id,
+      date,
+      category,
+      description,
+      amount,
+      receipt_url 
+    });  
+
     if(registration){
       const projectData = await db('projectdata').where({ id }).first();
       if(projectData){
@@ -816,15 +814,6 @@ const imagePost = async (req, res, db) => {
         });
       }
     }
-    
-    await db('images_table').insert({ 
-      accounts_id,
-      date,
-      category,
-      description,
-      amount,
-      receipt_url 
-    });  
     res.status(200).json({ message: 'Image uploaded successfully' });
   } catch (error) {
     console.error('Error uploading image:', error);

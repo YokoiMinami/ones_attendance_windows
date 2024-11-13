@@ -100,10 +100,82 @@ const CostForm = (props) => {
     });
   };
 
-  //プロジェクト情報登録
-  const submitFormAdd = async (e) => {
-    e.preventDefault();
+  // //プロジェクト情報登録
+  // const submitFormAdd = async (e) => {
+  //   e.preventDefault();
 
+  //   const formErrors = validateForm();
+  //   if (Object.keys(formErrors).length > 0) {
+  //     setErrors(formErrors);
+  //     return;
+  //   }
+  //   console.log(formData.receipt_image);
+  //   if(formData.registration){
+  //     let confirmDelete = window.confirm('新しい経費を登録すると、再度承認が必要になります。新しく経費を登録しますか？');
+  //     if (confirmDelete) {
+  //       const data = {
+  //         accounts_id: accounts_id,
+  //         date: formData.date,
+  //         category: formData.category,
+  //         amount: formData.amount,
+  //         description: formData.description,
+  //         receipt_image: formData.receipt_image,
+  //         id: formData.id,
+  //         registration:formData.registration
+  //       };
+  //       try {
+  //         const response = await fetch('http://localhost:3000/api/expenses', {
+  //           method: 'POST',
+  //           headers: {
+  //             'Content-Type': 'application/json'
+  //           },
+  //           body: JSON.stringify(data)
+  //         });
+  //         if (response.ok) {
+  //           // alert('データを保存しました');
+  //           window.location.reload();
+  //         } else {
+  //           alert('経費の登録に失敗しました');
+  //         }
+  //       } catch (error) {
+  //         console.error('Error saving data:', error);
+  //         alert('経費の登録に失敗しました');
+  //       }
+  //     }
+  //   }else{
+  //     const data = {
+  //       accounts_id: accounts_id,
+  //       date: formData.date,
+  //       category: formData.category,
+  //       amount: formData.amount,
+  //       description: formData.description,
+  //       receipt_image: formData.receipt_image,
+  //       id: formData.id,
+  //       registration:formData.registration
+  //     };
+  //     try {
+  //       const response = await fetch('http://localhost:3000/api/expenses', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json'
+  //         },
+  //         body: JSON.stringify(data)
+  //       });
+  //       if (response.ok) {
+  //         // alert('データを保存しました');
+  //         //window.location.reload();
+  //       } else {
+  //         alert('経費の登録に失敗しました');
+  //       }
+  //     } catch (error) {
+  //       console.error('Error saving data:', error);
+  //       alert('経費の登録に失敗しました');
+  //     }
+  //   }
+  // };
+
+  const submitFormAdd = (e) => {
+    e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -113,107 +185,38 @@ const CostForm = (props) => {
     if(formData.registration){
       let confirmDelete = window.confirm('新しい経費を登録すると、再度承認が必要になります。新しく経費を登録しますか？');
       if (confirmDelete) {
-        const data = {
-          accounts_id: accounts_id,
-          date: formData.date,
-          category: formData.category,
-          amount: formData.amount,
-          description: formData.description,
-          receipt_image: formData.receipt_image,
-          id: formData.id,
-          registration:formData.registration
-        };
-        try {
-          const response = await fetch('http://localhost:3000/api/expenses', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-          if (response.ok) {
-            // alert('データを保存しました');
-            window.location.reload();
-          } else {
-            alert('経費の登録に失敗しました');
-          }
-        } catch (error) {
-          console.error('Error saving data:', error);
-          alert('経費の登録に失敗しました');
+        
+        const data = new FormData();
+        for (const key in formData) {
+          data.append(key, formData[key]);
         }
+        axios.post('http://localhost:3000/api/expenses', data)
+        .then(response => {
+          setExpenses([...expenses, response.data]);
+          window.location.reload();
+        })
+        .catch(error => {
+          console.error('There was an error adding the expense!', error);
+        });
       }
     }else{
-      const data = {
-        accounts_id: accounts_id,
-        date: formData.date,
-        category: formData.category,
-        amount: formData.amount,
-        description: formData.description,
-        receipt_image: formData.receipt_image,
-        id: formData.id,
-        registration:formData.registration
-      };
-      try {
-        const response = await fetch('http://localhost:3000/api/expenses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
-          // alert('データを保存しました');
-          window.location.reload();
-        } else {
-          alert('経費の登録に失敗しました');
+      let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
+      if(confirmDelete){
+        const data = new FormData();
+        for (const key in formData) {
+          data.append(key, formData[key]);
         }
-      } catch (error) {
-        console.error('Error saving data:', error);
-        alert('経費の登録に失敗しました');
+        axios.post('http://localhost:3000/api/expenses', data)
+        .then(response => {
+          setExpenses([...expenses, response.data]);
+          window.location.reload();
+        })
+        .catch(error => {
+          console.error('There was an error adding the expense!', error);
+        });
       }
     }
   };
-
-  // const submitFormAdd = (e) => {
-  //   e.preventDefault();
-  //   const formErrors = validateForm();
-  //   if (Object.keys(formErrors).length > 0) {
-  //     setErrors(formErrors);
-  //     return;
-  //   }
-
-  //   if(formData.registration){
-  //     let confirmDelete = window.confirm('新しい経費を登録すると、再度承認が必要になります。新しく経費を登録しますか？');
-  //     if (confirmDelete) {
-        
-  //       const data = new FormData();
-  //       for (const key in formData) {
-  //         data.append(key, formData[key]);
-  //       }
-  //       axios.post('http://localhost:3000/api/expenses', data)
-  //       .then(response => {
-  //         setExpenses([...expenses, response.data]);
-  //         window.location.reload();
-  //       })
-  //       .catch(error => {
-  //         console.error('There was an error adding the expense!', error);
-  //       });
-  //     }
-  //   }else{
-  //     const data = new FormData();
-  //     for (const key in formData) {
-  //       data.append(key, formData[key]);
-  //     }
-  //     axios.post('http://localhost:3000/api/expenses', data)
-  //     .then(response => {
-  //       setExpenses([...expenses, response.data]);
-  //       window.location.reload();
-  //     })
-  //     .catch(error => {
-  //       console.error('There was an error adding the expense!', error);
-  //     });
-  //   }
-  // };
 
   const submitFormEdit = async (e) => {
     e.preventDefault();
