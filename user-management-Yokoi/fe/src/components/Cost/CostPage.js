@@ -11,9 +11,9 @@ const CostPage = () => {
   const [items2, setItems2] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [deleteImage, setdeleteImage] = useState([]);
-  const [details, setDetails] = useState('');
-  const [company, setCompany] = useState('');
-  const [name, setName] = useState('');
+  const [details, setDetails] = useState();
+  const [company, setCompany] = useState();
+  const [name, setName] = useState();
   const [date, setDate] = useState('');
   const [appDay, setAppDay] = useState('');
   const [appState , setAppState ] = useState(false);
@@ -35,10 +35,7 @@ const CostPage = () => {
   const [selectedImage, setSelectedImage] = useState(''); 
   const [total, setTotal] = useState(); 
   const [projectId, setProjectId] = useState();
-
-  // const handleClick = () => {
-  //   setShowImage(!showImage);
-  // };
+  const [errors, setErrors] = useState({});
 
   //ユーザーの経費情報を取得
   useEffect(() => {
@@ -154,12 +151,27 @@ const CostPage = () => {
     setItems(prevItems => [...prevItems, item]);
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!company){newErrors.company = '所属社名を登録してください'};
+    if (!name) {newErrors.name = '金額を登録してください'};
+    if (!details) {newErrors.details = 'プロジェクトを登録してください'}; 
+    return newErrors;
+  };
+
   //プロジェクト情報登録
   const putItems = async (e) => {
+
+    e.preventDefault();
+
+      const formErrors = validateForm();
+      if (Object.keys(formErrors).length > 0) {
+        setErrors(formErrors);
+        return;
+      }
     
     let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
     if (confirmDelete) {
-      e.preventDefault();
       const accounts_id = localStorage.getItem('user');
       const create_day = `${year}/${month}/${day}`;
       const data = {
@@ -368,16 +380,28 @@ const CostPage = () => {
             <div id='cost_title'>経費明細書</div> 
             <div className='cost_flex' id='cost_company'> 
               <div id='cost_label2'> 所属社名 </div> 
-              <div id='cost_data2'> <span id='cost_company_data'> {company} </span> </div> 
+              <div id='cost_data2'> 
+                <span id='cost_company_data' className={errors.company ? 'cost_error' : ''}>
+                  {errors.company ? errors.company : company}
+                </span>
+              </div> 
             </div> 
             <div className='cost_flex' id='cost_name'> 
               <div id='cost_label3'> 氏名 </div> 
-              <div id='cost_data3'> <span id='cost_name_data'>{name}</span><span id='cost_sign'>㊞</span> 
+              <div id='cost_data3'> 
+                <span id='cost_name_data' className={errors.name ? 'cost_error' : ''}>
+                  {errors.name ? errors.name : name}
+                </span>
+                <span id='cost_sign'>㊞</span> 
             </div> 
           </div> 
           <div className='cost_flex' id='cost_project'> 
             <div id='cost_label4'> プロジェクト </div> 
-            <div id='cost_data4'> <span id='cost_project_data'>{details}</span> </div> 
+            <div id='cost_data4'> 
+              <span id='cost_project_data' className={errors.details ? 'cost_error' : ''}>
+                {errors.details ? errors.details : details}
+              </span> 
+            </div> 
           </div> 
           <table id="cost_table"> 
             <thead id="cost_Th"> 

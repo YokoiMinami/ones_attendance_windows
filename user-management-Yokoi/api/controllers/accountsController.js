@@ -492,6 +492,20 @@ const projectsPut = async (req, res, db) => {
   }
 }
 
+//経費承認取り消し
+const appDelete = async (req, res, db) => {
+  const { registration, registration_date, id } = req.body;
+  
+  await db('projectdata').where({ id }).update({ app_flag:true, registration:registration, registration_date:registration_date, approver:null, president:null, remarks:null })
+  .returning('*')
+  .then(item => {
+    res.json(item);
+  })
+  .catch(err => res.status(400).json({
+    dbError: 'error'
+  }));
+}
+
 const projectsFlag = async (req, res, db) => {
   const { id, registration, registration_date, approver, president, remarks} = req.body;
   const projectUser = await db('projectdata').where({ id }).first();
@@ -894,6 +908,7 @@ module.exports = {
   imagePost,
   imageData,
   costDelete,
-  projectsDelete
+  projectsDelete,
+  appDelete
 }
   

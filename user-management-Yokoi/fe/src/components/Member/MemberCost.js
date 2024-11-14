@@ -5,6 +5,7 @@ import MemberCostModal from './MemberCostModal';
 const MemberCost = () => {
     const { id } = useParams();
     const [userData, setUserData] = useState(null);
+    const [appUserData, setAppUserData] = useState(null);
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     const [items, setItems] = useState([]);
@@ -35,6 +36,7 @@ const MemberCost = () => {
     const [expenses, setExpenses] = useState([]);
     const [selectedImage, setSelectedImage] = useState(''); 
     const [total, setTotal] = useState();
+    const [projectId, setProjectId] = useState();
 
     const handleClick = () => {
         setShowImage(!showImage);
@@ -43,7 +45,7 @@ const MemberCost = () => {
     //ユーザーの経費情報を取得
     useEffect(() => {
         const fetchExpenses = async () => {
-        const accounts_id = localStorage.getItem('user');
+        const accounts_id = id;
         try {
             const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
             const data = await response.json();
@@ -73,7 +75,7 @@ const MemberCost = () => {
     }, [showImage, expenses]);
     
 
-    // ユーザー情報を取得
+    // 経費のユーザー情報を取得
     useEffect(() => {
         fetch(`http://localhost:3000/user/${id}`, {
         method: 'get',
@@ -86,6 +88,74 @@ const MemberCost = () => {
         .catch(err => console.log(err));
     }, [id]);
 
+    // 経費承認ユーザー情報を取得
+    useEffect(() => {
+        const accounts_id = localStorage.getItem('user');
+        fetch(`http://localhost:3000/user/${accounts_id}`, {
+        method: 'get',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+        })
+        .then(response => response.json())
+        .then(data => setAppUserData(data))
+        .catch(err => console.log(err));
+    }, [id]);
+
+
+    // //プロジェクト情報
+    // useEffect(() => {
+    //     const fetchUser = async () => {
+    //     const accounts_id = id;
+    //     try {
+    //         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+    //         const data = await response.json();
+    //         setItems2(data);
+    //         setDetails(data.details);
+    //         setCompany(data.company);
+    //         setName(data.name);
+    //         setDate(data.create_date);
+    //         setAppDay(data.create_day);
+    //         setAppFlag(data.app_flag);
+    //         setRegistration(data.registration);
+    //         setregistrationDate(data.registration_date);
+    //         setApprover(data.approver);
+    //         setPresident(data.president);
+    //         setRemarks(data.remarks);
+
+    //         if(data.app_flag){
+    //         setAppText('承認待ち');
+    //         setAppState(true);
+    //         }
+    //         else if(data.create_day && !data.app_flag){
+    //         setAppText('承認済み');
+    //         setAppState(true);
+    //         setAppUser(data.registration);
+    //         setAppDate(data.registration_date);
+    //         }else{
+    //         setAppText('未申請');
+    //         setAppState(false);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching holiday data:', error);
+    //         setItems2();
+    //         setDetails();
+    //         setCompany();
+    //         setName();
+    //         setDate();
+    //         setAppDay();
+    //         setAppFlag();
+    //         setRegistration();
+    //         setregistrationDate();
+    //         setApprover();
+    //         setPresident();
+    //         setRemarks();
+    //         setAppText('未申請')
+    //     }
+    //     };
+    //     fetchUser();
+    // }, [year, month]);
+
     //プロジェクト情報
     useEffect(() => {
         const fetchUser = async () => {
@@ -94,6 +164,7 @@ const MemberCost = () => {
             const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
             const data = await response.json();
             setItems2(data);
+            setProjectId(data.id);
             setDetails(data.details);
             setCompany(data.company);
             setName(data.name);
@@ -106,11 +177,13 @@ const MemberCost = () => {
             setPresident(data.president);
             setRemarks(data.remarks);
 
-            if(data.app_flag){
+            const app_flag = data.app_flag;
+            const registration_date  = data.registration_date;
+            if(app_flag){
             setAppText('承認待ち');
             setAppState(true);
             }
-            else if(data.create_day && !data.app_flag){
+            else if(!app_flag && registration_date){
             setAppText('承認済み');
             setAppState(true);
             setAppUser(data.registration);
@@ -153,52 +226,39 @@ const MemberCost = () => {
         setItems(prevItems => [...prevItems, item]);
     };
 
-    const deleteItems = () => {
-        if (selectedItems.length === 0) {
-        alert('経費が選択されていません');
-        return;
-        }
-        let confirmDelete = window.confirm('チェックした経費を削除しますか？');
+    //経費承認取り消し
+    const putItems = async (e) => {
+
+        e.preventDefault();
+        
+        let confirmDelete = window.confirm('経費の承認を取り消しますか？');
         if (confirmDelete) {
-        deleteImage.forEach(image => {
-            if (image.length > 0) {
-            console.log('画像があります');
-            const Image = image;
-            fetch(`http://localhost:3000/uploads/${Image}`, {
-                method: 'delete',
-                headers: {
-                'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({receipt_url:image })
-            })
-            .then(response => response.json())
-            .then(() => {
-            })
-            .catch(err => console.log(err));
-            } else {
-            console.log('画像がありません');
-            }
-        });
-        selectedItems.forEach(itemId => {
-            console.log('DB削除');
-            console.log(selectedItems);
-            fetch('http://localhost:3000/cost_delete', {
-            method: 'delete',
+        const registration = appUserData.fullname
+        const registration_date = `${year}/${month}/${day}`;
+        const id = projectId;
+        const data = {
+            registration: registration,
+            registration_date: registration_date,
+            id: id
+        };
+        try {
+            const response = await fetch('http://localhost:3000/app_delete', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id: itemId })
-            })
-            .then(response => response.json())
-            .then(() => {
-            setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+            body: JSON.stringify(data)
+            });
+            if (response.ok) {
+            alert('経費の承認を取り消しました');
             window.location.reload();
-            })
-            .catch(err => console.log(err));
-        });
-        // チェックボックスのリセット
-        setSelectedItems([]);
-        setdeleteImage([]);
+            } else {
+            alert('経費の承認取り消しに失敗しました');
+            }
+        } catch (error) {
+            console.error('Error saving data:', error);
+            alert('経費の承認取り消しに失敗しました');
+        }
         }
     };
 
@@ -276,8 +336,8 @@ const MemberCost = () => {
         <div className='cost_flex'> 
             <div id='cost_box1'> 
             <div id='cost_button_area'> 
-                {/* <button className='cost_button' onClick={putItems}>承認</button>  */}
-                <MemberCostModal buttonLabel="承認" addItemToState={addItemToState} /> 
+                <MemberCostModal buttonLabel="承認" addItemToState={addItemToState} />
+                <button className='cost_button' onClick={putItems}>承認取消</button>  
                 {/* <button className='cost_button' onClick={deleteItems}>削除</button>  */}
             </div> 
             </div> 

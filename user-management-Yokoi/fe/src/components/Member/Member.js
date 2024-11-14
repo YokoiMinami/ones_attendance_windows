@@ -164,7 +164,7 @@ const Member = () => {
       try {
         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
-        const create_day  = data.create_day;
+        const registration_date  = data.registration_date;
         const app_flag = data.app_flag;
 
         if(app_flag){
@@ -172,7 +172,7 @@ const Member = () => {
             ...prevData,
             [accounts_id]: '承認待ち' || [] 
           }));
-        }else if(create_day.length){
+        }else if(!app_flag && registration_date){
           setCostState(prevData => ({
             ...prevData,
             [accounts_id]: '承認済み' || [] 
@@ -420,7 +420,7 @@ const Member = () => {
                   {weekMonthAverage[item.id] !== undefined ? weekMonthAverage[item.id] : ''} 
                 </span>
                 </td>
-                <td><Link to={`/attendance/${item.id}`} style={{ color: getTextColor(costState[item.id])}}>修正</Link></td>
+                <td><Link to={`/attendance/${item.id}`} className='member_link'>修正</Link></td>
                 <td>
                   <Link to={`/cost/${item.id}`} style={{ color: getTextColor(costState[item.id])}}>{costState[item.id] !== undefined ? costState[item.id] : '未申請'}</Link>
                 </td>
