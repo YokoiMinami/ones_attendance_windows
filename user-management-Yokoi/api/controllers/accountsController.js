@@ -791,15 +791,6 @@ const imagePost = async (req, res, db) => {
   const receipt_url = req.file ? req.file.filename : '';
   
   try {
-    await db('images_table').insert({ 
-      accounts_id,
-      date,
-      category,
-      description,
-      amount,
-      receipt_url 
-    });  
-
     if(registration){
       const projectData = await db('projectdata').where({ id }).first();
       if(projectData){
@@ -813,6 +804,23 @@ const imagePost = async (req, res, db) => {
           remarks: null
         });
       }
+      await db('images_table').insert({ 
+        accounts_id,
+        date,
+        category,
+        description,
+        amount,
+        receipt_url 
+      });  
+    }else{
+      await db('images_table').insert({ 
+        accounts_id,
+        date,
+        category,
+        description,
+        amount,
+        receipt_url 
+      });  
     }
     res.status(200).json({ message: 'Image uploaded successfully' });
   } catch (error) {
