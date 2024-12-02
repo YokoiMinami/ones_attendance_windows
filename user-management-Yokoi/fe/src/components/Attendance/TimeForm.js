@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
-import { useNavigate,useParams } from 'react-router-dom';
-import { TextField, Autocomplete } from '@mui/material';
-
 
 const TimeForm = (props) => {
-  const [items, setItems] = useState([]); 
-  const [projects, setProjects] = useState('');
-  const [company, setCompany] = useState('');
-  const [name, setName] = useState('');
 
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
@@ -75,24 +67,24 @@ const TimeForm = (props) => {
 
   const work_hours = calculateWorkHours(startTime, endTime);
 
-// 勤務時間を計算
-const CalculateWorkHours2 = (work_hours, breakTime) => {
-  // 時間文字列をDateオブジェクトに変換
-  const checkOllTime = new Date(`1970-01-01T${work_hours}`);
-  const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
-  
-  // 日付の有効性をチェック
-  const isValidDate = (date) => date instanceof Date && !isNaN(date);
-  if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-    return '計算できませんでした';
-  }
+  // 勤務時間を計算
+  const CalculateWorkHours2 = (work_hours, breakTime) => {
+    // 時間文字列をDateオブジェクトに変換
+    const checkOllTime = new Date(`1970-01-01T${work_hours}`);
+    const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
+    
+    // 日付の有効性をチェック
+    const isValidDate = (date) => date instanceof Date && !isNaN(date);
+    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
+      return '計算できませんでした';
+    }
 
-  // 時間の差を計算
-  const diff =  checkOllTime - checkBreakTime;
-  const hours = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');;
-  const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');;
-  return `${hours}:${minutes}`;
-};
+    // 時間の差を計算
+    const diff =  checkOllTime - checkBreakTime;
+    const hours = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');;
+    const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');;
+    return `${hours}:${minutes}`;
+  };
 
   useEffect(() => {
     if (startTime && endTime && breakTime) {
@@ -100,39 +92,32 @@ const CalculateWorkHours2 = (work_hours, breakTime) => {
       setWorkHours(WorkHours);
     }
   }, [startTime, endTime, breakTime]);
-  
-//   const addItemToState = (item) => {
-//     window.location.reload();
-//     setItems(prevItems => [...prevItems, item]);
-// };
 
-
-    return (
-      <form onSubmit={handleSubmit}>
-        <div id='time_area'>
-          <div className='time_area_box'>
-            <label className='time_label'>出勤時間 : </label>
-              <input type='time' className='over_time_input' value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-          </div>
-          <div className='time_area_box'>
-            <label className='time_label'>退勤時間 : </label>
-            <input type='time' className='over_time_input' value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-          </div>
-          <div className='time_area_box'>
-            <label className='time_label'>休憩時間 : </label>
-            <input type='time' className='over_time_input' value={breakTime} onChange={(e) => setBreakTime(e.target.value)} />
-          </div>
-          <div className='time_area_box'>
-            <label className='time_label'>勤務時間 : </label>
-            <span id='over_time_text'>&nbsp;&nbsp;{workHours}&nbsp;&nbsp;</span>
-            {/* <input type='time' className='over_time_input' value={workHours} onChange={(e) => setWorkHours(e.target.value)} /> */}
-          </div>
-          <div id='time_bt'>
-            <button type='submit' id='over_time_button'>登録</button>
-          </div>
+  return (
+    <form onSubmit={handleSubmit}>
+      <div id='time_area'>
+        <div className='time_area_box'>
+          <label className='time_label'>出勤時間 : </label>
+          <input type='time' className='over_time_input' value={startTime} onChange={(e) => setStartTime(e.target.value)} />
         </div>
-      </form>
-    );
+        <div className='time_area_box'>
+          <label className='time_label'>退勤時間 : </label>
+          <input type='time' className='over_time_input' value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+        </div>
+        <div className='time_area_box'>
+          <label className='time_label'>休憩時間 : </label>
+          <input type='time' className='over_time_input' value={breakTime} onChange={(e) => setBreakTime(e.target.value)} />
+        </div>
+        <div className='time_area_box'>
+          <label className='time_label'>勤務時間 : </label>
+          <span id='over_time_text'>&nbsp;&nbsp;{workHours}&nbsp;&nbsp;</span>
+        </div>
+        <div id='time_bt'>
+          <button type='submit' id='over_time_button'>登録</button>
+        </div>
+      </div>
+    </form>
+  );
 };
 
 export default TimeForm;

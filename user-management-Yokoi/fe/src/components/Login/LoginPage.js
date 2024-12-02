@@ -17,16 +17,16 @@ function LoginPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     })
-      .then(response => response.json())
-      .then(data => {
-        if (data.token) {
-          login(data.token, data.user); // トークンを保存し
-          navigate('/'); // トップページにリダイレクト
-        } else {
-          setMessage('ログイン情報が違います');
-        }
-      })
-      .catch(err => setMessage('Error logging in'));
+    .then(response => response.json())
+    .then(data => {
+      if (data.token) {
+        login(data.token, data.user); // トークンを保存し
+        navigate('/'); // トップページにリダイレクト
+      } else {
+        setMessage('ログイン情報が違います');
+      }
+    })
+    .catch(err => setMessage('Error logging in'));
   };
 
   return (

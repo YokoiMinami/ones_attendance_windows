@@ -20,7 +20,6 @@ const TopPage = () => {
   const [authorityData, setAuthorityData] = useState(false);
   const [midFlag, setMidFlag] = useState(false);
   
-  
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
       method: 'get',
@@ -28,14 +27,14 @@ const TopPage = () => {
       'Content-Type': 'application/json'
     }
     })
-      .then(response => response.json())
-      .then(data => {
-        setUserData(data);
-        if (data.authority === true) {
-          setAuthorityData(true);
-        }
-      })
-      .catch(err => console.log(err));
+    .then(response => response.json())
+    .then(data => {
+      setUserData(data);
+      if (data.authority === true) {
+        setAuthorityData(true);
+      }
+    })
+    .catch(err => console.log(err));
   }, [id]);
 
   useEffect(() => {
@@ -168,11 +167,6 @@ const TopPage = () => {
       }
     }
     
-
-    
-
-
-
     // 出勤から退勤を引いて全勤務時間を計算
     const calculateWorkHours = (checkInDate, checkInTime, checkOutDate, checkOutTime ) => {
       // 時間文字列をDateオブジェクトに変換
@@ -242,14 +236,11 @@ const TopPage = () => {
       const message = await response.text();
       alert(message);
       window.location.reload();
-      // setIsCheckedIn(false); // 出勤状態を更新
     } catch (error) {
       console.error('Error recording attendance:', error);
     }
   };
 
-  
-  
   return (
     <div className ="top_flex">
       <div className ="box1">

@@ -43,9 +43,11 @@ const NewAccountPage = (props) => {
   const companyOnChange = (event, value) => {
     setCompanyState({ company: value ? value.label : '' });
   };
+
   const teamOnChange = (event, value) => {
     setTeamState({ team: value ? value.label : '' });
   };
+
   const [state, setState] = useState({
     id: 0,
     fullname: '',
@@ -70,20 +72,20 @@ const NewAccountPage = (props) => {
     if (!company_state.company) newErrors.company = '会社名を入力してください';
     if (!state.fullname) newErrors.fullname = '氏名を入力してください';
     if (!state.kananame) {
-        newErrors.kananame = 'ヨミガナを入力してください';
+      newErrors.kananame = 'ヨミガナを入力してください';
     } else if (!katakanaRegex.test(state.kananame)) {
-        newErrors.kananame = 'ヨミガナはカタカナで入力してください';
+      newErrors.kananame = 'ヨミガナはカタカナで入力してください';
     }
     if (!state.email) {
-        newErrors.email = 'Emailを入力してください';
+      newErrors.email = 'Emailを入力してください';
     } else if (!/\S+@\S+\.\S+/.test(state.email)) {
-        newErrors.email = '有効なEmailを入力してください';
+      newErrors.email = '有効なEmailを入力してください';
     }
     if (!team_state.team) newErrors.team = '所属するチームを入力してください';
     if (!state.password) {
-        newErrors.password = 'パスワードを入力してください';
+      newErrors.password = 'パスワードを入力してください';
     } else if (!alphanumericRegex.test(state.password)) {
-        newErrors.password = 'パスワードは英数字のみで入力してください';
+      newErrors.password = 'パスワードは英数字のみで入力してください';
     }
 
     return newErrors;
@@ -94,8 +96,8 @@ const NewAccountPage = (props) => {
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
-        setErrors(formErrors);
-        return;
+      setErrors(formErrors);
+      return;
       }
     fetch('http://localhost:3000/post', {
       method: 'post',
@@ -112,21 +114,21 @@ const NewAccountPage = (props) => {
         authority:state.authority
       })
     })
-      .then(response => response.json())
-      .then(item => {
-        if (item.dbError) {
-          if (item.dbError.includes('メールアドレス')) {
-            setErrors({ email: 'このメールアドレスは既に登録されています' });
-          }
-        } else if (item) {
-          const userId = item.map(item => item.id);
-          // 登録した情報を表示するページに遷移
-          navigate(`/new_account_after/${userId}`); 
-        } else {
-          console.log('failure');
+    .then(response => response.json())
+    .then(item => {
+      if (item.dbError) {
+        if (item.dbError.includes('メールアドレス')) {
+          setErrors({ email: 'このメールアドレスは既に登録されています' });
         }
-      })
-      .catch(err => console.log(err));
+      } else if (item) {
+        const userId = item.map(item => item.id);
+        // 登録した情報を表示するページに遷移
+        navigate(`/new_account_after/${userId}`); 
+      } else {
+        console.log('failure');
+      }
+    })
+    .catch(err => console.log(err));
   };
 
   return (
@@ -169,21 +171,21 @@ const NewAccountPage = (props) => {
           <label htmlFor="fullname" className='new_account_label'>氏名</label>
           <input type="text" name="fullname" id="fullname" className='new_account_input' onChange={onChange} value={state.fullname || ''} />
           <div className='new_error' id='name_error'>
-          {errors.fullname && <p className="error">{errors.fullname}</p>}
+            {errors.fullname && <p className="error">{errors.fullname}</p>}
           </div>
         </FormGroup>
         <FormGroup>
           <label htmlFor="kananame" className='new_account_label'>ヨミガナ</label>
           <input type="text" name="kananame" id="kananame" className='new_account_input' onChange={onChange} value={state.kananame || ''} />
           <div className='new_error' id='kananame_error'>
-          {errors.kananame && <p className="error">{errors.kananame}</p>}
+            {errors.kananame && <p className="error">{errors.kananame}</p>}
           </div>
         </FormGroup>
         <FormGroup>
           <label htmlFor="email" className='new_account_label'>Email</label>
           <input type="email" name="email" id="email" className='new_account_input' onChange={onChange} value={state.email || ''} />
           <div className='new_error' id='email_error'>
-          {errors.email && <p className="error">{errors.email}</p>}
+            {errors.email && <p className="error">{errors.email}</p>}
           </div>
         </FormGroup>
         <FormGroup>
@@ -217,14 +219,14 @@ const NewAccountPage = (props) => {
           <label htmlFor="password" className='new_account_label'>パスワード</label>
           <input type="text" name="password" id="password" className='new_account_input' onChange={onChange} value={state.password || ''} />
           <div className='new_error' id='pass_error'>
-          {errors.password && <p className="error">{errors.password}</p>}
+            {errors.password && <p className="error">{errors.password}</p>}
           </div>
         </FormGroup>
         <FormGroup>
           <label htmlFor="authority" className='new_account_label'>利用権限</label>
           <input type="text" name="authority" placeholder='管理者のみ入力' id="authority" className='new_account_input' onChange={onChange} value={state.authority || ''} />
           <div className='new_error' id='authority_error'>
-          {errors.authority && <p className="error">{errors.authority}</p>}
+            {errors.authority && <p className="error">{errors.authority}</p>}
           </div>
         </FormGroup>
         <Button className='new_account_button'>登録</Button>

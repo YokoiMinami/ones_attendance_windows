@@ -5,7 +5,7 @@ import AccountsTable from './Tables/AccountsTable';
 import AddEditModal from './Modals/AddEditModal';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import { BrowserRouter as Router, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 class Account extends Component {
   state = {
@@ -14,9 +14,9 @@ class Account extends Component {
 
   getItems() {
     fetch('http://localhost:3000/get')
-      .then(response => response.json())
-      .then(items => this.setState({ items }))
-      .catch(err => console.log(err))
+    .then(response => response.json())
+    .then(items => this.setState({ items }))
+    .catch(err => console.log(err))
   };
 
   addItemToState = (item) => {
@@ -80,7 +80,6 @@ class Account extends Component {
       </div>
     );
   }
-  
 }
 
 export default Account;

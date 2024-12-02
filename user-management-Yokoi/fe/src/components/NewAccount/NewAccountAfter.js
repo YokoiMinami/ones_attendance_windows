@@ -21,14 +21,14 @@ const NewAccountAfter = () => {
         'Content-Type': 'application/json'
       }
     })
-      .then(response => response.json())
-      .then(data => {
-        setUserData(data);
-        if (data.authority === true) {
-          setAuthorityData('あり');
-        }
-      })
-      .catch(err => console.log(err));
+    .then(response => response.json())
+    .then(data => {
+      setUserData(data);
+      if (data.authority === true) {
+        setAuthorityData('あり');
+      }
+    })
+    .catch(err => console.log(err));
   }, [id]);
 
   if (!userData) {

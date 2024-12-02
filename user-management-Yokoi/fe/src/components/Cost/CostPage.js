@@ -19,17 +19,14 @@ const CostPage = () => {
   const [appState , setAppState ] = useState(false);
   const [appUser , setAppUser ] = useState('');
   const [appDate , setAppDate ] = useState('');
-  const [appFlag , setAppFlag ] = useState('');
   const [registration, setRegistration] = useState('');
-  const [registrationDate, setregistrationDate] = useState('');
   const [approver, setApprover] = useState('');
   const [president, setPresident] = useState('');
   const [remarks, setRemarks] = useState('');
   const [appText , setAppText ] = useState('');
-  const [year2, setYear2] = useState(new Date().getFullYear());
-  const [month2, setMonth2] = useState(new Date().getMonth() + 1);
+  const year2 = useState(new Date().getFullYear());
+  const month2 = useState(new Date().getMonth() + 1);
   const [day, setDay] = useState(new Date().getDate());
-  const currentDate = `${year2}/${month2}/${day}`;
   const [showImage, setShowImage] = useState(false); //画像の表示、非表示
   const [expenses, setExpenses] = useState([]);
   const [selectedImage, setSelectedImage] = useState(''); 
@@ -97,9 +94,7 @@ const CostPage = () => {
         setName(data.name);
         setDate(data.create_date);
         setAppDay(data.create_day);
-        setAppFlag(data.app_flag);
         setRegistration(data.registration);
-        setregistrationDate(data.registration_date);
         setApprover(data.approver);
         setPresident(data.president);
         setRemarks(data.remarks);
@@ -107,16 +102,15 @@ const CostPage = () => {
         if(data.app_flag){
           setAppText('承認待ち');
           setAppState(true);
-          }
-          else if(data.create_day && !data.app_flag){
+        }else if(data.create_day && !data.app_flag){
           setAppText('承認済み');
           setAppState(true);
           setAppUser(data.registration);
           setAppDate(data.registration_date);
-          }else{
+        }else{
           setAppText('未申請');
           setAppState(false);
-          }
+        }
       } catch (error) {
         console.error('Error fetching holiday data:', error);
         setItems2();
@@ -125,9 +119,7 @@ const CostPage = () => {
         setName();
         setDate();
         setAppDay();
-        setAppFlag();
         setRegistration();
-        setregistrationDate();
         setApprover();
         setPresident();
         setRemarks();
@@ -164,11 +156,11 @@ const CostPage = () => {
 
     e.preventDefault();
 
-      const formErrors = validateForm();
-      if (Object.keys(formErrors).length > 0) {
-        setErrors(formErrors);
-        return;
-      }
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
     
     let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
     if (confirmDelete) {
@@ -248,8 +240,6 @@ const CostPage = () => {
         console.log('画像がありません');
       }
     });
-  
-    //await Promise.all(deleteImagePromises);
   };
   
   const deleteSelectedItems = async () => {
@@ -265,8 +255,6 @@ const CostPage = () => {
       setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
       return result;
     });
-  
-    //await Promise.all(deleteItemPromises);
   };
   
   const deleteProject = async () => {
@@ -369,14 +357,14 @@ const CostPage = () => {
           <div id='cost_paper'> 
             <div className='cost_flex' id='cost_making'> 
               <div id='cost_label1'> 作成日 </div> 
-                {appState? <span className='appState'>{appDay}</span> : 
+              {appState? <span className='appState'>{appDay}</span> : 
                 <div id='cost_data1'>
                   <input id='cost_year' type="number" value={year} onChange={(e) => setYear(e.target.value)} />/
                   <input id='cost_month' type="number" value={month} onChange={(e) => setMonth(e.target.value)} min="1" max="12" />/
                   <input id='cost_day' type="number" value={day} onChange={(e) => setDay(e.target.value)} min="1" max="31" />
                 </div>
-                } 
-              </div> 
+              } 
+            </div> 
             <div id='cost_title'>経費明細書</div> 
             <div className='cost_flex' id='cost_company'> 
               <div id='cost_label2'> 所属社名 </div> 
@@ -393,26 +381,26 @@ const CostPage = () => {
                   {errors.name ? errors.name : name}
                 </span>
                 <span id='cost_sign'>㊞</span> 
+              </div> 
             </div> 
-          </div> 
-          <div className='cost_flex' id='cost_project'> 
-            <div id='cost_label4'> プロジェクト </div> 
-            <div id='cost_data4'> 
-              <span id='cost_project_data' className={errors.details ? 'cost_error' : ''}>
-                {errors.details ? errors.details : details}
-              </span> 
+            <div className='cost_flex' id='cost_project'> 
+              <div id='cost_label4'> プロジェクト </div> 
+              <div id='cost_data4'> 
+                <span id='cost_project_data' className={errors.details ? 'cost_error' : ''}>
+                  {errors.details ? errors.details : details}
+                </span> 
+              </div> 
             </div> 
-          </div> 
-          <table id="cost_table"> 
-            <thead id="cost_Th"> 
-              <tr> 
-                <th id='cost_check' style={{ textAlign: 'center', width: '5%'}}></th> 
-                <th className='cost_empty' style={{ textAlign: 'center', width: '15%'}}>日付</th> 
-                <th className='cost_empty' style={{ textAlign: 'center', width: '15%'}}>経費科目</th> 
-                <th className='cost_empty' style={{ textAlign: 'center' }}>内容</th> 
-                <th className='cost_empty' style={{ textAlign: 'center', width: '15%'}}>金額(税込)</th> 
-                <th className="receipt" style={{ textAlign: 'center', width: '10%'}}>レシート</th> 
-              </tr> 
+            <table id="cost_table"> 
+              <thead id="cost_Th"> 
+                <tr> 
+                  <th id='cost_check' style={{ textAlign: 'center', width: '5%'}}></th> 
+                  <th className='cost_empty' style={{ textAlign: 'center', width: '15%'}}>日付</th> 
+                  <th className='cost_empty' style={{ textAlign: 'center', width: '15%'}}>経費科目</th> 
+                  <th className='cost_empty' style={{ textAlign: 'center' }}>内容</th> 
+                  <th className='cost_empty' style={{ textAlign: 'center', width: '15%'}}>金額(税込)</th> 
+                  <th className="receipt" style={{ textAlign: 'center', width: '10%'}}>レシート</th> 
+                </tr> 
               </thead> 
               <tbody>{sortByDate(expenses).map((item, index) => { 
                 const encodedFileName = item.receipt_url; 
@@ -435,19 +423,18 @@ const CostPage = () => {
                     </td> 
                   </tr> 
                 ); 
-                })}{expenses.length < 4 && 
-                  Array.from({ length: 4 - expenses.length }).map((_, index) => ( 
-                    <tr key={`empty-${index}`}> 
-                      <td className='cost_empty'></td> 
-                      <td className='cost_empty'></td> 
-                      <td className='cost_empty'></td> 
-                      <td className='cost_empty'></td> 
-                      <td className='cost_empty'></td> 
-                      <td className='cost_empty'></td> 
-                    </tr> 
-                  )) 
-                } 
-              </tbody>
+              })}{expenses.length < 4 && 
+                Array.from({ length: 4 - expenses.length }).map((_, index) => ( 
+                  <tr key={`empty-${index}`}> 
+                    <td className='cost_empty'></td> 
+                    <td className='cost_empty'></td> 
+                    <td className='cost_empty'></td> 
+                    <td className='cost_empty'></td> 
+                    <td className='cost_empty'></td> 
+                    <td className='cost_empty'></td> 
+                  </tr> 
+                )) 
+              }</tbody>
             </table> 
             <div className='cost_flex' id='cost_total'> 
               <div id='cost_label5'> 経費合計 </div> 

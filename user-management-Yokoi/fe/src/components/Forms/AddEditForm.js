@@ -28,16 +28,16 @@ class AddEditForm extends React.Component {
         password: this.state.password
       })
     })
-      .then(response => response.json())
-      .then(item => {
-        if (Array.isArray(item)) {
-          this.props.addItemToState(item[0]);
-          this.props.toggle();
-        } else {
-          console.log('failure');
-        }
-      })
-      .catch(err => console.log(err));
+    .then(response => response.json())
+    .then(item => {
+      if (Array.isArray(item)) {
+        this.props.addItemToState(item[0]);
+        this.props.toggle();
+      } else {
+        console.log('failure');
+      }
+    })
+    .catch(err => console.log(err));
   }
 
   submitFormEdit = e => {
@@ -55,16 +55,16 @@ class AddEditForm extends React.Component {
         password: this.state.password
       })
     })
-      .then(response => response.json())
-      .then(item => {
-        if (Array.isArray(item)) {
-          this.props.updateState(item[0]);
-          this.props.toggle();
-        } else {
-          console.log('failure');
-        }
-      })
-      .catch(err => console.log(err));
+    .then(response => response.json())
+    .then(item => {
+      if (Array.isArray(item)) {
+        this.props.updateState(item[0]);
+        this.props.toggle();
+      } else {
+        console.log('failure');
+      }
+    })
+    .catch(err => console.log(err));
   }
 
   componentDidMount() {

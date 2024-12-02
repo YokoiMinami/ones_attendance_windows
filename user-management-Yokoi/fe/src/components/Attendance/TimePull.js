@@ -133,7 +133,6 @@ const customStyles = {
     ...provided,
     zIndex: 9999, // 必要に応じて調整
     width: '150px', // 必要に応じて横幅を調整
-    // maxHeight: '200px',
   }),
   menuPortal: (base) => ({
     ...base,

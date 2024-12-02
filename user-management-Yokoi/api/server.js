@@ -17,9 +17,6 @@ const corsOptions = {
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
-// const corsOptions = { origin: '*', // 全てのオリジンを許可 
-//   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] 
-// };
 
 // Cross-Origin関連ヘッダーを設定するミドルウェアを追加 
 app.use((req, res, next) => { 
@@ -44,7 +41,7 @@ let db = require('knex')({
   connection: {
     host: '127.0.0.1',
     user: 'postgres', // 自分のOSのユーザに変更
-    password: '07310727',
+    password: 'admin',
     database: 'attendancedb',
     charset: 'utf8' 
   }
@@ -55,11 +52,11 @@ app.use(bodyParser.json());
 app.use(express.json({ type: 'application/json; charset=utf-8' }));
 app.use(express.urlencoded({ extended: true, type: 'application/x-www-form-urlencoded; charset=utf-8' }));
 app.use(morgan('combined'));
-// 静的ファイルの提供 
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { 
   setHeaders: (res) => { res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
-
-  } }));
+  } 
+}));
 
 // Multerの設定
 const storage = multer.diskStorage({
@@ -85,7 +82,6 @@ const resetCheckInFlags = async () => {
 // 毎日深夜3時に実行
 const job = new cron.CronJob('0 3 * * *', resetCheckInFlags, null, true, 'Asia/Tokyo');
 job.start();
-
 
 //ルーター
 app.get('/', (req, res) => res.send('サーバーが実行中です!'));

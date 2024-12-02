@@ -130,33 +130,60 @@ const getData = (req, res, db) => {
   }));
 }
 
-//アカウント削除
 const delData = (req, res, db) => {
   const { id } = req.body;
 
-  // トランザクションを使用して複数の削除操作を実行
-  db.transaction(trx => {
-    trx('attendance').where({ accounts_id: id }).del()
-    .then(() => {
-      return trx('overdata').where({ accounts_id: id }).del();
-    })
-    .then(() => {
-      return trx('projectdata').where({ accounts_id: id }).del();
-    })
-    .then(() => {
-      return trx('expenses').where({ accounts_id: id }).del();
-    })
-    .then(() => {
-      return trx('accounts').where({ id }).del();
-    })
-    .then(trx.commit)
-    .catch(trx.rollback);
-  })
-  .then(() => {
-    res.json({ delete: 'true' });
-  })
-  .catch(err => res.status(400).json({ dbError: 'error' }));
+  db.transaction(async trx => {
+    try {
+      // 画像URLを取得
+      const imageURLs = await trx('images_table').where({ accounts_id: id }).select('receipt_url');
+      const deletePromises = imageURLs.map(row => {
+        const filePath = path.join(__dirname, '../uploads', row.receipt_url);
+        
+        if (fs.existsSync(filePath)) {
+          return new Promise((resolve, reject) => {
+            fs.unlink(filePath, (err) => {
+              if (err) {
+                console.error('ファイルの削除中にエラーが発生しました:', err);
+                reject('ファイルの削除に失敗しました');
+              } else {
+                console.log('File deleted successfully:', filePath);
+                resolve();
+              }
+            });
+          });
+        } else {
+          console.error('ファイルが見つかりません:', filePath);
+          return Promise.resolve(); // ファイルが見つからない場合も削除の一環として成功とみなす
+        }
+      });
+
+      await Promise.all(deletePromises);
+
+      // 各テーブルからデータを削除
+      await trx('attendance').where({ accounts_id: id }).del();
+      await trx('overdata').where({ accounts_id: id }).del();
+      await trx('projectdata').where({ accounts_id: id }).del();
+      await trx('expenses').where({ accounts_id: id }).del();
+      await trx('images_table').where({ accounts_id: id }).del();
+      await trx('holiday').where({ accounts_id: id }).del();
+      await trx('accounts').where({ id }).del();
+
+      await trx.commit();
+      res.json({ delete: 'true' });
+    } catch (err) {
+      console.error('トランザクション内でエラーが発生しました:', err);
+      await trx.rollback();
+      res.status(400).json({ dbError: 'error', message: err.message });
+    }
+  }).catch(err => {
+    console.error('トランザクションが開始できませんでした:', err);
+    res.status(400).json({ dbError: 'transaction error', message: err.message });
+  });
 };
+
+
+
 
 //勤怠登録
 const attData = async (req, res, db) => {
@@ -173,7 +200,7 @@ const attData = async (req, res, db) => {
         .update({
           check_out_time,
           break_time,
-          work_hours: db.raw(`INTERVAL '${work_hours}'`), // INTERVAL 型に変換
+          work_hours: db.raw(`INTERVAL '${work_hours}'`),
           out_remarks1,
           out_remarks2,
           is_checked_in: false
@@ -186,7 +213,7 @@ const attData = async (req, res, db) => {
         .update({
           check_out_time,
           break_time,
-          work_hours: db.raw(`INTERVAL '${work_hours}'`), // INTERVAL 型に変換
+          work_hours: db.raw(`INTERVAL '${work_hours}'`), 
           out_remarks1,
           out_remarks2,
           //is_checked_in: false
@@ -286,11 +313,11 @@ const memberCostData = async (req, res, db) => {
       res.json(memberCost);
       console.log(memberCost);
     } else {
-      res.json([]); // 申請情報が見つからない場合、空の配列を返す
+      res.json([]); 
     }
   } catch (error) {
     console.error('Error fetching attendance data:', error);
-    res.status(500).json({ error: 'サーバーエラー' }); // JSON形式でエラーメッセージを返す
+    res.status(500).json({ error: 'サーバーエラー' }); 
   }
 };
 
@@ -303,7 +330,7 @@ const getMonthlyTotalHours = async (req, res, db) => {
     const yearStr = String(year);
     const monthStr = String(month).padStart(2, '0');
     const startDate = `${yearStr}-${monthStr}-01`;
-    const endDate = `${yearStr}-${monthStr}-${new Date(year, month, 0).getDate()}`; // 修正: year, monthを数値として使用
+    const endDate = `${yearStr}-${monthStr}-${new Date(year, month, 0).getDate()}`; 
 
     // 月の合計勤務時間のクエリ
     const totalHoursResult = await db('attendance')
@@ -426,7 +453,7 @@ const overData = async (req, res, db) => {
     await db('overdata').where({ accounts_id }).update({ start_time, end_time, break_time, work_hours })
     .returning('*')
     .then(item => {
-    res.json(item);
+      res.json(item);
     })
     .catch(err => res.status(400).json({
       dbError: 'error'
@@ -435,7 +462,7 @@ const overData = async (req, res, db) => {
     await db('overdata').insert({accounts_id, start_time, end_time, break_time, work_hours})
     .returning('*')
     .then(item => {
-    res.json(item);
+      res.json(item);
     })
     .catch(err => res.status(400).json({
       dbError: 'error'
@@ -754,29 +781,8 @@ const passPut = async (req, res, db) => {
 }
 
 //経費
-// //画像をアップロード
-// const imagePost = async (req, res, db) => {
-//   const { accounts_id, date, category, description, amount } = req.body;
-//   // const receipt_url = path.posix.join('uploads', req.file.filename);
-//   const receipt_url = req.file ? req.file.filename : '';
-//   try {
-//     await db('images_table').insert({ 
-//       accounts_id,
-//       date,
-//       category,
-//       description,
-//       amount,
-//       receipt_url 
-//     });
-//     res.status(200).json({ message: 'Image uploaded successfully' });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Error uploading image', error });
-//   }
-// }
-
 const projectsDelete = async (req, res, db) => {
   const { id } = req.body;
-  console.log(`テスト${id}`);
   try {
     const projectData = await db('projectdata').where({ id }).first();
     if (projectData) {
@@ -799,13 +805,12 @@ const projectsDelete = async (req, res, db) => {
   }
 };
 
-
 const imagePost = async (req, res, db) => {
   const { accounts_id, date, category, description, amount, id, registration } = req.body;
   const receipt_url = req.file ? req.file.filename : '';
   
   try {
-    if(registration){
+    if(registration && id){
       const projectData = await db('projectdata').where({ id }).first();
       if(projectData){
         await db('projectdata').where({ id }).update({

@@ -16,14 +16,14 @@ const TopButton = () => {
       'Content-Type': 'application/json'
     }
     })
-      .then(response => response.json())
-      .then(data => {
-        setUserData(data);
-        if (data.authority === true) {
-          setAuthorityData(true);
-        }
-      })
-      .catch(err => console.log(err));
+    .then(response => response.json())
+    .then(data => {
+      setUserData(data);
+      if (data.authority === true) {
+        setAuthorityData(true);
+      }
+    })
+    .catch(err => console.log(err));
   }, [id]);
 
   const { logout } = useAuth();
@@ -52,16 +52,16 @@ const TopButton = () => {
 
   return (
     <div>
-    <button className='all_button' onClick={handleClick1}>勤怠登録</button>
-    <button className='all_button' onClick={handleClick2}>勤怠一覧</button>
-    {authorityData && (
-      <button className='all_button' onClick={handleClick3}>メンバー管理</button>
-    )}
-    {authorityData && (
-      <button className='all_button' onClick={handleClick4}>管理PW変更</button>
-    )}
-    <button className='all_button' onClick={handleLogout}>ログアウト</button>
-  </div>
+      <button className='all_button' onClick={handleClick1}>勤怠登録</button>
+      <button className='all_button' onClick={handleClick2}>勤怠一覧</button>
+      {authorityData && (
+        <button className='all_button' onClick={handleClick3}>メンバー管理</button>
+      )}
+      {authorityData && (
+        <button className='all_button' onClick={handleClick4}>管理PW変更</button>
+      )}
+      <button className='all_button' onClick={handleLogout}>ログアウト</button>
+    </div>
   );
 };
 

@@ -9,7 +9,7 @@ import TimeModal from './TimeModal';
 import { startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 
 const AttendanceTablePage = ( ) => {
-  
+
   const id = localStorage.getItem('user'); //ユーザーID
   const accounts_id = localStorage.getItem('user');//ユーザーID
   const [userData, setUserData] = useState(null); //ユーザーデータ
@@ -19,7 +19,6 @@ const AttendanceTablePage = ( ) => {
   const [daysInMonth, setDaysInMonth] = useState([]); //勤怠を表示する年月
   const [year, setYear] = useState(new Date().getFullYear()); //勤怠を表示する年
   const [month, setMonth] = useState(new Date().getMonth() + 1); //勤怠を表示する月
-  const [overData, setOverData] = useState({}); //標準勤務時間
   const [startTime, setStartTime] = useState('09:00'); //標準勤務時間
   const [endTime, setEndTime] = useState('18:00');//標準勤務時間
   const [breakTime, setBreakTime] = useState('01:00');//標準勤務時間
@@ -37,15 +36,10 @@ const AttendanceTablePage = ( ) => {
   const [projects, setProjects] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
-  const [date2, setDate2] = useState('');
   const [appDay, setAppDay] = useState('');
-  const [appFlag , setAppFlag ] = useState('');
-  const [registration, setRegistration] = useState('');
-  const [registrationDate, setregistrationDate] = useState('');
   const [approver, setApprover] = useState('');
   const [president, setPresident] = useState('');
   const [costRemarks, setCostRemarks] = useState('');
-  const [appState , setAppState ] = useState(false);
   const [editingRemarks, setEditingRemarks] = useState({}); // 出勤特記の編集モードを管理するステート
   const [editingRemarks2, setEditingRemarks2] = useState({}); //出勤備考の編集モードを管理するステート
   const [editingOutRemarks, setEditingOutRemarks] = useState({}); // 退勤特記の編集モードを管理するステート
@@ -59,7 +53,6 @@ const AttendanceTablePage = ( ) => {
   const [items, setItems] = useState([]); //プロジェクト情報
   const [items2, setItems2] = useState([]); //標準勤務時間情報
   const [expenses, setExpenses] = useState([]); //経費データ
-  const [image, setImage] = useState([]);
 
   const navigate = useNavigate();
 
@@ -139,7 +132,6 @@ const AttendanceTablePage = ( ) => {
   //ユーザーの交通費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
         const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${year}/${month}`);
         const data = await response.json();
@@ -171,7 +163,6 @@ const AttendanceTablePage = ( ) => {
 //プロジェクト情報
 useEffect(() => {
   const fetchUser = async () => {
-    const accounts_id = localStorage.getItem('user');
     try {
       const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
       const data = await response.json();
@@ -180,36 +171,18 @@ useEffect(() => {
       setDetails(data.details);
       setCompany(data.company);
       setName(data.name);
-      setDate2(data.create_date);
       setAppDay(data.create_day);
-      setAppFlag(data.app_flag);
-      setRegistration(data.registration);
-      setregistrationDate(data.registration_date);
       setApprover(data.approver);
       setPresident(data.president);
       setCostRemarks(data.remarks);
 
-      console.log(data.create_day);
-
-      if(data.app_flag){
-        setAppState(true);
-        }
-        else if(data.create_day && !data.app_flag){
-        setAppState(true);
-        }else{
-        setAppState(false);
-        }
     } catch (error) {
       console.error('Error fetching holiday data:', error);
       setProjects();
       setDetails();
       setCompany();
       setName();
-      setDate2();
       setAppDay();
-      setAppFlag();
-      setRegistration();
-      setregistrationDate();
       setApprover();
       setPresident();
       setCostRemarks();
@@ -221,7 +194,6 @@ useEffect(() => {
   //ユーザーの経費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
         const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
         const data = await response.json();
@@ -443,7 +415,7 @@ useEffect(() => {
       alert('データの保存に失敗しました');
     }
   };
-  
+
   const toggleEditing2 = (date) => {
     setEditingRemarks2(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
@@ -478,7 +450,6 @@ useEffect(() => {
       });
       setEditingOutRemarks2(out_set_remarks2);
       if (response.ok) {
-        //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         setAttendanceData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
@@ -497,7 +468,7 @@ useEffect(() => {
       alert('データの保存に失敗しました');
     }
   };
-  
+
   const toggleEditingOut2 = (date) => {
     setEditingOutRemarks2(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
@@ -536,7 +507,6 @@ useEffect(() => {
     })
     .then(response => response.json())
     .then(data => {
-      setOverData(data);
       if (data.start_time) setStartTime(data.start_time);
       if (data.end_time) setEndTime(data.end_time);
       if (data.break_time) setBreakTime(data.break_time);
@@ -589,14 +559,6 @@ useEffect(() => {
     return `${hours}:${mins}`;
   };
 
-  //時間からマイナスを消す
-  const removeNegativeSign = (timeString) => {
-    if (timeString.startsWith('-')) {
-      return timeString.slice(1);
-    }
-    return timeString;
-  };
-
   useEffect(() => {
     if (startTime && endTime && breakTime) { //標準勤務時間
       const WorkHours = CalculateWorkHours2(work_hours, breakTime);
@@ -616,10 +578,6 @@ useEffect(() => {
       setProvisions(multipliedWorkHours);
     }
   }, [startTime, endTime, breakTime, workHours, userWorkHours, month, year]);
-
-
-
-
 
   useEffect(() => {
 
@@ -667,26 +625,26 @@ useEffect(() => {
       //今月の稼働時間
       setUserTotal(totalWorkHoursTime);
     }else {
-        //今月の稼働時間
-        setUserTotal('00:00');
-        //1日平均勤務時間
-        setDayAverage('00:00');
-        //月予測勤務時間
-        setMonthAverage('00:00');
-        setIsOvertime(false);
+      //今月の稼働時間
+      setUserTotal('00:00');
+      //1日平均勤務時間
+      setDayAverage('00:00');
+      //月予測勤務時間
+      setMonthAverage('00:00');
+      setIsOvertime(false);
     }
   },[formattedAttendanceData]);
 
   useEffect(() => {
     const today = new Date();
-    
+
     // 1週間前の同じ曜日の日付を取得
     const oneWeekAgo = subWeeks(today, 1);
     // 先週の月曜日の日付を取得
     const lastMonday = startOfWeek(oneWeekAgo, { weekStartsOn: 1 });
     // 先週の日曜日の日付を取得
     const lastSunday = endOfWeek(oneWeekAgo, { weekStartsOn: 1 });
-  
+
     // 日付の時刻部分をクリア（00:00:00に設定）
     lastMonday.setHours(0, 0, 0, 0);
     lastSunday.setHours(23, 59, 59, 999);
@@ -708,13 +666,12 @@ useEffect(() => {
 
       const workHoursCount = filterLastWeekData.filter(item => item.work_hours !== null).length;
       const totalMinutes = filterLastWeekData.reduce((total, item) => { 
-      return total + convertTimeToMinutes(item.work_hours || '0:00'); // work_hours が null の場合のデフォルト値を設定 
+        return total + convertTimeToMinutes(item.work_hours || '0:00'); // work_hours が null の場合のデフォルト値を設定 
       }, 0); 
 
       // workHoursを分単位に変換し、勤務日数で割る
       const multipliedWorkHoursInMinutes2 = totalMinutes / workHoursCount;
       const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2 * 10) / 10;
-      //const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2);
       
       // 分単位の時間をhh:mm形式に変換
       const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
@@ -742,8 +699,6 @@ useEffect(() => {
       setWeekMonthAverage(multipliedWorkHours);
       
       const totalWorkHoursTime = convertMinutesToTime(totalMinutes); 
-      console.log(`先週の合計勤務時間: ${totalWorkHoursTime}`); 
-      console.log(`先週の1日平均勤務時間: ${multipliedWorkHours2}`); 
     }else{
       //先週の1日平均勤務時間
       setWeekAverage('00:00');
@@ -759,7 +714,6 @@ useEffect(() => {
     const endDate = new Date(year, month, 0);
     const allDates = [];
     const allDates2 = [];
-    const allDates3 = [];
 
     const formatDate = (dateString) => { 
       const date = new Date(dateString); 
@@ -772,7 +726,6 @@ useEffect(() => {
     const formatAmount = (amount) => { 
       const flooredAmount = Math.floor(amount); 
       return Number(flooredAmount);
-      //return flooredAmount.toLocaleString('ja-JP', { minimumFractionDigits: 0 }); 
     };
   
     for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -891,7 +844,7 @@ useEffect(() => {
     const expensesSheet = workbook.addWorksheet('旅費交通費清算書');
 
     // 交通費清算書のタイトルを追加
-    expensesSheet.mergeCells('A1:L1'); // セルを結合
+    expensesSheet.mergeCells('A1:L1'); 
     const titleCell2 = expensesSheet.getCell('A1');
     titleCell2.value = '旅費交通費清算書';
     titleCell2.font = { size: 20, bold: true };
@@ -1064,7 +1017,7 @@ useEffect(() => {
     const holidaySheet = workbook.addWorksheet('代休未消化記録表');
 
     // 代休未消化記録表のタイトルを追加
-    holidaySheet.mergeCells('A1:D1'); // セルを結合
+    holidaySheet.mergeCells('A1:D1'); 
     const titleCell3 = holidaySheet.getCell('A1');
     titleCell3.value = '代休未消化記録表';
     titleCell3.font = { size: 20, bold: true };
@@ -1092,7 +1045,6 @@ useEffect(() => {
     // データの追加
     holidayData.forEach(record => {
       holidaySheet.addRow({
-        // year: `${record.year}年`,
         month:'',
         date: formatDate(record.date),
         week: record.week,
@@ -1105,32 +1057,32 @@ useEffect(() => {
       if (rowNumber >= 4) { // 4行目から罫線を適用
         row.eachCell((cell, colNumber) => {
           if(rowNumber === 4){
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-          }
-        }else if (colNumber === 1) {
-          // A列の罫線（左側のみ）
-          cell.border = {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            left: { style: 'thin' }
-          };
-        } else if (colNumber === 4) {
-          // D列の罫線（左側のみ）
-          cell.border = {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-          };
-        }  else { // 中間の列
-          cell.border = {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' }
-          };
-        } if (rowNumber === 4) {
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            }
+          }else if (colNumber === 1) {
+            // A列の罫線（左側のみ）
+            cell.border = {
+              top: { style: 'thin' },
+              bottom: { style: 'thin' },
+              left: { style: 'thin' }
+            };
+          } else if (colNumber === 4) {
+            // D列の罫線（左側のみ）
+            cell.border = {
+              top: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+          } else { // 中間の列
+            cell.border = {
+              top: { style: 'thin' },
+              bottom: { style: 'thin' }
+            };
+          } if (rowNumber === 4) {
             cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
             cell.fill = {
               type: 'pattern',
@@ -1138,7 +1090,7 @@ useEffect(() => {
               fgColor: { argb: 'FF266EBD' }
             };
             cell.alignment = { horizontal: 'center' };
-        }
+          }
           // 中央揃えにする列を指定
           if (![1,12].includes(colNumber)) {
             cell.alignment = { horizontal: 'center' };
@@ -1511,8 +1463,8 @@ useEffect(() => {
     const imageSheet = workbook.addWorksheet('レシート');
     imageSheet.getColumn('A').width = 10; 
 
-      // データの追加
-      for (const [index, record] of expenses.entries()) {
+    // データの追加
+    for (const [index, record] of expenses.entries()) {
       const colOffset = (index % 4) * 2; // 4つごとに2列右にオフセット
       const rowOffset = Math.floor(index / 4) * 7; // 4つごとに7行下にオフセット
       const col = String.fromCharCode('B'.charCodeAt(0) + colOffset); // 列を計算
@@ -1534,8 +1486,8 @@ useEffect(() => {
       const imageUrl = `http://localhost:3000/uploads/${record.receipt_url}`;
       const response = await fetch(imageUrl);
       if (!response.ok) {
-          console.error(`Failed to load image: ${imageUrl}`);
-          continue; // 画像の読み込みに失敗した場合はスキップ
+        console.error(`Failed to load image: ${imageUrl}`);
+        continue; // 画像の読み込みに失敗した場合はスキップ
       }
       const imageBlob = await response.blob();
       const imageBuffer = await imageBlob.arrayBuffer();
@@ -1547,7 +1499,7 @@ useEffect(() => {
       const img = new Image();
       img.src = URL.createObjectURL(imageBlob);
       await new Promise((resolve) => {
-          img.onload = resolve;
+        img.onload = resolve;
       });
 
       const originalWidth = img.width;
@@ -1559,54 +1511,39 @@ useEffect(() => {
       const newHeight = newWidth * aspectRatio;
 
       const imageId = workbook.addImage({
-          buffer: imageBuffer,
-          extension: fileExtension, // ファイルの拡張子を動的に設定
+        buffer: imageBuffer,
+        extension: fileExtension, // ファイルの拡張子を動的に設定
       });
       imageSheet.addImage(imageId, {
-          tl: { col: colIndex - 1 + 0.9, row: 4 + rowOffset }, // 画像の左上の位置
-          ext: { width: newWidth, height: newHeight }, // アスペクト比を維持したサイズ
+        tl: { col: colIndex - 1 + 0.9, row: 4 + rowOffset }, // 画像の左上の位置
+        ext: { width: newWidth, height: newHeight }, // アスペクト比を維持したサイズ
       });
 
       // 経費科目が入力されているセルの2つ下のセルの高さを指定
       const targetRow = 3 + 2 + rowOffset; // 経費科目のセルの2つ下の行番号
       imageSheet.getRow(targetRow).height = 700 * 0.75; // 高さを指定
-  }
+    }
 
-  // スタイルの適用
-  imageSheet.eachRow((row, rowNumber) => {
+    // スタイルの適用
+    imageSheet.eachRow((row, rowNumber) => {
       if (rowNumber >= 2) { // 2行目から行の高さを設定
-          row.height = 30;
+        row.height = 30;
       }
-  });
+    });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
     // バッファを生成してBlobとして保存
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, `【月末書類】_${userData.fullname}_${userData.company}_${year}_${month}_.xlsx`);
-};
+  };
 
-const holidays = getHolidaysInMonth(year, month);
+  const holidays = getHolidaysInMonth(year, month);
 
   return (
     <div id='table_flex'>
       <div id='table_box1'>
         <div>
-        {userData && <p id='atUser'>{userData.fullname} さん</p>}
+          {userData && <p id='atUser'>{userData.fullname} さん</p>}
         </div>
         <div id='at_all_left'>
           <div id='excel_button_area'>
@@ -1699,81 +1636,81 @@ const holidays = getHolidaysInMonth(year, month);
               </tr>
             </thead>
             <tbody id='at_tbody'>
-            {daysInMonth.map((date) => {
-              const record = findAttendanceRecord(date);
-              const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
-              const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
-              const isEditing = editingRemarks[date.toISOString()];
-              const isEditing2 = editingRemarks2[date.toISOString()];
-              const isEditingOut = editingOutRemarks[date.toISOString()];
-              const isEditingOut2 = editingOutRemarks2[date.toISOString()];
-              
-              return (
-                <tr key={date.toISOString()} className={dayClass}>
-                  <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
-                  <td>{getDayOfWeek(date)}</td>
-                  <td>{record ? formatTime(record.check_in_time) : ''}</td>
-                  <td onClick={() => toggleEditing(date)}>
-                    {isEditing ? (
-                      <Dropdown
-                        value={record ? record.remarks1 : ''}
-                        onChange={(remarks1) => handleRemarksChange1(date, remarks1)}
-                      />
-                    ) : (
-                      record ? record.remarks1 : ''
-                    )}
-                  </td>
-                  <td onClick={() => toggleEditing2(date)}>
-                    {isEditing2 ? (
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder=''
-                        className='remarks2-td'
-                        style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
-                        value={remarks2}
-                        onChange={(e) => handleRemarksChange2(e.target.value)}
-                        onClick={() => handleRemarksSave(date)}  
-                        onBlur={() => handleRemarksSave(date)}
-                      />
-                    ) : (
-                      record ? formatRemarks(record.remarks2) : ''
-                    )}
-                  </td>
-                  <td>{record ? formatTime(record.check_out_time) : ''}</td>
-                  <td onClick={() => toggleOutEditing(date)}>
-                    {isEditingOut ? (
-                      <Dropdown
-                        value={record ? record.out_remarks1 : ''}
-                        onChange={(out_remarks1) => handleOutRemarksChange1(date, out_remarks1)}
-                      />
-                    ) : (
-                      record ? record.out_remarks1 : ''
-                    )}
-                  </td>
-                  <td onClick={() => toggleEditingOut2(date)}>
-                    {isEditingOut2 ? (
-                      <input
-                        ref={inputRef2}
-                        type="text"
-                        placeholder=''
-                        className='remarks2-td'
-                        style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
-                        value={out_set_remarks2}
-                        onChange={(e) => handleRemarksOutChange2(e.target.value)}
-                        onClick={() => handleOutRemarksSave(date)}  
-                        onBlur={() => handleOutRemarksSave(date)}
-                      />
-                    ) : (
-                      record ? formatRemarks(record.out_remarks2) : ''
-                    )}
-                  </td>
-                  <td>{record ? formatTime(record.break_time) : ''}</td>
-                  <td>{record ? formatTime(record.work_hours) : ''}</td>
-                </tr>
-              );
-            })}
-          </tbody>
+              {daysInMonth.map((date) => {
+                const record = findAttendanceRecord(date);
+                const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
+                const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
+                const isEditing = editingRemarks[date.toISOString()];
+                const isEditing2 = editingRemarks2[date.toISOString()];
+                const isEditingOut = editingOutRemarks[date.toISOString()];
+                const isEditingOut2 = editingOutRemarks2[date.toISOString()];
+                
+                return (
+                  <tr key={date.toISOString()} className={dayClass}>
+                    <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
+                    <td>{getDayOfWeek(date)}</td>
+                    <td>{record ? formatTime(record.check_in_time) : ''}</td>
+                    <td onClick={() => toggleEditing(date)}>
+                      {isEditing ? (
+                        <Dropdown
+                          value={record ? record.remarks1 : ''}
+                          onChange={(remarks1) => handleRemarksChange1(date, remarks1)}
+                        />
+                      ) : (
+                        record ? record.remarks1 : ''
+                      )}
+                    </td>
+                    <td onClick={() => toggleEditing2(date)}>
+                      {isEditing2 ? (
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          placeholder=''
+                          className='remarks2-td'
+                          style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                          value={remarks2}
+                          onChange={(e) => handleRemarksChange2(e.target.value)}
+                          onClick={() => handleRemarksSave(date)}  
+                          onBlur={() => handleRemarksSave(date)}
+                        />
+                      ) : (
+                        record ? formatRemarks(record.remarks2) : ''
+                      )}
+                    </td>
+                    <td>{record ? formatTime(record.check_out_time) : ''}</td>
+                    <td onClick={() => toggleOutEditing(date)}>
+                      {isEditingOut ? (
+                        <Dropdown
+                          value={record ? record.out_remarks1 : ''}
+                          onChange={(out_remarks1) => handleOutRemarksChange1(date, out_remarks1)}
+                        />
+                      ) : (
+                        record ? record.out_remarks1 : ''
+                      )}
+                    </td>
+                    <td onClick={() => toggleEditingOut2(date)}>
+                      {isEditingOut2 ? (
+                        <input
+                          ref={inputRef2}
+                          type="text"
+                          placeholder=''
+                          className='remarks2-td'
+                          style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
+                          value={out_set_remarks2}
+                          onChange={(e) => handleRemarksOutChange2(e.target.value)}
+                          onClick={() => handleOutRemarksSave(date)}  
+                          onBlur={() => handleOutRemarksSave(date)}
+                        />
+                      ) : (
+                        record ? formatRemarks(record.out_remarks2) : ''
+                      )}
+                    </td>
+                    <td>{record ? formatTime(record.break_time) : ''}</td>
+                    <td>{record ? formatTime(record.work_hours) : ''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
         </div>
         <div id='attendance_link_area'>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import { Button, Form, FormGroup } from 'reactstrap';
 import { TextField, Autocomplete } from '@mui/material';
 import axios from 'axios';
 
@@ -18,11 +18,12 @@ const CostForm = (props) => {
 
   const accounts_id = localStorage.getItem('user');
   const [expenses, setExpenses] = useState([]);
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  //const [registration, setRegistration] = useState(false);
+  const year = useState(new Date().getFullYear());
+  const month = useState(new Date().getMonth() + 1);
+  const [registrationData, setRegistrationData] = useState(false);
+  const [idData, setIdData] = useState('');
   const [formData, setFormData] = useState({
-    accounts_id: accounts_id,
+    accounts_id: '',
     date: '',
     category: '',
     amount: '',
@@ -37,25 +38,23 @@ const CostForm = (props) => {
   //プロジェクト情報
   useEffect(() => {
     const fetchUser = async () => {
-      const accounts_id = localStorage.getItem('user');
+
       try {
         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
-        console.log(data);
         const Id = data.id;
-        if(data.registration){
-          setFormData(prevState => ({
-            ...prevState,
-            registration: true
-          }));
+        if(Id){
+          setIdData(Id);
         }
-        setFormData(prevState => ({
-          ...prevState,
-          id: Id
-        }));
+        
+        if(data.registration){
+          setRegistrationData(true)
+        }
+        setFormData(prevFormData => ({ ...prevFormData, accounts_id: accounts_id }));
       } catch (error) {
         console.error('Error fetching holiday data:', error);
         setFormData(false);
+        setFormData(prevFormData => ({ ...prevFormData, accounts_id: accounts_id }));
       }
     };
     fetchUser();
@@ -69,13 +68,18 @@ const CostForm = (props) => {
   }, [props.item]);
 
   const onChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+  
+    // 更新可能なフィールドのみを更新する
+    if (name !== 'accounts_id' && name !== 'receipt_image' && name !== 'registration') {
+      setFormData(prevFormData => ({ ...prevFormData, [e.target.name]: value, accounts_id: accounts_id,id:idData,registration:registrationData }));
+    }
   };
+  
 
   const validateForm = () => {
     const newErrors = {};
     const numericRegex = /^[0-9]*$/; // 数字のみを許可する正規表現
-    const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/; // yyyy/mm/dd形式を許可する正規表現
 
     if (!formData.date) {
       newErrors.date = '日付を入力してください';
@@ -100,81 +104,8 @@ const CostForm = (props) => {
     });
   };
 
-  // //プロジェクト情報登録
-  // const submitFormAdd = async (e) => {
-  //   e.preventDefault();
-
-  //   const formErrors = validateForm();
-  //   if (Object.keys(formErrors).length > 0) {
-  //     setErrors(formErrors);
-  //     return;
-  //   }
-  //   console.log(formData.receipt_image);
-  //   if(formData.registration){
-  //     let confirmDelete = window.confirm('新しい経費を登録すると、再度承認が必要になります。新しく経費を登録しますか？');
-  //     if (confirmDelete) {
-  //       const data = {
-  //         accounts_id: accounts_id,
-  //         date: formData.date,
-  //         category: formData.category,
-  //         amount: formData.amount,
-  //         description: formData.description,
-  //         receipt_image: formData.receipt_image,
-  //         id: formData.id,
-  //         registration:formData.registration
-  //       };
-  //       try {
-  //         const response = await fetch('http://localhost:3000/api/expenses', {
-  //           method: 'POST',
-  //           headers: {
-  //             'Content-Type': 'application/json'
-  //           },
-  //           body: JSON.stringify(data)
-  //         });
-  //         if (response.ok) {
-  //           // alert('データを保存しました');
-  //           window.location.reload();
-  //         } else {
-  //           alert('経費の登録に失敗しました');
-  //         }
-  //       } catch (error) {
-  //         console.error('Error saving data:', error);
-  //         alert('経費の登録に失敗しました');
-  //       }
-  //     }
-  //   }else{
-  //     const data = {
-  //       accounts_id: accounts_id,
-  //       date: formData.date,
-  //       category: formData.category,
-  //       amount: formData.amount,
-  //       description: formData.description,
-  //       receipt_image: formData.receipt_image,
-  //       id: formData.id,
-  //       registration:formData.registration
-  //     };
-  //     try {
-  //       const response = await fetch('http://localhost:3000/api/expenses', {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json'
-  //         },
-  //         body: JSON.stringify(data)
-  //       });
-  //       if (response.ok) {
-  //         // alert('データを保存しました');
-  //         //window.location.reload();
-  //       } else {
-  //         alert('経費の登録に失敗しました');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error saving data:', error);
-  //       alert('経費の登録に失敗しました');
-  //     }
-  //   }
-  // };
-
   const submitFormAdd = (e) => {
+    console.log(formData);
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {

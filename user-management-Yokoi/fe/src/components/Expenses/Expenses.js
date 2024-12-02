@@ -10,7 +10,6 @@ const ExpensesPage = ( ) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [daysInMonth, setDaysInMonth] = useState([]);
-  const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0);
 
   const [expensesData, setExpensesData] = useState([]); //交通費データ
 
@@ -48,11 +47,6 @@ const ExpensesPage = ( ) => {
     total: 0,
     grand_total: 0
   }); //各項目の合計
-
-
-  const [totalExpenses, setTotalExpenses] = useState(0); //全ての合計
-
-
 
   //ユーザー情報を取得
   useEffect(() => {
@@ -140,9 +134,6 @@ const ExpensesPage = ( ) => {
 
     const workingDaysCount = days.length - holidaysAndWeekends.length;
 
-    // 土日祝日を引いた日数を状態に設定
-    setHolidaysAndWeekendsCount(workingDaysCount);
-
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
   }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks]); //monthが変更されるたびに実行する
@@ -196,7 +187,7 @@ const ExpensesPage = ( ) => {
       alert('データの保存に失敗しました');
     }
   };
-  
+
   const toggleEditing = (date) => {
     setEditingDestination(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
@@ -268,7 +259,6 @@ const ExpensesPage = ( ) => {
         grand_total: grand_totalTotal
       });
     };
-
     calculateTotals();
   }, [daysInMonth, findAttendanceRecord]);
 
@@ -282,19 +272,6 @@ const ExpensesPage = ( ) => {
     const stay = parseFloat(record.stay) || 0;
     return train + bus + tax + aircraft + other + stay;
   };
-
-  useEffect(() => {
-    const calculateGrandTotal = () => {
-      let total = 0;
-      expensesData.forEach(record => {
-        total += grandTotal(record);
-      });
-      setTotalExpenses(total);
-    };
-    calculateGrandTotal();
-  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
-
-
   
   //電車の編集
   const handleTrainChange = (newOption) => {
@@ -352,7 +329,6 @@ const ExpensesPage = ( ) => {
     }
   };
   
-
   const toggleEditing2 = (date) => {
     setEditingTrain(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
@@ -817,8 +793,7 @@ const formatRemarks = (remarks) => {
               <th className='expenses-remarks-column'></th>
             </tr>
           </thead>
-          <tbody id='at_tbody'>
-          {daysInMonth.map((date) => {
+          <tbody id='at_tbody'>{daysInMonth.map((date) => {
             const record = findAttendanceRecord(date);
             const isHoliday = holidays.some(holiday => holiday.toDateString() === date.toDateString());
             const dayClass = isWeekend(date) ? (date.getUTCDay() === 6 ? 'saturday' : 'sunday') : (isHoliday ? 'holiday' : '');
@@ -974,21 +949,21 @@ const formatRemarks = (remarks) => {
                   )}
                 </td>
               </tr>
-            );
-          })}
-          <tr>
-            <td colSpan="3">合計</td>
-            <td>{totals.train}</td>
-            <td>{totals.bus}</td>
-            <td>{totals.tax}</td>
-            <td>{totals.aircraft}</td>
-            <td>{totals.other}</td>
-            <td>{totals.total}</td>
-            <td>{totals.stay}</td>
-            <td>{totals.grand_total}</td>
-            <td></td>
-          </tr>
-        </tbody>
+              );
+            })}
+            <tr>
+              <td colSpan="3">合計</td>
+              <td>{totals.train}</td>
+              <td>{totals.bus}</td>
+              <td>{totals.tax}</td>
+              <td>{totals.aircraft}</td>
+              <td>{totals.other}</td>
+              <td>{totals.total}</td>
+              <td>{totals.stay}</td>
+              <td>{totals.grand_total}</td>
+              <td></td>
+            </tr>
+          </tbody>
         </table>
         <div id='grand_total_area'>合計金額 : <span id='grand_total_under'>&nbsp;&nbsp;&nbsp;{totals.grand_total} 円&nbsp;&nbsp;&nbsp;</span></div>
       </div>

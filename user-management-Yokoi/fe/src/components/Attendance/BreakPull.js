@@ -123,7 +123,6 @@ const options = [
   { value: '23:15', label: '23:15' },
   { value: '23:30', label: '23:30' },
   { value: '23:45', label: '23:45' },
-
 ];
 
 const customStyles = {
@@ -135,7 +134,6 @@ const customStyles = {
     ...provided,
     zIndex: 9999, // 必要に応じて調整
     width: '150px', // 必要に応じて横幅を調整
-    // maxHeight: '200px',
   }),
   menuPortal: (base) => ({
     ...base,

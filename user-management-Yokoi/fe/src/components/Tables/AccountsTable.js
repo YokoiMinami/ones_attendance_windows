@@ -16,13 +16,12 @@ class AccountsTable extends Component {
           id
         })
       })
-        .then(response => response.json())
-        .then(item => {
-          this.props.deleteItemFromState(id)
-        })
-        .catch(err => console.log(err));
+      .then(response => response.json())
+      .then(item => {
+        this.props.deleteItemFromState(id)
+      })
+      .catch(err => console.log(err));
     }
-
   }
 
   render() {
@@ -58,7 +57,6 @@ class AccountsTable extends Component {
         <tbody>{items}</tbody>
       </table>
     );
-    
   }
 }
 

@@ -14,12 +14,12 @@ const MemberTable = (props) => {
         },
         body: JSON.stringify({ id })
       })
-        .then(response => response.json())
-        .then(item => {
-          props.deleteItemFromState(id);
-          navigate('/member');
-        })
-        .catch(err => console.log(err));
+      .then(response => response.json())
+      .then(item => {
+        props.deleteItemFromState(id);
+        navigate('/member');
+      })
+      .catch(err => console.log(err));
     }
   }
 
