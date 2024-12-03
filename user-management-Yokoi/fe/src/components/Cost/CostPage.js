@@ -7,8 +7,6 @@ const CostPage = () => {
   const [userData, setUserData] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [items, setItems] = useState([]);
-  const [items2, setItems2] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [deleteImage, setdeleteImage] = useState([]);
   const [details, setDetails] = useState();
@@ -24,8 +22,6 @@ const CostPage = () => {
   const [president, setPresident] = useState('');
   const [remarks, setRemarks] = useState('');
   const [appText , setAppText ] = useState('');
-  const year2 = useState(new Date().getFullYear());
-  const month2 = useState(new Date().getMonth() + 1);
   const [day, setDay] = useState(new Date().getDate());
   const [showImage, setShowImage] = useState(false); //画像の表示、非表示
   const [expenses, setExpenses] = useState([]);
@@ -87,7 +83,6 @@ const CostPage = () => {
       try {
         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
-        setItems2(data);
         setProjectId(data.id);
         setDetails(data.details);
         setCompany(data.company);
@@ -113,7 +108,6 @@ const CostPage = () => {
         }
       } catch (error) {
         console.error('Error fetching holiday data:', error);
-        setItems2();
         setDetails();
         setCompany();
         setName();
@@ -138,10 +132,10 @@ const CostPage = () => {
     }
   };
 
-  const addItemToState = (item) => {
-    window.location.reload();
-    setItems(prevItems => [...prevItems, item]);
-  };
+  // const addItemToState = (item) => {
+  //   window.location.reload();
+  //   setItems(prevItems => [...prevItems, item]);
+  // };
 
   const validateForm = () => {
     const newErrors = {};
@@ -226,7 +220,7 @@ const CostPage = () => {
   };
   
   const deleteImages = async () => {
-    const deleteImagePromises = deleteImage.map(async (image) => {
+    deleteImage.map(async (image) => {
       if (image.length > 0) {
         const response = await fetch(`http://localhost:3000/uploads/${image}`, {
           method: 'DELETE',
@@ -243,7 +237,7 @@ const CostPage = () => {
   };
   
   const deleteSelectedItems = async () => {
-    const deleteItemPromises = selectedItems.map(async (itemId) => {
+    selectedItems.map(async (itemId) => {
       const response = await fetch('http://localhost:3000/cost_delete', {
         method: 'DELETE',
         headers: {
@@ -252,7 +246,7 @@ const CostPage = () => {
         body: JSON.stringify({ id: itemId }),
       });
       const result = await response.json();
-      setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+      //setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
       return result;
     });
   };
@@ -349,7 +343,8 @@ const CostPage = () => {
         <div id='cost_box1'> 
           <div id='cost_button_area'> 
             <button className='cost_button' onClick={putItems}>申請</button> 
-            <CostModal buttonLabel="登録" addItemToState={addItemToState} /> 
+            {/* <CostModal buttonLabel="登録" addItemToState={addItemToState} />  */}
+            <CostModal buttonLabel="登録"/> 
             <button className='cost_button' onClick={deleteItems}>削除</button> 
           </div> 
         </div> 

@@ -51,7 +51,7 @@ const MemberAttendanceTable = ( ) => {
     .then(response => response.json())
     .then(data => setUserData(data))
     .catch(err => console.log(err));
-  });
+  }, [id]);
 
   //ユーザーの勤怠情報を取得
   useEffect(() => {
@@ -68,7 +68,7 @@ const MemberAttendanceTable = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut,editingBreak, id]);
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut,editingBreak,id]);
 
   //勤怠情報の日付を修正
   useEffect(() => {
@@ -990,7 +990,7 @@ const MemberAttendanceTable = ( ) => {
       if (data.break_time) setBreakTime(data.break_time);
     })
     .catch(err => console.log(err));
-  });
+  }, [id]);
 
   const calculateWorkHours = (start, end) => {
     const startDate = new Date(`1970-01-01T${start}`);
@@ -1173,7 +1173,6 @@ const MemberAttendanceTable = ( ) => {
       const multipliedWorkHours = `${hours}:${minutes}`;
       //直近月予測勤務時間
       setWeekMonthAverage(multipliedWorkHours);
-      
       convertMinutesToTime(totalMinutes); 
     }else{
       //先週の1日平均勤務時間
@@ -1194,7 +1193,7 @@ const MemberAttendanceTable = ( ) => {
     })
     .then(response => response.json())
     .catch(err => console.log(err));
-  });
+  }, [id]);
 
 const holidays = getHolidaysInMonth(year, month);
 

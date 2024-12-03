@@ -5,8 +5,8 @@ import HolidayModal from './HolidayModal';
 const HolidayPage = () => {
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const year = useState(new Date().getFullYear());
+  const month = useState(new Date().getMonth() + 1);
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   

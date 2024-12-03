@@ -16,7 +16,6 @@ const options = [
 
 const CostForm = (props) => {
 
-  const accounts_id = localStorage.getItem('user');
   const [expenses, setExpenses] = useState([]);
   const year = useState(new Date().getFullYear());
   const month = useState(new Date().getMonth() + 1);
@@ -38,7 +37,6 @@ const CostForm = (props) => {
   //プロジェクト情報
   useEffect(() => {
     const fetchUser = async () => {
-
       try {
         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
@@ -66,6 +64,10 @@ const CostForm = (props) => {
       setFormData({ id, date, category, amount, description });
     }
   }, [props.item]);
+
+  // const onChange = (e) => {
+  //   setFormData({ ...formData, [e.target.name]: e.target.value });
+  // };
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -131,7 +133,7 @@ const CostForm = (props) => {
         });
       }
     }else{
-      let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
+      let confirmDelete = window.confirm('入力した内容で経費を登録しますか？');
       if(confirmDelete){
         const data = new FormData();
         for (const key in formData) {

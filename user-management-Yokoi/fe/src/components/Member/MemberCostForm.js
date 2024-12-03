@@ -33,9 +33,8 @@ const MemberCostForm = (props) => {
   //プロジェクト情報
   useEffect(() => {
     const fetchUser = async () => {
-    const accounts_id = id;
     try {
-      const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+      const response = await fetch(`http://localhost:3000/projects/${id}/${year}/${month}`);
       const data = await response.json();
       
       setprojectId(data.id);
@@ -45,7 +44,7 @@ const MemberCostForm = (props) => {
     }
     };
     fetchUser();
-  }, [year, month]);
+  }, [year, month, id]);
 
   const validateForm = () => {
     const newErrors = {};

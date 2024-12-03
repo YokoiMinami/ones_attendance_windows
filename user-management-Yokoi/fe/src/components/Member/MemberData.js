@@ -8,21 +8,25 @@ const MemberData = () => {
   const [items, setItems] = useState({});
   const { id } = useParams();
 
-  const getItems = () => {
-    fetch(`http://localhost:3000/user/${id}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data) {
-        setItems(data);
-        if (data.authority === true) {
-          setAuthorityData(true);
+  useEffect(() => {
+    const getItems = () => {
+      fetch(`http://localhost:3000/user/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data) {
+          setItems(data);
+          if (data.authority === true) {
+            setAuthorityData(true);
+          }
+        } else {
+          console.error('Expected an array but got:', data);
         }
-      } else {
-        console.error('Expected an array but got:', data);
-      }
-    })
-    .catch(err => console.log(err));
-  };
+      })
+      .catch(err => console.log(err));
+    };
+  
+    getItems();
+  }, [id]); 
 
   const updateState = (item) => {
     setItems({
@@ -35,10 +39,6 @@ const MemberData = () => {
     const { [id]: _, ...newItems } = items;
     setItems(newItems);
   };
-
-  useEffect(() => {
-    getItems();
-  }, []);
 
   return (
     <div id='member_data_page'>

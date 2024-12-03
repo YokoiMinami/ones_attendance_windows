@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 
 const TopButton = () => {
   //ユーザー情報
   const id = localStorage.getItem('user');
-  const [userData, setUserData] = useState(null);
-
   const [authorityData, setAuthorityData] = useState(false);
 
   useEffect(() => {
@@ -18,7 +16,6 @@ const TopButton = () => {
     })
     .then(response => response.json())
     .then(data => {
-      setUserData(data);
       if (data.authority === true) {
         setAuthorityData(true);
       }

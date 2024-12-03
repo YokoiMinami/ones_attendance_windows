@@ -133,7 +133,7 @@ const Member = () => {
     filteredItems.forEach(item => {
       fetchAttendanceData(item.id);
     });
-  }, [filteredItems]);
+  }, [filteredItems, date]);
 
   //各メンバーの経費申請状況を取得
   useEffect(() => {
@@ -167,7 +167,7 @@ const Member = () => {
     filteredItems.forEach(item => {
       fetchCostData(item.id);
     });
-  }, [filteredItems]);
+  }, [filteredItems, month, year]);
 
 
   useEffect(() => {
@@ -252,7 +252,7 @@ const Member = () => {
     };
   
     fetchAllTotalHours();
-  }, [filteredItems]);
+  }, [filteredItems, holidaysAndWeekendsCount, lastMonday, lastSunday, month, year]);
   
 
   const deleteItems = () => {

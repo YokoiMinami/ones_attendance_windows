@@ -6,9 +6,7 @@ const PassForm = (props) => {
     const [name, setName] = useState('');
     const [pass, setPass] = useState('');
     const [errors, setErrors] = useState({});
-    const [state, setState] = useState({
-      id: 1,
-    });
+    const state = useState({id: 1,});
 
   //ユーザー情報
   useEffect(() => {
@@ -22,7 +20,7 @@ const PassForm = (props) => {
       }
     };
     fetchUser();
-  }, []);
+  }, [id]);
 
   const validateForm = () => {
     const newErrors = {};

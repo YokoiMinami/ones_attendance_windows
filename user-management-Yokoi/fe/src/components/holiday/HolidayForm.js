@@ -2,24 +2,24 @@ import React, { useState, useEffect } from 'react';
 
 const HolidayForm = (props) => {
 
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [day, setDay] = useState('');
+  const year = useState(new Date().getFullYear());
+  const month = useState(new Date().getMonth() + 1);
+  const day = useState('');
   const [input_date, setInputDate] = useState('');
   const [weekday, setWeekday] = useState('');
 
-  const calculateWeekday = () => {
-    const date = new Date(year, month - 1, day);
-    const days = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
-    setWeekday(days[date.getDay()]);
-  };
-
-  // 年、月、日が変更されたときに曜日を計算
   useEffect(() => {
+    const calculateWeekday = () => {
+      const date = new Date(year, month - 1, day);
+      const days = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+      setWeekday(days[date.getDay()]);
+    };
+  
     if (input_date) {
       calculateWeekday();
     }
-  }, [input_date]);
+  }, [input_date, year, month, day]); // 依存配列に必要な依存関係を追加
+  
 
   const submitFormAdd = async (e) => {
     e.preventDefault();

@@ -44,14 +44,10 @@ const AttendanceTablePage = ( ) => {
   const [editingRemarks2, setEditingRemarks2] = useState({}); //出勤備考の編集モードを管理するステート
   const [editingOutRemarks, setEditingOutRemarks] = useState({}); // 退勤特記の編集モードを管理するステート
   const [editingOutRemarks2, setEditingOutRemarks2] = useState({}); //退勤備考の編集モードを管理するステート
-  const [remarks1, setRemarks1] = useState(''); 
   const [remarks2, setRemarks2] = useState(''); 
-  const [out_set_remarks1, setOutRemarks1] = useState(''); 
   const [out_set_remarks2, setOutRemarks2] = useState(''); 
   const [expensesData, setExpensesData] = useState([]); //交通費データ
   const [holidayData, setHolidayData] = useState([]); //代休データ
-  const [items, setItems] = useState([]); //プロジェクト情報
-  const [items2, setItems2] = useState([]); //標準勤務時間情報
   const [expenses, setExpenses] = useState([]); //経費データ
 
   const navigate = useNavigate();
@@ -96,7 +92,7 @@ const AttendanceTablePage = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year, month, editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]);
+  }, [year, month, editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, accounts_id]);
 
   //勤怠情報の日付を修正
   useEffect(() => {
@@ -127,11 +123,12 @@ const AttendanceTablePage = ( ) => {
       });
       setFormattedAttendanceData(formattedAttendanceData);
     }
-  }, [userWorkHours]);
+  }, [userWorkHours, attendanceData]);
   
   //ユーザーの交通費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
+      const accounts_id = localStorage.getItem('user');
       try {
         const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${year}/${month}`);
         const data = await response.json();
@@ -158,11 +155,12 @@ const AttendanceTablePage = ( ) => {
       }
     };
     fetchHoliday();
-  }, [year, month]);
+  }, [year, month, accounts_id]);
 
 //プロジェクト情報
 useEffect(() => {
   const fetchUser = async () => {
+    const accounts_id = localStorage.getItem('user');
     try {
       const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
       const data = await response.json();
@@ -194,6 +192,7 @@ useEffect(() => {
   //ユーザーの経費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
+      const accounts_id = localStorage.getItem('user');
       try {
         const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
         const data = await response.json();
@@ -205,15 +204,15 @@ useEffect(() => {
     fetchExpenses();
   }, [year, month]);
 
-  const addItemToState = (item) => {
-    window.location.reload();
-    setItems(prevItems => [...prevItems, item]);
-  };
+  // const addItemToState = (item) => {
+  //   window.location.reload();
+  //   setItems(prevItems => [...prevItems, item]);
+  // };
 
-  const addItemToState2 = (item) => {
-    window.location.reload();
-    setItems2(prevItems => [...prevItems, item]);
-  };
+  // const addItemToState2 = (item) => {
+  //   window.location.reload();
+  //   setItems2(prevItems => [...prevItems, item]);
+  // };
 
   //土日を判定
   const isWeekend = (date) => {
@@ -286,7 +285,6 @@ useEffect(() => {
 
   //出勤特記の編集
   const handleRemarksChange1 = async (date, newOption) => {
-    setRemarks1(newOption);
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
@@ -331,7 +329,6 @@ useEffect(() => {
 
   //退勤特記の編集
   const handleOutRemarksChange1 = async (date, newOption) => {
-    setOutRemarks1(newOption);
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
@@ -512,7 +509,7 @@ useEffect(() => {
       if (data.break_time) setBreakTime(data.break_time);
     })
     .catch(err => console.log(err));
-  }, [id]);
+  }, [accounts_id]);
 
   const calculateWorkHours = (start, end) => {
     const startDate = new Date(`1970-01-01T${start}`);
@@ -577,7 +574,7 @@ useEffect(() => {
       //一か月の規定勤務時間
       setProvisions(multipliedWorkHours);
     }
-  }, [startTime, endTime, breakTime, workHours, userWorkHours, month, year]);
+  }, [startTime, endTime, breakTime, workHours, userWorkHours, month, year, holidaysAndWeekendsCount, work_hours]);
 
   useEffect(() => {
 
@@ -633,7 +630,7 @@ useEffect(() => {
       setMonthAverage('00:00');
       setIsOvertime(false);
     }
-  },[formattedAttendanceData]);
+  },[formattedAttendanceData, holidaysAndWeekendsCount, userWorkHours]);
 
   useEffect(() => {
     const today = new Date();
@@ -697,8 +694,7 @@ useEffect(() => {
       const multipliedWorkHours = `${hours}:${minutes}`;
       //直近月予測勤務時間
       setWeekMonthAverage(multipliedWorkHours);
-      
-      const totalWorkHoursTime = convertMinutesToTime(totalMinutes); 
+      convertMinutesToTime(totalMinutes); 
     }else{
       //先週の1日平均勤務時間
       setWeekAverage('00:00');
@@ -706,7 +702,7 @@ useEffect(() => {
       setWeekMonthAverage('00:00');
       setIsOvertime2(false);
     }
-  }, [formattedAttendanceData]);
+  }, [formattedAttendanceData, holidaysAndWeekendsCount]);
 
   const exportToExcel = async () => {
 
@@ -1550,7 +1546,8 @@ useEffect(() => {
             <button className='all_button' id='excel_button' onClick={exportToExcel}>Excel 出力</button>
           </div>
           <div id='user_button_area'>
-            <UserModal buttonLabel="PJ情報登録" addItemToState={addItemToState} />
+            {/* <UserModal buttonLabel="PJ情報登録" addItemToState={addItemToState} /> */}
+            <UserModal buttonLabel="PJ情報登録"/>
           </div>
           <div id='expenses_button_area'>
             <button className='all_button' onClick={expensesClick}>交通費精算</button>
@@ -1562,7 +1559,8 @@ useEffect(() => {
             <button className='all_button' onClick={holidayClick}>代休未消化</button>
           </div>
           <div id='time_button_area'>
-            <TimeModal buttonLabel="標準勤務時間" addItemToState={addItemToState2} />
+            {/* <TimeModal buttonLabel="標準勤務時間" addItemToState={addItemToState2} /> */}
+            <TimeModal buttonLabel="標準勤務時間"/>
           </div>
         </div>
       </div>
