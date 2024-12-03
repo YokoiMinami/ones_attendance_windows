@@ -1,7 +1,6 @@
 import React, { useEffect, useState,useRef } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link } from 'react-router-dom';
-import { useCallback } from 'react';
 
 const ExpensesPage = ( ) => {
 
@@ -11,6 +10,7 @@ const ExpensesPage = ( ) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [daysInMonth, setDaysInMonth] = useState([]);
+  const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0);
 
   const [expensesData, setExpensesData] = useState([]); //交通費データ
 
@@ -48,6 +48,8 @@ const ExpensesPage = ( ) => {
     total: 0,
     grand_total: 0
   }); //各項目の合計
+
+  const [totalExpenses, setTotalExpenses] = useState(0); //全ての合計
 
   //ユーザー情報を取得
   useEffect(() => {
@@ -93,13 +95,17 @@ const ExpensesPage = ( ) => {
 
 
   // 交通費情報を検索する関数
-  const findAttendanceRecord = useCallback((date) => {
-    const formattedDate = date.toLocaleDateString('en-CA');
+  const findAttendanceRecord = (date) => {
+    // dateオブジェクトをローカルタイムゾーンのYYYY-MM-DD形式に変換
+    const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA'はYYYY-MM-DD形式を返す
+    // attendanceData配列内の各recordを検索し、条件に一致する最初の要素を返す
     return expensesData.find(record => {
+      // record.dateを日付オブジェクトに変換し、ローカルタイムゾーンの日付部分を取得
       const recordDate = new Date(record.date).toLocaleDateString('en-CA');
+      // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
       return recordDate === formattedDate;
-    }) || { date: formattedDate, destination: '', train:'' };
-  }, [expensesData]);
+    })|| { date: formattedDate, destination: '', train:'' }; // デフォルトの空の特記を返す;
+  };
 
   //表を出力
   //特定の月の日付を取得し、それをReactの状態に設定する
@@ -122,6 +128,17 @@ const ExpensesPage = ( ) => {
 
     //getDaysInMonth関数を使用して、現在の年と指定された月のすべての日付を取得します。JavaScriptの月は0から始まるため、month - 1
     const days = getDaysInMonth(year, month - 1);
+    const weekends = days.filter(isWeekend);
+    const holidays = getHolidaysInMonth(year, month);
+
+    // 祝日が土日に含まれる場合、その日数を除外
+    const uniqueHolidays = holidays.filter(holiday => !weekends.some(weekend => weekend.getTime() === holiday.getTime()));
+    const holidaysAndWeekends = [...weekends, ...uniqueHolidays].sort((a, b) => a - b);
+
+    const workingDaysCount = days.length - holidaysAndWeekends.length;
+
+    // 土日祝日を引いた日数を状態に設定
+    setHolidaysAndWeekendsCount(workingDaysCount);
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
@@ -201,8 +218,9 @@ const ExpensesPage = ( ) => {
 
   useEffect(() => {
     const calculateTotalExpenses = async () => {
+      let total = 0;
       expensesData.forEach(record => {
-        calculateTotal(record);
+        total += calculateTotal(record);
       });
     };
     calculateTotalExpenses();
@@ -263,9 +281,11 @@ const ExpensesPage = ( ) => {
 
   useEffect(() => {
     const calculateGrandTotal = () => {
+      let total = 0;
       expensesData.forEach(record => {
-        grandTotal(record);
+        total += grandTotal(record);
       });
+      setTotalExpenses(total);
     };
     calculateGrandTotal();
   }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);

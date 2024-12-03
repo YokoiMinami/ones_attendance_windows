@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
 const UserForm = (props) => {
+  const [items, setItems] = useState([]); //プロジェクト情報
   const [projects, setProjects] = useState('');
   const [details, setDetails] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
+  const [date, setDate] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const currentDate = `${year}-${month}`;
@@ -16,16 +18,20 @@ const UserForm = (props) => {
       try {
         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
+        setItems(data);
         setProjects(data.project);
         setDetails(data.details);
         setCompany(data.company);
         setName(data.name);
+        setDate(data.create_date);
       } catch (error) {
         console.error('Error fetching holiday data:', error);
+        setItems();
         setProjects('');
         setDetails('');
         setCompany('');
         setName('');
+        setDate('');
       }
     };
     fetchUser();

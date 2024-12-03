@@ -8,6 +8,7 @@ import { startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 const Member = () => {
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
+  const [authorityData, setAuthorityData] = useState(false);
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,9 +20,10 @@ const Member = () => {
   const [weekMonthAverage, setWeekMonthAverage] = useState(0); //直近の月平均勤務時間
   const [isOvertime, setIsOvertime] = useState(false); //月予測勤務時間が規定を超えるか
   const [isOvertime2, setIsOvertime2] = useState(false); //直近予測勤務時間が規定を超えるか
-  const year = useState(new Date().getFullYear());
-  const month = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0); //今月の規定勤務日数
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
@@ -33,6 +35,9 @@ const Member = () => {
     .then(response => response.json())
     .then(data => {
       setUserData(data);
+      if (data.authority === true) {
+        setAuthorityData(true);
+      }
     })
     .catch(err => console.log(err));
   }, [id]);
@@ -59,10 +64,15 @@ const Member = () => {
   lastMonday.setHours(0, 0, 0, 0);
   lastSunday.setHours(23, 59, 59, 999);
 
+  // 先週の月を取得  
+  const lastMondayMonth = lastMonday.getMonth() + 1; 
+  const lastSundayMonth = lastSunday.getMonth() + 1; 
+
   const year2 = now.getFullYear();
   const month2 = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
   const day = String(now.getDate()).padStart(2, '0'); // 日付
   const date = `${year2}-${month2}-${day}`;
+  const date2 = `${year2}/${month2}`;
 
   //土日を判定
   const isWeekend = (date) => {
@@ -133,7 +143,7 @@ const Member = () => {
     filteredItems.forEach(item => {
       fetchAttendanceData(item.id);
     });
-  }, [filteredItems, date]);
+  }, [filteredItems]);
 
   //各メンバーの経費申請状況を取得
   useEffect(() => {
@@ -167,7 +177,7 @@ const Member = () => {
     filteredItems.forEach(item => {
       fetchCostData(item.id);
     });
-  }, [filteredItems, month, year]);
+  }, [filteredItems]);
 
 
   useEffect(() => {
@@ -243,6 +253,7 @@ const Member = () => {
         }
       } catch (error) {
         console.error('Error fetching total hours:', error);
+        setError(error.message);
       }
     };
   
@@ -252,7 +263,7 @@ const Member = () => {
     };
   
     fetchAllTotalHours();
-  }, [filteredItems, holidaysAndWeekendsCount, lastMonday, lastSunday, month, year]);
+  }, [filteredItems]);
   
 
   const deleteItems = () => {

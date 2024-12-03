@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, FormGroup } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import { TextField, Autocomplete } from '@mui/material';
 import axios from 'axios';
 
@@ -16,9 +16,10 @@ const options = [
 
 const CostForm = (props) => {
 
+  const accounts_id = localStorage.getItem('user');
   const [expenses, setExpenses] = useState([]);
-  const year = useState(new Date().getFullYear());
-  const month = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [registrationData, setRegistrationData] = useState(false);
   const [idData, setIdData] = useState('');
   const [formData, setFormData] = useState({
@@ -37,6 +38,7 @@ const CostForm = (props) => {
   //プロジェクト情報
   useEffect(() => {
     const fetchUser = async () => {
+      const accounts_id = localStorage.getItem('user');
       try {
         const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
         const data = await response.json();
@@ -71,6 +73,7 @@ const CostForm = (props) => {
 
   const onChange = (e) => {
     const { name, value } = e.target;
+    const accounts_id = localStorage.getItem('user');
   
     // 更新可能なフィールドのみを更新する
     if (name !== 'accounts_id' && name !== 'receipt_image' && name !== 'registration') {
