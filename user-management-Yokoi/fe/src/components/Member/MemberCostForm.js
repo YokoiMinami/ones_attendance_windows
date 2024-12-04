@@ -10,10 +10,8 @@ const MemberCostForm = (props) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [projectId, setprojectId] = useState();
-  const [year2, setYear2] = useState(new Date().getFullYear());
-  const [month2, setMonth2] = useState(new Date().getMonth() + 1);
-  const [day, setDay] = useState(new Date().getDate());
-  const currentDate2 = `${year2}/${month2}/${day}`;
+  const today = new Date();
+  const currentDate2 = `${today.getFullYear()}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}`;
   const [errors, setErrors] = useState({});
   const [expenses, setExpenses] = useState([]);
 

@@ -8,18 +8,10 @@ const MemberCost = () => {
   const [appUserData, setAppUserData] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [items, setItems] = useState([]);
-  const [items2, setItems2] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [deleteImage, setdeleteImage] = useState([]);
   const [details, setDetails] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
-  const [date, setDate] = useState('');
   const [appDay, setAppDay] = useState('');
-  const [appFlag , setAppFlag ] = useState('');
-  const [registration, setRegistration] = useState('');
-  const [registrationDate, setregistrationDate] = useState('');
   const [approver, setApprover] = useState('');
   const [president, setPresident] = useState('');
   const [remarks, setRemarks] = useState('');
@@ -37,9 +29,8 @@ const MemberCost = () => {
   //ユーザーの経費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
-      const accounts_id = id;
       try {
-        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
+        const response = await fetch(`http://localhost:3000/api/expenses2/${id}/${year}/${month}`);
         const data = await response.json();
         setExpenses(data)
       } catch (error) {
@@ -47,7 +38,7 @@ const MemberCost = () => {
       }
     };
     fetchExpenses();
-  }, [year, month]);
+  }, [year, month, id]);
 
   const toggleImage = (filePath, index) => { 
     setShowImage(prevShowImage => ({ 
@@ -97,20 +88,14 @@ const MemberCost = () => {
   //プロジェクト情報
   useEffect(() => {
     const fetchUser = async () => {
-      const accounts_id = id;
       try {
-        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+        const response = await fetch(`http://localhost:3000/projects/${id}/${year}/${month}`);
         const data = await response.json();
-        setItems2(data);
         setProjectId(data.id);
         setDetails(data.details);
         setCompany(data.company);
         setName(data.name);
-        setDate(data.create_date);
         setAppDay(data.create_day);
-        setAppFlag(data.app_flag);
-        setRegistration(data.registration);
-        setregistrationDate(data.registration_date);
         setApprover(data.approver);
         setPresident(data.president);
         setRemarks(data.remarks);
@@ -132,15 +117,10 @@ const MemberCost = () => {
         }
       } catch (error) {
         console.error('Error fetching holiday data:', error);
-        setItems2();
         setDetails();
         setCompany();
         setName();
-        setDate();
         setAppDay();
-        setAppFlag();
-        setRegistration();
-        setregistrationDate();
         setApprover();
         setPresident();
         setRemarks();
@@ -148,21 +128,7 @@ const MemberCost = () => {
       }
     };
     fetchUser();
-  }, [year, month]);
-
-  const handleCheckboxChange = (event, itemId, itemUrl) => {
-    if (event.target.checked) {
-      setSelectedItems(prevSelected => [...prevSelected, itemId]);
-      setdeleteImage(prevSelected => [...prevSelected, itemUrl]);
-    } else {
-      setSelectedItems(prevSelected => prevSelected.filter(id => id !== itemId));
-    }
-  };
-
-  const addItemToState = (item) => {
-    window.location.reload();
-    setItems(prevItems => [...prevItems, item]);
-  };
+  }, [year, month, id]);
 
   //経費承認取り消し
   const putItems = async (e) => {
@@ -274,7 +240,7 @@ const MemberCost = () => {
         <div className='cost_flex'> 
           <div id='cost_box1'> 
             <div id='cost_button_area'> 
-              <MemberCostModal buttonLabel="承認" addItemToState={addItemToState} />
+              <MemberCostModal buttonLabel="承認"/>
               <button className='cost_button' onClick={putItems}>承認取消</button>  
             </div> 
           </div> 
@@ -320,9 +286,7 @@ const MemberCost = () => {
               const filePath = encodedFileName ? `http://localhost:3000/uploads/${encodedFileName}` : null;
               return ( 
                 <tr key={item.id}> 
-                  <td className='cost_empty' style={{ textAlign: 'center' }}> 
-                    <input type="checkbox" onChange={(event) => handleCheckboxChange(event, item.id, item.receipt_url)} /> 
-                  </td> 
+                  <td className='cost_empty'></td> 
                   <td className='cost_empty'>{formatDate(item.date)}</td> 
                   <td className='cost_empty'>{item.category}</td> 
                   <td className='cost_empty'>{item.description}</td> 
