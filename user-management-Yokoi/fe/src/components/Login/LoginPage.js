@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import OnesLogo from '../../images/ones-logo.png';
+import { loginUser } from '../../apiCall/apis';
+import { LOGIN_ERROR_MESSAGE, GENERAL_ERROR_MESSAGE } from '../../constants/messages';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,23 +12,38 @@ function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   fetch('http://localhost:3000/login', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ email, password })
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     if (data.token) {
+  //       login(data.token, data.user); // トークンを保存し
+  //       navigate('/'); // トップページにリダイレクト
+  //     } else {
+  //       setMessage('ログイン情報が違います');
+  //     }
+  //   })
+  //   .catch(err => setMessage('Error logging in'));
+  // };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    fetch('http://localhost:3000/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+      const data = await loginUser(email, password);
       if (data.token) {
-        login(data.token, data.user); // トークンを保存し
-        navigate('/'); // トップページにリダイレクト
+        login(data.token, data.user); 
+        navigate('/'); 
       } else {
-        setMessage('ログイン情報が違います');
+        setMessage(LOGIN_ERROR_MESSAGE);
       }
-    })
-    .catch(err => setMessage('Error logging in'));
+    } catch (err) {
+      setMessage(GENERAL_ERROR_MESSAGE);
+    }
   };
 
   return (

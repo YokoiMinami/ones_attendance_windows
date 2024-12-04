@@ -102,10 +102,12 @@ const loginData = async (req, res, db) => {
         const token = jwt.sign({ id: item.id }, secretKey, { expiresIn: '1h' });
         res.json({ token, user });
       } else {
-        res.status(400).json({ error: 'Invalid credentials' });
+        //res.status(400).json({ error: 'Invalid credentials' });
+        res.json({});
       }
     } else {
-      res.status(400).json({ error: 'User not found' });
+      //res.status(400).json({ error: 'User not found' });
+      res.json({});
     }
   } catch (err) {
     console.error(err);
