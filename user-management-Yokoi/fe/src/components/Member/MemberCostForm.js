@@ -7,14 +7,15 @@ const MemberCostForm = (props) => {
   const [approver, setApprover] = useState('');
   const [president, setPresident] = useState('');
   const [remarks, setRemarks] = useState('');
-  const year = useState(new Date().getFullYear());
-  const month = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [projectId, setprojectId] = useState();
-  const year2 = useState(new Date().getFullYear());
-  const month2 = useState(new Date().getMonth() + 1);
-  const day = useState(new Date().getDate());
+  const [year2, setYear2] = useState(new Date().getFullYear());
+  const [month2, setMonth2] = useState(new Date().getMonth() + 1);
+  const [day, setDay] = useState(new Date().getDate());
   const currentDate2 = `${year2}/${month2}/${day}`;
   const [errors, setErrors] = useState({});
+  const [expenses, setExpenses] = useState([]);
 
   // ユーザー情報を取得
   useEffect(() => {
@@ -36,7 +37,7 @@ const MemberCostForm = (props) => {
     try {
       const response = await fetch(`http://localhost:3000/projects/${id}/${year}/${month}`);
       const data = await response.json();
-      
+      console.log(data);
       setprojectId(data.id);
     } catch (error) {
       console.error('Error fetching holiday data:', error);
@@ -46,24 +47,40 @@ const MemberCostForm = (props) => {
     fetchUser();
   }, [year, month, id]);
 
+  //ユーザーの経費情報を取得
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      const accounts_id = id;
+      try {
+        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
+        const data = await response.json();
+        setExpenses(data)
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+      }
+    };
+    fetchExpenses();
+  }, [year, month, id]);
+
   const validateForm = () => {
     const newErrors = {};
-    if (!approver) {
-    newErrors.approver = '承認者を入力してください';
-    } 
-    if (!president) {
-      newErrors.president = '社長名を入力してください';
-      } 
+    if (!approver) { newErrors.approver = '承認者を入力してください'; } 
+    if (!president) { newErrors.president = '社長名を入力してください'; } 
     return newErrors;
   };
 
-  //プロジェクト情報登録
+  //経費承認
   const submitFormAdd = async (e) => {
     e.preventDefault();
 
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
+      return;
+    }
+
+    if (!expenses.length) {
+      alert('承認月は経費が登録されていません');
       return;
     }
 
@@ -98,6 +115,10 @@ const MemberCostForm = (props) => {
 
   return (
     <div>
+      <div id='cost_ym'> 
+        <input id='at_year2' type="number" value={year} onChange={(e) => setYear(e.target.value)} /> /
+        <input id='at_month2' type="number" value={month} onChange={(e) => setMonth(e.target.value)} min="1" max="12" /> 
+      </div> 
       <form onSubmit={submitFormAdd}>
         <div id='member_cost_area'>
           <div className='member_cost_box'>

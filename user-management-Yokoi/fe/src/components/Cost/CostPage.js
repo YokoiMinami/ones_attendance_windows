@@ -168,6 +168,11 @@ const CostPage = () => {
       setErrors(formErrors);
       return;
     }
+
+    if (!total) {
+      alert('経費を登録してください');
+      return;
+    }
     
     let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
     if (confirmDelete) {

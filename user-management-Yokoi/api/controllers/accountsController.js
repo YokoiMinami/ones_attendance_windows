@@ -535,16 +535,16 @@ const appDelete = async (req, res, db) => {
 
 const projectsFlag = async (req, res, db) => {
   const { id, registration, registration_date, approver, president, remarks} = req.body;
-  try {
-    const projectUser = await db('projectdata').where({ id }).first();
-    if(projectUser) {
-      await db('projectdata').where({ id }).update({ registration:registration, registration_date:registration_date, approver:approver, president:president, remarks:remarks, app_flag:false });
-    } else {
-      res.status(404).send('保存データが見つかりません。');
-    }
-  } catch (error) {
-    console.error('Error fetching check-in time:', error);
-    res.status(500).send('サーバーエラー');
+  const projectUser = await db('projectdata').where({ id }).first();
+  if(projectUser){
+    await db('projectdata').where({ id }).update({ registration:registration, registration_date:registration_date, approver:approver, president:president, remarks:remarks, app_flag:false })
+    .returning('*')
+    .then(item => {
+      res.json(item);
+    })
+    .catch(err => res.status(400).json({
+      dbError: 'error'
+    }));
   }
 }
 
