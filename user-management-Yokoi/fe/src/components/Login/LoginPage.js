@@ -12,25 +12,6 @@ function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   fetch('http://localhost:3000/login', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ email, password })
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     if (data.token) {
-  //       login(data.token, data.user); // トークンを保存し
-  //       navigate('/'); // トップページにリダイレクト
-  //     } else {
-  //       setMessage('ログイン情報が違います');
-  //     }
-  //   })
-  //   .catch(err => setMessage('Error logging in'));
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
