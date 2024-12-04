@@ -1183,18 +1183,6 @@ const MemberAttendanceTable = ( ) => {
     }
   }, [formattedAttendanceData, holidaysAndWeekendsCount, ]);
 
-  useEffect(() => {
-    const accounts_id = id;
-    fetch(`http://localhost:3000/projects/${accounts_id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .catch(err => console.log(err));
-  }, [id]);
-
 const holidays = getHolidaysInMonth(year, month);
 
   return (

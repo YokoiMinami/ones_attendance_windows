@@ -8,7 +8,6 @@ import { startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 const Member = () => {
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
-  const [authorityData, setAuthorityData] = useState(false);
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,10 +19,10 @@ const Member = () => {
   const [weekMonthAverage, setWeekMonthAverage] = useState(0); //直近の月平均勤務時間
   const [isOvertime, setIsOvertime] = useState(false); //月予測勤務時間が規定を超えるか
   const [isOvertime2, setIsOvertime2] = useState(false); //直近予測勤務時間が規定を超えるか
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
   const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0); //今月の規定勤務日数
-  const [error, setError] = useState(null);
   
   useEffect(() => {
     fetch(`http://localhost:3000/user/${id}`, {
@@ -35,9 +34,6 @@ const Member = () => {
     .then(response => response.json())
     .then(data => {
       setUserData(data);
-      if (data.authority === true) {
-        setAuthorityData(true);
-      }
     })
     .catch(err => console.log(err));
   }, [id]);
@@ -64,15 +60,10 @@ const Member = () => {
   lastMonday.setHours(0, 0, 0, 0);
   lastSunday.setHours(23, 59, 59, 999);
 
-  // 先週の月を取得  
-  const lastMondayMonth = lastMonday.getMonth() + 1; 
-  const lastSundayMonth = lastSunday.getMonth() + 1; 
-
   const year2 = now.getFullYear();
   const month2 = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
   const day = String(now.getDate()).padStart(2, '0'); // 日付
   const date = `${year2}-${month2}-${day}`;
-  const date2 = `${year2}/${month2}`;
 
   //土日を判定
   const isWeekend = (date) => {
@@ -143,7 +134,7 @@ const Member = () => {
     filteredItems.forEach(item => {
       fetchAttendanceData(item.id);
     });
-  }, [filteredItems]);
+  }, [filteredItems, date]);
 
   //各メンバーの経費申請状況を取得
   useEffect(() => {
@@ -177,8 +168,7 @@ const Member = () => {
     filteredItems.forEach(item => {
       fetchCostData(item.id);
     });
-  }, [filteredItems]);
-
+  }, [filteredItems, month, year]);
 
   useEffect(() => {
     const formattedMonth = month.toString().padStart(2, '0');
@@ -187,7 +177,6 @@ const Member = () => {
       try {
         const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${formattedMonth}/${lastMonday}/${lastSunday}`);
         const data = await response.json();
-        console.log(data);
         const monthAverage = data.average_time_per_day;
         const weekAverage = data.week_average_time_per_day;
         if (monthAverage) {
@@ -196,16 +185,16 @@ const Member = () => {
           const multipliedWorkHoursInMinutes2 = weekAverage * holidaysAndWeekendsCount;
           
           // 月の残業判定
-          setIsOvertime(prevState => ({
-            ...prevState,
-            [accounts_id]: multipliedWorkHoursInMinutes > 12000
-          }));
+          setIsOvertime(prevState => {
+            const newState = { ...prevState, [accounts_id]: multipliedWorkHoursInMinutes > 12000 };
+            return JSON.stringify(prevState) !== JSON.stringify(newState) ? newState : prevState;
+          });
 
           // 週の残業判定
-          setIsOvertime2(prevState => ({
-            ...prevState,
-            [accounts_id]: multipliedWorkHoursInMinutes2 > 12000
-          }));
+          setIsOvertime2(prevState => {
+            const newState = { ...prevState, [accounts_id]: multipliedWorkHoursInMinutes2 > 12000 };
+            return JSON.stringify(prevState) !== JSON.stringify(newState) ? newState : prevState;
+          });
 
           // 月予測勤務時間をhh:mm形式に変換
           const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
@@ -218,42 +207,41 @@ const Member = () => {
           const multipliedWorkHours2 = `${hours2}:${minutes2}`;
 
           if (response.ok) {
-            setTotalHours(prevData => ({
-              ...prevData,
-              [accounts_id]: data.total_hours
-            }));
-            setMonthAverage(prevData => ({
-              ...prevData,
-              [accounts_id]: multipliedWorkHours
-            }));
-            setWeekMonthAverage(prevData => ({
-              ...prevData,
-              [accounts_id]: multipliedWorkHours2
-            }));
+            setTotalHours(prevData => {
+              const newState = { ...prevData, [accounts_id]: data.total_hours };
+              return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
+            });
+            setMonthAverage(prevData => {
+              const newState = { ...prevData, [accounts_id]: multipliedWorkHours };
+              return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
+            });
+            setWeekMonthAverage(prevData => {
+              const newState = { ...prevData, [accounts_id]: multipliedWorkHours2 };
+              return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
+            });
           } else {
             throw new Error(data.error);
           }
         } else {
           if (response.ok) {
-            setTotalHours(prevData => ({
-              ...prevData,
-              [accounts_id]: data.total_hours
-            }));
-            setMonthAverage(prevData => ({
-              ...prevData,
-              [accounts_id]: ''
-            }));
-            setWeekMonthAverage(prevData => ({
-              ...prevData,
-              [accounts_id]: ''
-            }));
+            setTotalHours(prevData => {
+              const newState = { ...prevData, [accounts_id]: data.total_hours };
+              return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
+            });
+            setMonthAverage(prevData => {
+              const newState = { ...prevData, [accounts_id]: '' };
+              return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
+            });
+            setWeekMonthAverage(prevData => {
+              const newState = { ...prevData, [accounts_id]: '' };
+              return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
+            });
           } else {
             throw new Error(data.error);
           }
         }
       } catch (error) {
         console.error('Error fetching total hours:', error);
-        setError(error.message);
       }
     };
   
@@ -263,7 +251,7 @@ const Member = () => {
     };
   
     fetchAllTotalHours();
-  }, [filteredItems]);
+  }, [filteredItems, holidaysAndWeekendsCount, lastMonday, lastSunday, month, year]);
   
 
   const deleteItems = () => {
@@ -326,7 +314,7 @@ const Member = () => {
       return '#808080';
     }
   };
-
+console.log('テスト');
   return (
     <div id='member_page'>
       <div id='member_top'>
