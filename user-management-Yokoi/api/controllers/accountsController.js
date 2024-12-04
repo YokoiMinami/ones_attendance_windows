@@ -324,7 +324,7 @@ const memberCostData = async (req, res, db) => {
 //メンバーの今月の勤務時間、先週の勤務時間を取得
 const getMonthlyTotalHours = async (req, res, db) => {
   const { accounts_id, year, month, lastMonday, lastSunday } = req.params;
-  const numericAccountsId = parseInt(accounts_id, 10);
+  //const numericAccountsId = parseInt(accounts_id, 10);
 
   try {
     const yearStr = String(year);
@@ -334,7 +334,8 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     // 月の合計勤務時間のクエリ
     const totalHoursResult = await db('attendance')
-    .where('accounts_id', numericAccountsId)
+    // .where('accounts_id', numericAccountsId)
+    .where('accounts_id', accounts_id)
     .andWhere('date', '>=', startDate)
     .andWhere('date', '<=', endDate)
     .whereNotNull('check_in_time')
@@ -345,7 +346,8 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     // 先週の合計勤務時間のクエリ
     const weeklyTotalHoursResult = await db('attendance') 
-    .where('accounts_id', numericAccountsId) 
+    // .where('accounts_id', numericAccountsId) 
+    .where('accounts_id', accounts_id)
     .andWhere('date', '>=', new Date(lastMonday)) 
     .andWhere('date', '<=', new Date(lastSunday)) 
     .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
@@ -353,7 +355,8 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     // 月のwork_hoursデータがある日数のクエリ
     const daysWithWorkHoursResult = await db('attendance')
-    .where('accounts_id', numericAccountsId)
+    // .where('accounts_id', numericAccountsId)
+    .where('accounts_id', accounts_id)
     .andWhere('date', '>=', startDate)
     .andWhere('date', '<=', endDate)
     .whereNotNull('work_hours')
@@ -361,7 +364,8 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     // 週のwork_hoursデータがある日数のクエリ
     const weekWithWorkHoursResult = await db('attendance')
-    .where('accounts_id', numericAccountsId)
+    // .where('accounts_id', numericAccountsId)
+    .where('accounts_id', accounts_id)
     .andWhere('date', '>=', new Date(lastMonday))
     .andWhere('date', '<=', new Date(lastSunday))
     .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month])) 
@@ -370,16 +374,6 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     const totalTime = parseFloat(totalHoursResult.total_hours).toFixed(2);
     const weeklyTotalTime = parseFloat(weeklyTotalHoursResult.week_hours).toFixed(2);
-
-    // totalTimeまたはweeklyTotalTimeが数値でない場合は空文字列を返す
-    if (isNaN(totalTime) || isNaN(weeklyTotalTime)) {
-      return res.json({
-        total_hours: '',
-        weekly_total_hours: '',
-        average_time_per_day: '',
-        week_average_time_per_day: ''
-      });
-    }
 
     // 月の時間と分の取得とフォーマット
     const hours = Math.floor(totalTime);
@@ -408,10 +402,11 @@ const getMonthlyTotalHours = async (req, res, db) => {
       week_average_time_per_day: weekAverageMinutes
     });
   } catch (error) {
-    console.error('Error fetching total hours:', error.message);
+    console.error('クエリエラー:', error.message);
     res.status(500).json({ error: `サーバーエラー: ${error.message}` });
   }
 };
+
 
 //今月の勤怠情報を取得
 const monthData = async (req, res, db) => {
@@ -548,22 +543,22 @@ const projectsFlag = async (req, res, db) => {
   }
 }
 
-//プロジェクト情報を取得
+// プロジェクト情報を取得
 const projectUser = async (req, res, db) => {
   const { accounts_id, year, month } = req.params;
   const create_date = `${year}-${month}`;
   try {
-    const item = await db('projectdata').where({ accounts_id, create_date:create_date }).first();
+    const item = await db('projectdata').where({ accounts_id, create_date }).first();
     if (item) {
-      res.json( item );
+      res.json(item);
     } else {
-      res.status(404).send('保存データが見つかりません。');
+      res.json({});
     }
   } catch (error) {
-    console.error('Error fetching check-in time:', error);
-    res.status(500).send('サーバーエラー');
+    console.error('Error fetching project data:', error);
+    res.status(500).json({ error: 'サーバーエラー: ' + error.message });
   }
-}
+};
 
 //ユーザーの勤怠修正
 const newRemarks = async (req, res, db) => {

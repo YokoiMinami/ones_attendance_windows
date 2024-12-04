@@ -182,14 +182,14 @@ const Member = () => {
 
   useEffect(() => {
     const formattedMonth = month.toString().padStart(2, '0');
-  
+
     const fetchTotalHours = async (accounts_id) => {
       try {
         const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${formattedMonth}/${lastMonday}/${lastSunday}`);
         const data = await response.json();
+        console.log(data);
         const monthAverage = data.average_time_per_day;
         const weekAverage = data.week_average_time_per_day;
-
         if (monthAverage) {
           // 月勤務時間の分数
           const multipliedWorkHoursInMinutes = monthAverage * holidaysAndWeekendsCount;
