@@ -322,63 +322,123 @@ const memberCostData = async (req, res, db) => {
 };
 
 //メンバーの今月の勤務時間、先週の勤務時間を取得
+// const getMonthlyTotalHours = async (req, res, db) => {
+//   const { accounts_id, year, month, lastMonday, lastSunday } = req.params;
+
+//   try {
+//     const yearStr = String(year);
+//     const monthStr = String(month).padStart(2, '0');
+//     const startDate = `${yearStr}-${monthStr}-01`;
+//     const endDate = `${yearStr}-${monthStr}-${new Date(year, month, 0).getDate()}`;
+
+//     // 月の合計勤務時間のクエリ
+//     const totalHoursResult = await db('attendance')
+//       .where('accounts_id', accounts_id)
+//       .andWhere('date', '>=', startDate)
+//       .andWhere('date', '<=', endDate)
+//       .whereNotNull('check_in_time')
+//       .whereNotNull('check_out_time')
+//       .select(db.raw(`
+//         SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as total_hours
+//       `)).first();
+
+//     // totalHoursResultが存在しない場合の処理
+//     const totalTime = totalHoursResult && totalHoursResult.total_hours ? parseFloat(totalHoursResult.total_hours).toFixed(2) : '0.00';
+
+//     // 先週の合計勤務時間のクエリ
+//     const weeklyTotalHoursResult = await db('attendance')
+//       .where('accounts_id', accounts_id)
+//       .andWhere('date', '>=', new Date(lastMonday))
+//       .andWhere('date', '<=', new Date(lastSunday))
+//       .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
+//       .whereNotNull('work_hours')
+//       .select(db.raw(`SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as week_hours`)).first();
+
+//     const weeklyTotalTime = weeklyTotalHoursResult && weeklyTotalHoursResult.week_hours ? parseFloat(weeklyTotalHoursResult.week_hours).toFixed(2) : '0.00';
+
+//     // 月の時間と分の取得とフォーマット
+//     const hours = Math.floor(totalTime);
+//     const minutes = Math.round((totalTime - hours) * 60);
+//     const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+//     // 先週の時間と分を取得してフォーマット
+//     const weeklyHours = Math.floor(weeklyTotalTime);
+//     const weeklyMinutes = Math.round((weeklyTotalTime - weeklyHours) * 60);
+//     const formattedWeeklyTime = `${String(weeklyHours).padStart(2, '0')}:${String(weeklyMinutes).padStart(2, '0')}`;
+
+//     // 月の勤務時間を分に変換し、勤務日数で割る
+//     const totalMinutes = hours * 60 + minutes;
+//     const daysWithWorkHoursResult = await db('attendance')
+//       .where('accounts_id', accounts_id)
+//       .andWhere('date', '>=', startDate)
+//       .andWhere('date', '<=', endDate)
+//       .whereNotNull('work_hours')
+//       .count('id as count').first();
+//     const averageMinutes = totalMinutes / (daysWithWorkHoursResult.count || 1); // 0で割るのを防ぐために1をデフォルト値に
+
+//     // 週の勤務時間を分に変換し、勤務日数で割る
+//     const weekMinutes = weeklyHours * 60 + weeklyMinutes;
+//     const weekWithWorkHoursResult = await db('attendance')
+//       .where('accounts_id', accounts_id)
+//       .andWhere('date', '>=', new Date(lastMonday))
+//       .andWhere('date', '<=', new Date(lastSunday))
+//       .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
+//       .whereNotNull('work_hours')
+//       .count('id as count').first();
+//     const weekAverageMinutes = weekMinutes / (weekWithWorkHoursResult.count || 1); // 0で割るのを防ぐために1をデフォルト値に
+
+//     // レスポンスに返す
+//     res.json({
+//       total_hours: formattedTime,
+//       weekly_total_hours: formattedWeeklyTime,
+//       weekly_total_count: weekWithWorkHoursResult,
+//       average_time_per_day: averageMinutes,
+//       week_average_time_per_day: weekAverageMinutes
+//     });
+//   } catch (error) {
+//     console.error('クエリエラー:', error.message);
+//     res.status(500).json({ error: `サーバーエラー: ${error.message}` });
+//   }
+// };
+
 const getMonthlyTotalHours = async (req, res, db) => {
   const { accounts_id, year, month, lastMonday, lastSunday } = req.params;
-  //const numericAccountsId = parseInt(accounts_id, 10);
 
   try {
     const yearStr = String(year);
     const monthStr = String(month).padStart(2, '0');
     const startDate = `${yearStr}-${monthStr}-01`;
-    const endDate = `${yearStr}-${monthStr}-${new Date(year, month, 0).getDate()}`; 
+    const endDate = `${yearStr}-${monthStr}-${new Date(year, month, 0).getDate()}`;
 
     // 月の合計勤務時間のクエリ
     const totalHoursResult = await db('attendance')
-    // .where('accounts_id', numericAccountsId)
-    .where('accounts_id', accounts_id)
-    .andWhere('date', '>=', startDate)
-    .andWhere('date', '<=', endDate)
-    .whereNotNull('check_in_time')
-    .whereNotNull('check_out_time')
-    .select(db.raw(`
-      SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as total_hours
-    `)).first(); 
+      .where('accounts_id', accounts_id)
+      .andWhere('date', '>=', startDate)
+      .andWhere('date', '<=', endDate)
+      .whereNotNull('check_in_time')
+      .whereNotNull('check_out_time')
+      .select(db.raw(`
+        SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as total_hours
+      `)).first();
+
+    // totalHoursResultが存在しない場合の処理
+    const totalTime = totalHoursResult && totalHoursResult.total_hours ? parseFloat(totalHoursResult.total_hours).toFixed(2) : '';
 
     // 先週の合計勤務時間のクエリ
-    const weeklyTotalHoursResult = await db('attendance') 
-    // .where('accounts_id', numericAccountsId) 
-    .where('accounts_id', accounts_id)
-    .andWhere('date', '>=', new Date(lastMonday)) 
-    .andWhere('date', '<=', new Date(lastSunday)) 
-    .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
-    .whereNotNull('work_hours') .select(db.raw(`SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as week_hours`)).first();
+    const weeklyTotalHoursResult = await db('attendance')
+      .where('accounts_id', accounts_id)
+      .andWhere('date', '>=', new Date(lastMonday))
+      .andWhere('date', '<=', new Date(lastSunday))
+      .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
+      .whereNotNull('work_hours')
+      .select(db.raw(`SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as week_hours`)).first();
 
-    // 月のwork_hoursデータがある日数のクエリ
-    const daysWithWorkHoursResult = await db('attendance')
-    // .where('accounts_id', numericAccountsId)
-    .where('accounts_id', accounts_id)
-    .andWhere('date', '>=', startDate)
-    .andWhere('date', '<=', endDate)
-    .whereNotNull('work_hours')
-    .count('id as count').first(); 
-
-    // 週のwork_hoursデータがある日数のクエリ
-    const weekWithWorkHoursResult = await db('attendance')
-    // .where('accounts_id', numericAccountsId)
-    .where('accounts_id', accounts_id)
-    .andWhere('date', '>=', new Date(lastMonday))
-    .andWhere('date', '<=', new Date(lastSunday))
-    .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month])) 
-    .whereNotNull('work_hours')
-    .count('id as count').first(); 
-
-    const totalTime = parseFloat(totalHoursResult.total_hours).toFixed(2);
-    const weeklyTotalTime = parseFloat(weeklyTotalHoursResult.week_hours).toFixed(2);
+    const weeklyTotalTime = weeklyTotalHoursResult && weeklyTotalHoursResult.week_hours ? parseFloat(weeklyTotalHoursResult.week_hours).toFixed(2) : '0.00';
 
     // 月の時間と分の取得とフォーマット
-    const hours = Math.floor(totalTime);
-    const minutes = Math.round((totalTime - hours) * 60);
-    const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    const hours = totalTime ? Math.floor(totalTime) : 0;
+    const minutes = totalTime ? Math.round((totalTime - hours) * 60) : 0;
+    const formattedTime = totalTime ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}` : '';
 
     // 先週の時間と分を取得してフォーマット
     const weeklyHours = Math.floor(weeklyTotalTime);
@@ -387,11 +447,24 @@ const getMonthlyTotalHours = async (req, res, db) => {
 
     // 月の勤務時間を分に変換し、勤務日数で割る
     const totalMinutes = hours * 60 + minutes;
-    const averageMinutes = totalMinutes / daysWithWorkHoursResult.count;
+    const daysWithWorkHoursResult = await db('attendance')
+      .where('accounts_id', accounts_id)
+      .andWhere('date', '>=', startDate)
+      .andWhere('date', '<=', endDate)
+      .whereNotNull('work_hours')
+      .count('id as count').first();
+    const averageMinutes = totalMinutes / (daysWithWorkHoursResult.count || 1); // 0で割るのを防ぐために1をデフォルト値に
 
     // 週の勤務時間を分に変換し、勤務日数で割る
     const weekMinutes = weeklyHours * 60 + weeklyMinutes;
-    const weekAverageMinutes = weekMinutes / weekWithWorkHoursResult.count;
+    const weekWithWorkHoursResult = await db('attendance')
+      .where('accounts_id', accounts_id)
+      .andWhere('date', '>=', new Date(lastMonday))
+      .andWhere('date', '<=', new Date(lastSunday))
+      .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
+      .whereNotNull('work_hours')
+      .count('id as count').first();
+    const weekAverageMinutes = weekMinutes / (weekWithWorkHoursResult.count || 1); // 0で割るのを防ぐために1をデフォルト値に
 
     // レスポンスに返す
     res.json({
@@ -406,7 +479,6 @@ const getMonthlyTotalHours = async (req, res, db) => {
     res.status(500).json({ error: `サーバーエラー: ${error.message}` });
   }
 };
-
 
 //今月の勤怠情報を取得
 const monthData = async (req, res, db) => {

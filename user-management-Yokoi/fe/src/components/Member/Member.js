@@ -177,6 +177,7 @@ const Member = () => {
       try {
         const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${formattedMonth}/${lastMonday}/${lastSunday}`);
         const data = await response.json();
+      console.log(data);
         const monthAverage = data.average_time_per_day;
         const weekAverage = data.week_average_time_per_day;
         if (monthAverage) {
