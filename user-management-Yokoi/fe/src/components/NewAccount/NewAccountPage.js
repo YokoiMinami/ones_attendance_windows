@@ -5,37 +5,41 @@ import OnesLogo from '../../images/ones-logo.png';
 import AccountLogo from '../../images/account-logo.png';
 import { Button, Form, FormGroup } from 'reactstrap';
 import { TextField, Autocomplete } from '@mui/material';
+import {  submitFormAddApi } from '../../apiCall/apis';
+import { options, teamOptions } from '../../constants/selectForm';
+import { EMAIL_ERROR_MESSAGE } from '../../constants/messages';
+//import { validateForm } from '../../constants/validate';
 
 const NewAccountPage = (props) => {
 
-  const options = [
-    { label: 'OBM', value: 'OBM' },
-    { label: 'OCF', value: 'OCF' },
-    { label: 'QFW', value: 'QFW' },
-    { label: 'QAT', value: 'QAT' },
-    { label: 'QTR', value: 'QTR' },
-    { label: 'QRL', value: 'QRL' },
-    { label: 'VQT', value: 'VQT' },
-    { label: 'QON', value: 'QON' },
-    { label: 'QFL', value: 'QFL' },
-    { label: 'QCT', value: 'QCT' },
-  ];
+  // const options = [
+  //   { label: 'OBM', value: 'OBM' },
+  //   { label: 'OCF', value: 'OCF' },
+  //   { label: 'QFW', value: 'QFW' },
+  //   { label: 'QAT', value: 'QAT' },
+  //   { label: 'QTR', value: 'QTR' },
+  //   { label: 'QRL', value: 'QRL' },
+  //   { label: 'VQT', value: 'VQT' },
+  //   { label: 'QON', value: 'QON' },
+  //   { label: 'QFL', value: 'QFL' },
+  //   { label: 'QCT', value: 'QCT' },
+  // ];
 
-  const teanOptions = [
-    { label: 'ST/FT管理', value: 'ST/FT管理' },
-    { label: '総務/営業', value: '総務/営業' },
-    { label: 'FT実施', value: 'FT実施' },
-    { label: 'アフター', value: 'アフター' },
-    { label: '取説', value: '取説' },
-    { label: 'CTS', value: 'CTS' },
-    { label: '使い込み', value: '使い込み' },
-    { label: 'ST主管', value: 'ST主管' },
-    { label: 'ST実施', value: 'ST実施' },
-    { label: 'SI', value: 'SI' },
-    { label: '開発', value: '開発' },
-    { label: '構成管理', value: '構成管理' },
-    { label: '作業効率化', value: '作業効率化' },
-  ];
+  // const teamOptions = [
+  //   { label: 'ST/FT管理', value: 'ST/FT管理' },
+  //   { label: '総務/営業', value: '総務/営業' },
+  //   { label: 'FT実施', value: 'FT実施' },
+  //   { label: 'アフター', value: 'アフター' },
+  //   { label: '取説', value: '取説' },
+  //   { label: 'CTS', value: 'CTS' },
+  //   { label: '使い込み', value: '使い込み' },
+  //   { label: 'ST主管', value: 'ST主管' },
+  //   { label: 'ST実施', value: 'ST実施' },
+  //   { label: 'SI', value: 'SI' },
+  //   { label: '開発', value: '開発' },
+  //   { label: '構成管理', value: '構成管理' },
+  //   { label: '作業効率化', value: '作業効率化' },
+  // ];
 
   const [company_state, setCompanyState] = React.useState({ company: '' });
   const [team_state, setTeamState] = React.useState({ team: '' });
@@ -89,8 +93,7 @@ const NewAccountPage = (props) => {
     }
 
     return newErrors;
-};
-
+  };
 
   const submitFormAdd = (e) => {
     e.preventDefault();
@@ -98,37 +101,33 @@ const NewAccountPage = (props) => {
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
-      }
-    fetch('http://localhost:3000/post', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        company: company_state.company,
-        fullname: state.fullname,
-        kananame: state.kananame,
-        email: state.email,
-        team: team_state.team,
-        password: state.password,
-        authority:state.authority
-      })
-    })
-    .then(response => response.json())
-    .then(item => {
-      if (item.dbError) {
-        if (item.dbError.includes('メールアドレス')) {
-          setErrors({ email: 'このメールアドレスは既に登録されています' });
+    }
+  
+    const data = {
+      company: company_state.company,
+      fullname: state.fullname,
+      kananame: state.kananame,
+      email: state.email,
+      team: team_state.team,
+      password: state.password,
+      authority: state.authority
+    };
+  
+    submitFormAddApi(data)
+      .then(item => {
+        if (item.dbError) {
+          if (item.dbError.includes('メールアドレス')) {
+            setErrors({ email: EMAIL_ERROR_MESSAGE });
+          }
+        } else if (item) {
+          const userId = item.map(item => item.id);
+          // 登録した情報を表示するページに遷移
+          navigate(`/new_account_after/${userId}`); 
+        } else {
+          console.log('failure');
         }
-      } else if (item) {
-        const userId = item.map(item => item.id);
-        // 登録した情報を表示するページに遷移
-        navigate(`/new_account_after/${userId}`); 
-      } else {
-        console.log('failure');
-      }
-    })
-    .catch(err => console.log(err));
+      })
+      .catch(err => console.log(err));
   };
 
   return (
@@ -191,7 +190,7 @@ const NewAccountPage = (props) => {
         <FormGroup>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
             <label htmlFor="team" className='new_account_label' style={{ marginRight: '5px' }}>所属チーム</label>
-            <Autocomplete options={teanOptions} getOptionLabel={(option) => option.label} onChange={teamOnChange} value={teanOptions.find(option => option.label === team_state.team) || null}
+            <Autocomplete options={teamOptions} getOptionLabel={(option) => option.label} onChange={teamOnChange} value={teamOptions.find(option => option.label === team_state.team) || null}
             renderInput={(params) => (
             <TextField {...params} name="team" id="team" className='new_account_input' label="その他の場合はテキストを入力" onChange={onChange} 
             sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'transparent', // ボーダーを透明に設定
