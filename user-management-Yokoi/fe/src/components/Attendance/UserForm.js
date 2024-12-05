@@ -1,46 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import { fetchProjectData, postProjectData } from '../../apiCall/apis';
 
 const UserForm = (props) => {
-  const [items, setItems] = useState([]); //プロジェクト情報
+  const accounts_id = localStorage.getItem('user');
   const [projects, setProjects] = useState('');
   const [details, setDetails] = useState('');
   const [company, setCompany] = useState('');
   const [name, setName] = useState('');
-  const [date, setDate] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const currentDate = `${year}-${month}`;
 
-  //プロジェクト情報
+  //プロジェクト情報取得
   useEffect(() => {
     const fetchUser = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
-        setItems(data);
+        const data = await fetchProjectData(accounts_id, year, month);
         setProjects(data.project);
         setDetails(data.details);
         setCompany(data.company);
         setName(data.name);
-        setDate(data.create_date);
       } catch (error) {
-        console.error('Error fetching holiday data:', error);
-        setItems();
+        console.error('Error fetching project data:', error);
         setProjects('');
         setDetails('');
         setCompany('');
         setName('');
-        setDate('');
       }
     };
     fetchUser();
-  }, [year, month]);
+  }, [year, month, accounts_id]);
 
   //プロジェクト情報登録
   const submitFormAdd = async (e) => {
     e.preventDefault();
-    const accounts_id = localStorage.getItem('user');
+    
     const data = {
       accounts_id,
       project: projects,
@@ -50,19 +44,9 @@ const UserForm = (props) => {
       create_date: currentDate
     };
     try {
-      const response = await fetch('http://localhost:3000/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        alert('データを保存しました');
-        window.location.reload();
-      } else {
-        alert('データの保存に失敗しました');
-      }
+      await postProjectData(data);
+      alert('データを保存しました');
+      window.location.reload();
     } catch (error) {
       console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
