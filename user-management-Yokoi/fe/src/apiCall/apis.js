@@ -22,3 +22,13 @@ export const submitFormAddApi = async (data) => {
   return response.json();
 };
 
+//アカウント情報
+export const fetchUserData = async (id) => {
+  const response = await fetch(`http://localhost:3000/user/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.json();
+};

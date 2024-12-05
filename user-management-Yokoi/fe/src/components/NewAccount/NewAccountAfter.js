@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import OnesLogo from '../../images/ones-logo.png';
 import AccountLogo from '../../images/account-logo.png';
 import { Button } from 'reactstrap';
+import { formatDate } from '../../common/format';
+import { fetchUserData } from '../../apiCall/apis';
 
 const NewAccountAfter = () => {
   const navigate = useNavigate();
@@ -15,34 +17,23 @@ const NewAccountAfter = () => {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async (id) => {
+      try {
+        const data = await fetchUserData(id);
+        setUserData(data);
+        if (data.authority === true) {
+          setAuthorityData('あり');
+        }
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => {
-      setUserData(data);
-      if (data.authority === true) {
-        setAuthorityData('あり');
-      }
-    })
-    .catch(err => console.log(err));
+    };
+    getUserData(id);
   }, [id]);
 
   if (!userData) {
     return <div>Loading...</div>;
   }
-
-  // 日付をフォーマットする関数
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}/${month}/${day}`;
-  };
 
   return (
     <div id='new_account_after'>
