@@ -93,7 +93,7 @@ const AttendanceTablePage = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year, month, formattedMonth, accounts_id]);
+  }, [year, month, formattedMonth, accounts_id, editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]);
 
   //勤怠情報の日付を修正
   useEffect(() => {
@@ -237,7 +237,7 @@ const AttendanceTablePage = ( ) => {
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]); //monthが変更されるたびに実行する
+  }, [year, month, editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]); 
 
   //特定の日付の曜日を取得する関数
   const getDayOfWeek = (date) => {
@@ -1402,7 +1402,7 @@ const AttendanceTablePage = ( ) => {
     // バッファを生成してBlobとして保存
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, `【月末書類】_${userData.fullname}_${userData.company}_${year}_${month}_.xlsx`);
+    saveAs(blob, `【月末書類】_${userData.fullname}_${userData.company}_${year}_${month}.xlsx`);
   };
 
   const holidays = getHolidaysInMonth(year, month);
