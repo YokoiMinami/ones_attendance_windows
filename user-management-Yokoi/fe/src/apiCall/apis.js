@@ -84,9 +84,7 @@ export const standardTime = async (accounts_id) => {
 export const postStandardTime = async (data) => {
   const response = await fetch('http://localhost:3000/overtime', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
   if (!response.ok) {
@@ -99,9 +97,7 @@ export const postStandardTime = async (data) => {
 export const fetchProjectData = async (accounts_id, year, month) => {
   const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
   if (!response.ok) {
     throw new Error('Network response was not ok');
@@ -109,12 +105,72 @@ export const fetchProjectData = async (accounts_id, year, month) => {
   return response.json();
 };
 
+//プロジェクト情報を登録
 export const postProjectData = async (data) => {
   const response = await fetch('http://localhost:3000/projects', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.text();
+};
+
+//勤怠情報を取得
+export const fetchAttendanceData = async (accounts_id, year, month) => {
+  const response = await fetch(`http://localhost:3000/attendance/${accounts_id}/${year}/${month}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
+//交通費情報を取得
+export const fetchExpensesData = async (accounts_id, year, month) => {
+  const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${year}/${month}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
+//代休情報を取得
+export const fetchHolidayData = async (accounts_id) => {
+  const response = await fetch(`http://localhost:3000/holiday/${accounts_id}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
+//経費情報を取得
+export const fetchExpensesData2 = async (accounts_id, year, month) => {
+  const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
+//特記事項を修正
+export const postRemarks = async (data) => {
+  const response = await fetch('http://localhost:3000/remarks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
   if (!response.ok) {

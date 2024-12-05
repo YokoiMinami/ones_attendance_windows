@@ -33,6 +33,15 @@ export const formatTime = (now) => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
+//時間をhh:mm形式でフォーマット
+export const attendanceFormatTime = (timeString) => {
+  if (!timeString) return '';
+  const [hours, minutes] = timeString.split(':');
+  const formattedHours = hours ? hours.padStart(2, '0') : '';
+  const formattedMinutes = minutes ? minutes.padStart(2, '0') : '';
+  return `${formattedHours}:${formattedMinutes}`;
+};
+
 //時間フォーマット
 export const formatTime2 = (date) => {
   return date.toTimeString().split(' ')[0].slice(0, 5);
@@ -90,17 +99,44 @@ export const totalWorkHours = (start, end) => {
 
 //総勤務時間から休憩時間を引く
 export const calculateNetWorkHours = (totalWorkTime, breakTime) => {
+  // 時間文字列をDateオブジェクトに変換
   const totalWork = new Date(`1970-01-01T${totalWorkTime}`);
   const breakPeriod = new Date(`1970-01-01T${breakTime}`);
 
+  // 日付の有効性をチェック
   const isValidDate = (date) => date instanceof Date && !isNaN(date);
   if (!isValidDate(totalWork) || !isValidDate(breakPeriod)) {
     return '00:00';
   }
 
+  // 時間の差を計算
   const diff = totalWork - breakPeriod;
   const hours = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');
   const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 };
 
+// 「。」を改行タグに置き換える関数
+export const formatRemarks = (remarks) => {
+  if (!remarks) return '';
+  return remarks.split('。').join('。<br />');
+};
+
+//日数計算するために分単位に変換
+export const convertTimeToMinutes = (timeString) => {
+  if (!timeString) return 0; // または適切なデフォルト値
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+//分単位を時間にフォーマット
+export const convertMinutesToTime = (minutes) => {
+  const hours = Math.floor(minutes / 60).toString().padStart(2, '0');
+  const mins = (minutes % 60).toString().padStart(2, '0');
+  return `${hours}:${mins}`;
+};
+
+export const formatAmount = (amount) => { 
+  const flooredAmount = Math.floor(amount); 
+  return Number(flooredAmount);
+};

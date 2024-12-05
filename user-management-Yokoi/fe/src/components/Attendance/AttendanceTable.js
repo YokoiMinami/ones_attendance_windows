@@ -7,10 +7,12 @@ import Dropdown from './AttendancePull';
 import UserModal from './UserModal';
 import TimeModal from './TimeModal';
 import { startOfWeek, endOfWeek, subWeeks } from 'date-fns';
+import { fetchUserData, fetchAttendanceData, fetchExpensesData, fetchHolidayData, fetchProjectData, fetchExpensesData2, postRemarks, standardTime } from '../../apiCall/apis';
+import { isWeekend } from '../../constants/date';
+import { attendanceFormatTime, formatRemarks, totalWorkHours, calculateNetWorkHours, convertTimeToMinutes, convertMinutesToTime, formatDate, formatAmount} from '../../common/format';
 
 const AttendanceTablePage = ( ) => {
 
-  const id = localStorage.getItem('user'); //ユーザーID
   const accounts_id = localStorage.getItem('user');//ユーザーID
   const [userData, setUserData] = useState(null); //ユーザーデータ
   const [attendanceData, setAttendanceData] = useState([]); //ユーザーの勤怠データ
@@ -19,6 +21,7 @@ const AttendanceTablePage = ( ) => {
   const [daysInMonth, setDaysInMonth] = useState([]); //勤怠を表示する年月
   const [year, setYear] = useState(new Date().getFullYear()); //勤怠を表示する年
   const [month, setMonth] = useState(new Date().getMonth() + 1); //勤怠を表示する月
+  const formattedMonth = month.toString().padStart(2, '0');
   const [startTime, setStartTime] = useState('09:00'); //標準勤務時間
   const [endTime, setEndTime] = useState('18:00');//標準勤務時間
   const [breakTime, setBreakTime] = useState('01:00');//標準勤務時間
@@ -66,24 +69,22 @@ const AttendanceTablePage = ( ) => {
   
   //ユーザー情報を取得
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(accounts_id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => setUserData(data))
-    .catch(err => console.log(err));
-  }, [id]);
+    };
+    getUserData();
+  }, [accounts_id]);
 
   //ユーザーの勤怠情報を取得
   useEffect(() => {
-    const formattedMonth = month.toString().padStart(2, '0');
     const fetchAttendance = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/attendance/${accounts_id}/${year}/${formattedMonth}`);
-        const data = await response.json();
+        const data = await fetchAttendanceData(accounts_id, year, formattedMonth);
         setUserWorkHours(data);
         setAttendanceData(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -92,7 +93,7 @@ const AttendanceTablePage = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year, month, editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, accounts_id]);
+  }, [year, month, formattedMonth, accounts_id]);
 
   //勤怠情報の日付を修正
   useEffect(() => {
@@ -128,97 +129,72 @@ const AttendanceTablePage = ( ) => {
   //ユーザーの交通費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
+        const data = await fetchExpensesData(accounts_id, year, month);
         setExpensesData(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        console.error('Error fetching expenses data:', error);
         setExpensesData([]);
       }
     };
     fetchExpenses();
-  }, [year, month]);
+  }, [year, month, accounts_id]);
 
 
   //ユーザーの代休情報を取得
   useEffect(() => {
     const fetchHoliday = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/holiday/${accounts_id}`);
-        const data = await response.json();
+        const data = await fetchHolidayData(accounts_id);
         setHolidayData(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        console.error('Error fetching holiday data:', error);
         setHolidayData([]);
       }
     };
     fetchHoliday();
   }, [year, month, accounts_id]);
 
-//プロジェクト情報
-useEffect(() => {
-  const fetchUser = async () => {
-    const accounts_id = localStorage.getItem('user');
-    try {
-      const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
-      const data = await response.json();
-
-      setProjects(data.project);
-      setDetails(data.details);
-      setCompany(data.company);
-      setName(data.name);
-      setAppDay(data.create_day);
-      setApprover(data.approver);
-      setPresident(data.president);
-      setCostRemarks(data.remarks);
-
-    } catch (error) {
-      console.error('Error fetching holiday data:', error);
-      setProjects();
-      setDetails();
-      setCompany();
-      setName();
-      setAppDay();
-      setApprover();
-      setPresident();
-      setCostRemarks();
-    }
-  };
-  fetchUser();
-}, [year, month]);
-
-  //ユーザーの経費情報を取得
+  //プロジェクト情報を取得
   useEffect(() => {
-    const fetchExpenses = async () => {
-      const accounts_id = localStorage.getItem('user');
+    const fetchProjects = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
-        setExpenses(data)
+        const data = await fetchProjectData(accounts_id, year, month);
+        setProjects(data.project);
+        setDetails(data.details);
+        setCompany(data.company);
+        setName(data.name);
+        setAppDay(data.create_day);
+        setApprover(data.approver);
+        setPresident(data.president);
+        setCostRemarks(data.remarks);
       } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        console.error('Error fetching project data:', error);
+        setProjects('');
+        setDetails('');
+        setCompany('');
+        setName('');
+        setAppDay();
+        setApprover();
+        setPresident();
+        setCostRemarks();
       }
     };
-    fetchExpenses();
-  }, [year, month]);
+    fetchProjects();
+  }, [year, month, accounts_id]);
 
-  // const addItemToState = (item) => {
-  //   window.location.reload();
-  //   setItems(prevItems => [...prevItems, item]);
-  // };
-
-  // const addItemToState2 = (item) => {
-  //   window.location.reload();
-  //   setItems2(prevItems => [...prevItems, item]);
-  // };
-
-  //土日を判定
-  const isWeekend = (date) => {
-    const day = date.getUTCDay();
-    return day === 0 || day === 6; // 日曜日 (0) または土曜日 (6)
-  };
+  //経費情報を取得
+  useEffect(() => {
+    const fetchExpenses2 = async () => {
+      try {
+        const data = await fetchExpensesData2(accounts_id, year, month);
+        setExpenses(data);
+      } catch (error) {
+        console.error('Error fetching expenses data:', error);
+      }
+    };
+    fetchExpenses2();
+  }, [year, month, accounts_id]);
 
   //祝日を取得
   const getHolidaysInMonth = (year, month) => {
@@ -292,14 +268,8 @@ useEffect(() => {
       remarks1: newOption
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
+      const message = await postRemarks(data);
+      if (message) {
         // 編集モードを解除
         setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         // 新しいデータを追加
@@ -313,7 +283,6 @@ useEffect(() => {
             return [...prev, data];
           }
         });
-        
       } else {
         alert('データの保存に失敗しました');
       }
@@ -322,7 +291,7 @@ useEffect(() => {
       alert('データの保存に失敗しました');
     }
   };
-
+  
   const toggleEditing = (date) => {
     setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: !prev[date.toISOString()] }));
   };
@@ -336,14 +305,8 @@ useEffect(() => {
       out_remarks1: newOption
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
+      const message = await postRemarks(data);
+      if (message) {
         // 編集モードを解除
         setEditingOutRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         // 新しいデータを追加
@@ -357,7 +320,6 @@ useEffect(() => {
             return [...prev, data];
           }
         });
-        
       } else {
         alert('データの保存に失敗しました');
       }
@@ -375,7 +337,7 @@ useEffect(() => {
   const handleRemarksChange2 = (newOption) => {
     setRemarks2(newOption);
   };
-  
+
   const handleRemarksSave = async (date) => {
     const currentDate = date.toISOString().split('T')[0];
     const data = {
@@ -384,16 +346,9 @@ useEffect(() => {
       remarks2: remarks2
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const message = await postRemarks(data);
       setEditingRemarks2(remarks2);
-      if (response.ok) {
-        //setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
+      if (message) {
         setAttendanceData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
@@ -429,7 +384,7 @@ useEffect(() => {
   const handleRemarksOutChange2 = (newOption) => {
     setOutRemarks2(newOption);
   };
-  
+
   const handleOutRemarksSave = async (date) => {
     const currentDate = date.toISOString().split('T')[0];
     const data = {
@@ -438,20 +393,14 @@ useEffect(() => {
       out_remarks2: out_set_remarks2
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const message = await postRemarks(data);
       setEditingOutRemarks2(out_set_remarks2);
-      if (response.ok) {
+      if (message) {
         setAttendanceData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
             return prev.map(record => 
-              record.date === currentDate ? { ...record, out_set_remarks2 } : record
+              record.date === currentDate ? { ...record, out_remarks2: out_set_remarks2 } : record
             );
           } else {
             return [...prev, data];
@@ -478,87 +427,28 @@ useEffect(() => {
     }
   }, [editingOutRemarks2]);
 
-  // 時間をhh:mm形式でフォーマットする関数
-  const formatTime = (timeString) => {
-    if (!timeString) return '';
-    const [hours, minutes] = timeString.split(':');
-    const formattedHours = hours ? hours.padStart(2, '0') : '';
-    const formattedMinutes = minutes ? minutes.padStart(2, '0') : '';
-    return `${formattedHours}:${formattedMinutes}`;
-  };
-
-  // 「。」を改行タグに置き換える関数
-  const formatRemarks = (remarks) => {
-    if (!remarks) return '';
-    return remarks.split('。').join('。<br />');
-  };
-
   //通常勤怠情報の処理
   //ユーザーIDをもとに標準勤務時間を取得
   useEffect(() => {
-    fetch(`http://localhost:3000/overuser/${accounts_id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getstandardTime = async () => {
+      try {
+        const data = await standardTime(accounts_id);
+        if (data.start_time) setStartTime(data.start_time);
+        if (data.end_time) setEndTime(data.end_time);
+        if (data.break_time) setBreakTime(data.break_time);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.start_time) setStartTime(data.start_time);
-      if (data.end_time) setEndTime(data.end_time);
-      if (data.break_time) setBreakTime(data.break_time);
-    })
-    .catch(err => console.log(err));
+    };
+    getstandardTime();
   }, [accounts_id]);
 
-  const calculateWorkHours = (start, end) => {
-    const startDate = new Date(`1970-01-01T${start}`);
-    const endDate = new Date(`1970-01-01T${end}`);
-    const diff = endDate - startDate;
-    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-    return `${hours}:${minutes}`;
-  };
-
-  const work_hours = calculateWorkHours(startTime, endTime);
-
-  // 勤務時間を計算
-  const CalculateWorkHours2 = (checkOllTimeString, checkBreakTimeString ) => {
-    // 時間文字列をDateオブジェクトに変換
-    const checkOllTime = new Date(`1970-01-01T${checkOllTimeString}`);
-    const checkBreakTime = new Date(`1970-01-01T${checkBreakTimeString}`);
-    
-    // 日付の有効性をチェック
-    const isValidDate = (date) => date instanceof Date && !isNaN(date);
-    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-      return '計算できませんでした';
-    }
-
-    // 時間の差を計算
-    const diff =  checkOllTime - checkBreakTime;
-    const hours = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');;
-    return `${hours}:${minutes}`;
-  };
+  const work_hours = totalWorkHours(startTime, endTime);
 
   //勤務時間を計算
-  //日数計算するために分単位に変換
-  const convertTimeToMinutes = (timeString) => {
-    if (!timeString) return 0; // または適切なデフォルト値
-    const [hours, minutes] = timeString.split(':').map(Number);
-    return hours * 60 + minutes;
-  };
-
-  //分単位を時間にフォーマット
-  const convertMinutesToTime = (minutes) => {
-    const hours = Math.floor(minutes / 60).toString().padStart(2, '0');
-    const mins = (minutes % 60).toString().padStart(2, '0');
-    return `${hours}:${mins}`;
-  };
-
   useEffect(() => {
     if (startTime && endTime && breakTime) { //標準勤務時間
-      const WorkHours = CalculateWorkHours2(work_hours, breakTime);
+      const WorkHours = calculateNetWorkHours(work_hours, breakTime);
       setWorkHours(WorkHours);
 
       // workHoursを分単位に変換し、勤務日数を掛ける
@@ -567,9 +457,7 @@ useEffect(() => {
       const multipliedWorkHoursInMinutes = workHoursInMinutes * holidaysAndWeekendsCount;
 
       // 分単位の時間をhh:mm形式に変換
-      const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
-      const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
-      const multipliedWorkHours = `${hours}:${minutes}`;
+      const multipliedWorkHours = convertMinutesToTime(multipliedWorkHoursInMinutes);
       
       //一か月の規定勤務時間
       setProvisions(multipliedWorkHours);
@@ -613,9 +501,8 @@ useEffect(() => {
       } 
 
       // 分単位の時間をhh:mm形式に変換
-      const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
-      const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
-      const multipliedWorkHours = `${hours}:${minutes}`;
+      const multipliedWorkHours = convertMinutesToTime(multipliedWorkHoursInMinutes);
+
       //月予測勤務時間
       setMonthAverage(multipliedWorkHours);
       
@@ -671,10 +558,8 @@ useEffect(() => {
       const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2 * 10) / 10;
       
       // 分単位の時間をhh:mm形式に変換
-      const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
-      const multipliedWorkHours2 = `${hours2}:${minutes2}`;
-      
+      const multipliedWorkHours2 = convertMinutesToTime(flooredNumber);
+
       //先週の1日平均勤務時間
       setWeekAverage(multipliedWorkHours2);
 
@@ -689,9 +574,8 @@ useEffect(() => {
       } 
 
       // 分単位の時間をhh:mm形式に変換
-      const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
-      const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
-      const multipliedWorkHours = `${hours}:${minutes}`;
+      const multipliedWorkHours = convertMinutesToTime(multipliedWorkHoursInMinutes);
+
       //直近月予測勤務時間
       setWeekMonthAverage(multipliedWorkHours);
       convertMinutesToTime(totalMinutes); 
@@ -704,25 +588,13 @@ useEffect(() => {
     }
   }, [formattedAttendanceData, holidaysAndWeekendsCount]);
 
+  //エクセル出力
   const exportToExcel = async () => {
 
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
     const allDates = [];
     const allDates2 = [];
-
-    const formatDate = (dateString) => { 
-      const date = new Date(dateString); 
-      const year = date.getFullYear(); 
-      const month = String(date.getMonth() + 1).padStart(2, '0'); 
-      const day = String(date.getDate()).padStart(2, '0'); 
-      return `${year}/${month}/${day}`; 
-    };
-
-    const formatAmount = (amount) => { 
-      const flooredAmount = Math.floor(amount); 
-      return Number(flooredAmount);
-    };
   
     for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
       allDates.push(new Date(d));
@@ -783,14 +655,14 @@ useEffect(() => {
       worksheet.addRow({
         date: date.toLocaleDateString('ja-JP').replace(/\//g, '/'),
         day: getDayOfWeek(date),
-        check_in: record ? formatTime(record.check_in_time) : '',
+        check_in: record ? attendanceFormatTime(record.check_in_time) : '',
         remarks1: record ? record.remarks1 : '',
         remarks2: record ? record.remarks2 : '',
-        check_out: record ? formatTime(record.check_out_time) : '',
+        check_out: record ? attendanceFormatTime(record.check_out_time) : '',
         out_remarks1: record ? record.out_remarks1 : '',
         out_remarks2: record ? record.out_remarks2 : '',
-        break_time: record ? formatTime(record.break_time) : '',
-        work_hours: record ? formatTime(record.work_hours) : ''
+        break_time: record ? attendanceFormatTime(record.break_time) : '',
+        work_hours: record ? attendanceFormatTime(record.work_hours) : ''
       });
     });
   
@@ -1546,7 +1418,6 @@ useEffect(() => {
             <button className='all_button' id='excel_button' onClick={exportToExcel}>Excel 出力</button>
           </div>
           <div id='user_button_area'>
-            {/* <UserModal buttonLabel="PJ情報登録" addItemToState={addItemToState} /> */}
             <UserModal buttonLabel="PJ情報登録"/>
           </div>
           <div id='expenses_button_area'>
@@ -1559,7 +1430,6 @@ useEffect(() => {
             <button className='all_button' onClick={holidayClick}>代休未消化</button>
           </div>
           <div id='time_button_area'>
-            {/* <TimeModal buttonLabel="標準勤務時間" addItemToState={addItemToState2} /> */}
             <TimeModal buttonLabel="標準勤務時間"/>
           </div>
         </div>
@@ -1647,7 +1517,7 @@ useEffect(() => {
                   <tr key={date.toISOString()} className={dayClass}>
                     <td>{date.toLocaleDateString('ja-JP').replace(/\//g, '/')}</td>
                     <td>{getDayOfWeek(date)}</td>
-                    <td>{record ? formatTime(record.check_in_time) : ''}</td>
+                    <td>{record ? attendanceFormatTime(record.check_in_time) : ''}</td>
                     <td onClick={() => toggleEditing(date)}>
                       {isEditing ? (
                         <Dropdown
@@ -1675,7 +1545,7 @@ useEffect(() => {
                         record ? formatRemarks(record.remarks2) : ''
                       )}
                     </td>
-                    <td>{record ? formatTime(record.check_out_time) : ''}</td>
+                    <td>{record ? attendanceFormatTime(record.check_out_time) : ''}</td>
                     <td onClick={() => toggleOutEditing(date)}>
                       {isEditingOut ? (
                         <Dropdown
@@ -1703,8 +1573,8 @@ useEffect(() => {
                         record ? formatRemarks(record.out_remarks2) : ''
                       )}
                     </td>
-                    <td>{record ? formatTime(record.break_time) : ''}</td>
-                    <td>{record ? formatTime(record.work_hours) : ''}</td>
+                    <td>{record ? attendanceFormatTime(record.break_time) : ''}</td>
+                    <td>{record ? attendanceFormatTime(record.work_hours) : ''}</td>
                   </tr>
                 );
               })}
