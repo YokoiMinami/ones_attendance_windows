@@ -32,3 +32,4 @@ export const fetchUserData = async (id) => {
   });
   return response.json();
 };
+

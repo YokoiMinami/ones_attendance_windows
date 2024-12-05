@@ -1,26 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
+import { fetchUserData } from '../../apiCall/apis';
 
 const TopButton = () => {
-  //ユーザー情報
+
   const id = localStorage.getItem('user');
   const [authorityData, setAuthorityData] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-      'Content-Type': 'application/json'
-    }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.authority === true) {
-        setAuthorityData(true);
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(id);
+        if (data.authority === true) {
+          setAuthorityData(true);
+        }
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .catch(err => console.log(err));
+    };
+    getUserData();
   }, [id]);
 
   const { logout } = useAuth();
