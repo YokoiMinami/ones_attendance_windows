@@ -22,13 +22,11 @@ export const submitFormAddApi = async (data) => {
   return response.json();
 };
 
-//アカウント情報
+//アカウント情報取得
 export const fetchUserData = async (id) => {
   const response = await fetch(`http://localhost:3000/user/${id}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
   return response.json();
 };
@@ -37,9 +35,7 @@ export const fetchUserData = async (id) => {
 export const fetchAttendanceStatus = async (id) => {
   const response = await fetch(`http://localhost:3000/attendance/status/${id}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
   if (!response.ok) {
     throw new Error('Network response was not ok');
@@ -70,4 +66,31 @@ export const fetchCheckInTime = async (accounts_id, date) => {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   return response.json();
+};
+
+//標準勤務時間を取得
+export const standardTime = async (accounts_id) => {
+  const response = await fetch(`http://localhost:3000/overuser/${accounts_id}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
+//標準勤務時間を登録
+export const postStandardTime = async (data) => {
+  const response = await fetch('http://localhost:3000/overtime', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.text();
 };

@@ -78,6 +78,16 @@ export const calculateWorkHours = (checkInDate, checkInTime, checkOutDate, check
   return `${hours}:${minutes}`;
 };
 
+//総勤務時間
+export const totalWorkHours = (start, end) => {
+  const startDate = new Date(`1970-01-01T${start}`);
+  const endDate = new Date(`1970-01-01T${end}`);
+  const diff = endDate - startDate;
+  const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
+  return `${hours}:${minutes}`;
+};
+
 //総勤務時間から休憩時間を引く
 export const calculateNetWorkHours = (totalWorkTime, breakTime) => {
   const totalWork = new Date(`1970-01-01T${totalWorkTime}`);
@@ -93,3 +103,4 @@ export const calculateNetWorkHours = (totalWorkTime, breakTime) => {
   const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 };
+
