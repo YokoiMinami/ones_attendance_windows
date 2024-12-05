@@ -6,7 +6,7 @@ import AccountLogo from '../../images/account-logo.png';
 import { Button, Form, FormGroup } from 'reactstrap';
 import { TextField, Autocomplete } from '@mui/material';
 import {  submitFormAddApi } from '../../apiCall/apis';
-import { options, teamOptions } from '../../constants/selectForm';
+import { companyOptions, teamOptions } from '../../constants/selectForm';
 import { EMAIL_ERROR_MESSAGE, COMPANY_ERROR, FULLNAME_ERROR, KANANAME_ERROR, KANANAME_FORMAT_ERROR, EMAIL_ERROR, EMAIL_FORMAT_ERROR, TEAM_ERROR, PASSWORD_ERROR, PASSWORD_FORMAT_ERROR } from '../../constants/messages';
 
 const NewAccountPage = (props) => {
@@ -112,7 +112,7 @@ const NewAccountPage = (props) => {
         <FormGroup>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
             <label htmlFor="company" className='new_account_label' style={{ marginRight: '5px' }}>会社名</label>
-            <Autocomplete options={options} getOptionLabel={(option) => option.label} onChange={companyOnChange} value={options.find(option => option.label === company_state.company) || null}
+            <Autocomplete options={companyOptions} getOptionLabel={(option) => option.label} onChange={companyOnChange} value={companyOptions.find(option => option.label === company_state.company) || null}
             renderInput={(params) => (
             <TextField {...params} name="company" id="company" className='new_account_input' label="その他の場合はテキストを入力" onChange={onChange}
             sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'transparent', // ボーダーを透明に設定
