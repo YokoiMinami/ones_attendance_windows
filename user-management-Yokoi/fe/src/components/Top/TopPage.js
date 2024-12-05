@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import TopButton from './TopButton';
 import OnesLogo from '../../images/ones-logo.png';
 import DigitalClock from './DigitalClock';
+import { fetchUserData, fetchAttendanceStatus, postAttendance, fetchCheckInTime } from '../../apiCall/apis';
+import { roundUpToQuarterHour, roundDownToQuarterHour, formatDate2, formatTime2, calculateWorkHours, calculateNetWorkHours } from '../../common/format';
 
 const TopPage = () => {
 
   //ユーザー情報
-  const id = localStorage.getItem('user');
   const accounts_id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
 
@@ -18,60 +19,43 @@ const TopPage = () => {
   const [isCheckedIn, setIsCheckedIn] = useState(false); // 出勤状態を管理するフラグ
   const [break_time, setBreakTime] = useState('01:00');  
   const [midFlag, setMidFlag] = useState(false);
-  
-  useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-      'Content-Type': 'application/json'
-    }
-    })
-    .then(response => response.json())
-    .then(data => {
-      setUserData(data);
-    })
-    .catch(err => console.log(err));
-  }, [id]);
 
+  //ユーザー情報を取得
   useEffect(() => {
-    // 出勤状態を取得するためのAPI呼び出し
-    fetch(`http://localhost:3000/attendance/status/${id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(accounts_id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => {
-      setIsCheckedIn(data.is_checked_in);
-      setMidFlag(data.midFlag);
-    })
-    .catch(err => console.log(err));
-  }, [id]);  
+    };
+    getUserData();
+  }, [accounts_id]);
+
+  //出勤状況を取得
+  useEffect(() => {
+    const getAttendanceStatus = async () => {
+      try {
+        const data = await fetchAttendanceStatus(accounts_id);
+        setIsCheckedIn(data.is_checked_in);
+        setMidFlag(data.midFlag);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getAttendanceStatus();
+  }, [accounts_id]);
 
   if (!userData) {
     return <div>Loading...</div>;
   }
-  //15分繰り上げる
-  const roundUpToQuarterHour = (timeString) => {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes;
-    const roundedMinutes = Math.ceil(totalMinutes / 15) * 15;
-    const roundedHours = Math.floor(roundedMinutes / 60).toString().padStart(2, '0');
-    const roundedMins = (roundedMinutes % 60).toString().padStart(2, '0');
-    return `${roundedHours}:${roundedMins}`;
-  };  
 
   //出勤処理
   const handleCheckIn = async () => {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-    const day = String(now.getDate()).padStart(2, '0'); // 日付
-    const currentDate = `${year}-${month}-${day}`;
-    const currentTime = now.toTimeString().split(' ')[0].slice(0, 5);
-
-    // 現在の時間を15分単位に繰り上げ
+    const currentDate = formatDate2(now);
+    const currentTime = formatTime2(now);
     const roundedCheckInTime = roundUpToQuarterHour(currentTime);
 
     const requestBody = {
@@ -84,13 +68,7 @@ const TopPage = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:3000/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-
-      const message = await response.text();
+      const message = await postAttendance(requestBody);
       alert(message);
       setIsCheckedIn(true); // 出勤状態を更新
     } catch (error) {
@@ -98,117 +76,30 @@ const TopPage = () => {
     }
   };
 
-
-  //退勤時間を15分切り捨て
-  const roundDownToQuarterHour = (timeString) => {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes;
-    const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
-    const roundedHours = Math.floor(roundedMinutes / 60).toString().padStart(2, '0');
-    const roundedMins = (roundedMinutes % 60).toString().padStart(2, '0');
-    return `${roundedHours}:${roundedMins}`;
-  };  
-
   //退勤処理
   const handleCheckOut = async () => {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-    const day = String(now.getDate()).padStart(2, '0'); // 日付
-    const day2 = String(now.getDate() -1).padStart(2, '0'); // 退勤が日付をまたぐ場合
-    const currentDate = `${year}-${month}-${day}`;
-    const currentTime = now.toTimeString().split(' ')[0].slice(0, 5);
-    const date = `${year}-${month}-${day2}`;
-
-    // 現在の時間を15分単位に切り捨て
+    const currentDate = formatDate2(now);
+    const currentTime = formatTime2(now);
     const roundedCheckOutTime = roundDownToQuarterHour(currentTime);
-    
-    // 出勤時刻を取得するためのAPI呼び出し
-    let checkinTime, checkinDate, mid_flag;
-    if(midFlag){
-      try {
-        const response = await fetch(`http://localhost:3000/attendance/checkin/${accounts_id}/${currentDate}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        checkinTime = data.check_in_time;
-        checkinDate = data.date;
-        mid_flag = false;
-      } catch (error) {
-        console.error('Error fetching check-in time:', error);
-        alert('出勤時刻の取得に失敗しました。');
-        return;
-      }
-    }else{
-      try {
-        const response = await fetch(`http://localhost:3000/attendance/checkin/${accounts_id}/${date}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        checkinTime = data.check_in_time;
-        checkinDate = data.date;
-        mid_flag = true;
-      } catch (error) {
-        console.error('Error fetching check-in time:', error);
-        alert('出勤時刻の取得に失敗しました。');
-        return;
-      }
-    }
-    
-    // 出勤から退勤を引いて全勤務時間を計算
-    const calculateWorkHours = (checkInDate, checkInTime, checkOutDate, checkOutTime ) => {
-      // 時間文字列をDateオブジェクトに変換
-      const checkIn = new Date(`${checkInDate}T${checkInTime}`);
-      const checkOut = new Date(`${checkOutDate}T${checkOutTime}`);
+    const previousDate = formatDate2(new Date(now.setDate(now.getDate() - 1)));
 
-      if (checkOut < checkIn) { 
-        checkOut.setDate(checkOut.getDate() + 1); 
-      }
-      
-      // 日付の有効性をチェック
-      const isValidDate = (date) => date instanceof Date && !isNaN(date);
-      if (!isValidDate(checkIn) || !isValidDate(checkOut)) {
-        //テスト用
-        return '00:00';
-      }
-  
-      // 時間の差を計算
-      const diff = checkOut - checkIn;
-      const hours = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');
-      const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
-    };
+    let checkinTime, checkinDate, mid_flag;
+    try {
+      const data = midFlag
+        ? await fetchCheckInTime(accounts_id, currentDate)
+        : await fetchCheckInTime(accounts_id, previousDate);
+      checkinTime = data.check_in_time;
+      checkinDate = data.date;
+      mid_flag = !midFlag;
+    } catch (error) {
+      console.error('Error fetching check-in time:', error);
+      alert('出勤時刻の取得に失敗しました。');
+      return;
+    }
 
     const work_hours = calculateWorkHours(checkinDate, checkinTime, currentDate, roundedCheckOutTime);
-
-    // 全勤務時間から休憩時間を引いて勤務時間を計算
-    const CalculateWorkHours = (totalWorkTime, breakTime ) => {
-      // 時間文字列をDateオブジェクトに変換
-      const totalWork = new Date(`1970-01-01T${totalWorkTime}`);
-      const breakPeriod = new Date(`1970-01-01T${breakTime}`);
-      
-      // 日付の有効性をチェック
-      const isValidDate = (date) => date instanceof Date && !isNaN(date);
-      if (!isValidDate(totalWork) || !isValidDate(breakPeriod)) {
-        return '00:00';
-      }
-  
-      // 時間の差を計算
-      const diff =  totalWork - breakPeriod;
-      const hours = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');;
-      const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');;
-      return `${hours}:${minutes}`;
-    };
-  
-    const workHours = CalculateWorkHours(work_hours, break_time);
+    const workHours = calculateNetWorkHours(work_hours, break_time);
 
     const requestBody = {
       accounts_id,
@@ -221,15 +112,9 @@ const TopPage = () => {
       is_checked_in: isCheckedIn,
       mid_flag: mid_flag
     };
-  
+
     try {
-      const response = await fetch('http://localhost:3000/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-  
-      const message = await response.text();
+      const message = await postAttendance(requestBody);
       alert(message);
       window.location.reload();
     } catch (error) {

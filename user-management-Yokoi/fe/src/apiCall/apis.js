@@ -33,3 +33,41 @@ export const fetchUserData = async (id) => {
   return response.json();
 };
 
+// 出勤状態を取得
+export const fetchAttendanceStatus = async (id) => {
+  const response = await fetch(`http://localhost:3000/attendance/status/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
+//出勤登録
+export const postAttendance = async (requestBody) => {
+  const response = await fetch('http://localhost:3000/attendance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody)
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.text();
+};
+
+//今日の出勤状況を取得
+export const fetchCheckInTime = async (accounts_id, date) => {
+  const response = await fetch(`http://localhost:3000/attendance/checkin/${accounts_id}/${date}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+};
