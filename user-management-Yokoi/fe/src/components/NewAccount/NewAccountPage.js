@@ -7,39 +7,9 @@ import { Button, Form, FormGroup } from 'reactstrap';
 import { TextField, Autocomplete } from '@mui/material';
 import {  submitFormAddApi } from '../../apiCall/apis';
 import { options, teamOptions } from '../../constants/selectForm';
-import { EMAIL_ERROR_MESSAGE } from '../../constants/messages';
-//import { validateForm } from '../../constants/validate';
+import { EMAIL_ERROR_MESSAGE, COMPANY_ERROR, FULLNAME_ERROR, KANANAME_ERROR, KANANAME_FORMAT_ERROR, EMAIL_ERROR, EMAIL_FORMAT_ERROR, TEAM_ERROR, PASSWORD_ERROR, PASSWORD_FORMAT_ERROR } from '../../constants/messages';
 
 const NewAccountPage = (props) => {
-
-  // const options = [
-  //   { label: 'OBM', value: 'OBM' },
-  //   { label: 'OCF', value: 'OCF' },
-  //   { label: 'QFW', value: 'QFW' },
-  //   { label: 'QAT', value: 'QAT' },
-  //   { label: 'QTR', value: 'QTR' },
-  //   { label: 'QRL', value: 'QRL' },
-  //   { label: 'VQT', value: 'VQT' },
-  //   { label: 'QON', value: 'QON' },
-  //   { label: 'QFL', value: 'QFL' },
-  //   { label: 'QCT', value: 'QCT' },
-  // ];
-
-  // const teamOptions = [
-  //   { label: 'ST/FT管理', value: 'ST/FT管理' },
-  //   { label: '総務/営業', value: '総務/営業' },
-  //   { label: 'FT実施', value: 'FT実施' },
-  //   { label: 'アフター', value: 'アフター' },
-  //   { label: '取説', value: '取説' },
-  //   { label: 'CTS', value: 'CTS' },
-  //   { label: '使い込み', value: '使い込み' },
-  //   { label: 'ST主管', value: 'ST主管' },
-  //   { label: 'ST実施', value: 'ST実施' },
-  //   { label: 'SI', value: 'SI' },
-  //   { label: '開発', value: '開発' },
-  //   { label: '構成管理', value: '構成管理' },
-  //   { label: '作業効率化', value: '作業効率化' },
-  // ];
 
   const [company_state, setCompanyState] = React.useState({ company: '' });
   const [team_state, setTeamState] = React.useState({ team: '' });
@@ -73,23 +43,23 @@ const NewAccountPage = (props) => {
     const katakanaRegex = /^[ァ-ヶー　]*$/; // カタカナのみを許可する正規表現
     const alphanumericRegex = /^[a-zA-Z0-9]*$/; // 英数字のみを許可する正規表現
 
-    if (!company_state.company) newErrors.company = '会社名を入力してください';
-    if (!state.fullname) newErrors.fullname = '氏名を入力してください';
+    if (!company_state.company) newErrors.company = COMPANY_ERROR;
+    if (!state.fullname) newErrors.fullname = FULLNAME_ERROR;
     if (!state.kananame) {
-      newErrors.kananame = 'ヨミガナを入力してください';
+      newErrors.kananame = KANANAME_ERROR;
     } else if (!katakanaRegex.test(state.kananame)) {
-      newErrors.kananame = 'ヨミガナはカタカナで入力してください';
+      newErrors.kananame = KANANAME_FORMAT_ERROR;
     }
     if (!state.email) {
-      newErrors.email = 'Emailを入力してください';
+      newErrors.email = EMAIL_ERROR;
     } else if (!/\S+@\S+\.\S+/.test(state.email)) {
-      newErrors.email = '有効なEmailを入力してください';
+      newErrors.email = EMAIL_FORMAT_ERROR;
     }
-    if (!team_state.team) newErrors.team = '所属するチームを入力してください';
+    if (!team_state.team) newErrors.team = TEAM_ERROR;
     if (!state.password) {
-      newErrors.password = 'パスワードを入力してください';
+      newErrors.password = PASSWORD_ERROR;
     } else if (!alphanumericRegex.test(state.password)) {
-      newErrors.password = 'パスワードは英数字のみで入力してください';
+      newErrors.password = PASSWORD_FORMAT_ERROR;
     }
 
     return newErrors;
@@ -114,20 +84,20 @@ const NewAccountPage = (props) => {
     };
   
     submitFormAddApi(data)
-      .then(item => {
-        if (item.dbError) {
-          if (item.dbError.includes('メールアドレス')) {
-            setErrors({ email: EMAIL_ERROR_MESSAGE });
-          }
-        } else if (item) {
-          const userId = item.map(item => item.id);
-          // 登録した情報を表示するページに遷移
-          navigate(`/new_account_after/${userId}`); 
-        } else {
-          console.log('failure');
+    .then(item => {
+      if (item.dbError) {
+        if (item.dbError.includes('メールアドレス')) {
+          setErrors({ email: EMAIL_ERROR_MESSAGE });
         }
-      })
-      .catch(err => console.log(err));
+      } else if (item) {
+        const userId = item.map(item => item.id);
+        // 登録した情報を表示するページに遷移
+        navigate(`/new_account_after/${userId}`); 
+      } else {
+        console.log('failure');
+      }
+    })
+    .catch(err => console.log(err));
   };
 
   return (

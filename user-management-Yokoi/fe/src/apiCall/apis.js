@@ -1,3 +1,4 @@
+//ログイン
 export const loginUser = async (email, password) => {
   const response = await fetch('http://localhost:3000/login', {
     method: 'POST',
@@ -11,6 +12,7 @@ export const loginUser = async (email, password) => {
   return data;
 };
 
+//アカウント登録
 export const submitFormAddApi = async (data) => {
   const response = await fetch('http://localhost:3000/post', {
     method: 'POST',
