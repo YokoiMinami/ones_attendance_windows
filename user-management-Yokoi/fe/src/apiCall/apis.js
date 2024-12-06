@@ -213,3 +213,31 @@ export const submitExpense = async (data) => {
   }
 };
 
+//代休登録
+export const addHoliday = async (data) => {
+  try {
+    const response = await fetch('http://localhost:3000/holiday', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    return response;
+  } catch (error) {
+    console.error('Error saving data:', error);
+    throw error;
+  }
+};
+
+//代休削除
+export const deleteHoliday = async (itemId) => {
+  const response = await fetch('http://localhost:3000/holiday_delete', {
+    method: 'delete',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ id: itemId })
+  });
+  return await response.json();
+};

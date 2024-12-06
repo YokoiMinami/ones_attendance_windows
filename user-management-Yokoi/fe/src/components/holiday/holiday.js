@@ -1,42 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import HolidayModal from './HolidayModal';
+import { fetchUserData, fetchHolidayData, deleteHoliday } from '../../apiCall/apis';
+import { formatDate } from '../../common/format';
 
 const HolidayPage = () => {
-  const id = localStorage.getItem('user');
+  const accounts_id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
-  const year = useState(new Date().getFullYear());
-  const month = useState(new Date().getMonth() + 1);
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  
-  // ユーザー情報を取得
+
+  //ユーザー情報を取得
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(accounts_id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => setUserData(data))
-    .catch(err => console.log(err));
-  }, [id]);
+    };
+    getUserData();
+  }, [accounts_id]);
 
   //ユーザーの代休情報を取得
   useEffect(() => {
     const fetchHoliday = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/holiday/${accounts_id}`);
-        const data = await response.json();
+        const data = await fetchHolidayData(accounts_id);
         setItems(data);
       } catch (error) {
         console.error('Error fetching holiday data:', error);
       }
     };
     fetchHoliday();
-  }, [id]);
+  }, [accounts_id]);
 
   const handleCheckboxChange = (event, itemId) => {
     if (event.target.checked) {
@@ -59,32 +60,17 @@ const HolidayPage = () => {
     let confirmDelete = window.confirm('チェックした代休を削除しますか？');
     if (confirmDelete) {
       selectedItems.forEach(itemId => {
-        fetch('http://localhost:3000/holiday_delete', {
-          method: 'delete',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ id: itemId })
-        })
-        .then(response => response.json())
-        .then(() => {
-          setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-        })
-        .catch(err => console.log(err));
+        deleteHoliday(itemId)
+          .then(() => {
+            setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+          })
+          .catch(err => console.log(err));
       });
       // チェックボックスのリセット
       setSelectedItems([]);
     }
   };
 
-  const formatDate = (dateString) => { 
-    const date = new Date(dateString); 
-    const year = date.getFullYear(); 
-    const month = String(date.getMonth() + 1).padStart(2, '0'); 
-    const day = String(date.getDate()).padStart(2, '0'); 
-    return `${year}/${month}/${day}`; 
-  };
-    
   return (
     <div id='expenses_page'>
       <div id='expenses_user_area'>
