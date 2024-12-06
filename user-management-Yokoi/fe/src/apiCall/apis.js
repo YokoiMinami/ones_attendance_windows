@@ -179,7 +179,7 @@ export const postRemarks = async (data) => {
   return response.text();
 };
 
-
+//交通費登録
 export const saveExpenses = async (data) => {
   try {
     const response = await fetch('http://localhost:3000/expenses', {
@@ -195,3 +195,21 @@ export const saveExpenses = async (data) => {
     throw error;
   }
 };
+
+//経費申請
+export const submitExpense = async (data) => {
+  try {
+    const response = await fetch('http://localhost:3000/projects_put', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    return response;
+  } catch (error) {
+    console.error('Error saving data:', error);
+    throw error;
+  }
+};
+

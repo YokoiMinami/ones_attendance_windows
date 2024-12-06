@@ -136,7 +136,24 @@ export const convertMinutesToTime = (minutes) => {
   return `${hours}:${mins}`;
 };
 
+//小数点以下切り捨て
+export const formatAmount2 = (amount) => { 
+  return Math.floor(amount);
+};
+
+//3桁ごとに区切る
+export const formatAmount3 = (amount) => {
+  return amount.toLocaleString('ja-JP', { minimumFractionDigits: 0 });
+};
+
+//小数点以下切り捨て、数字に変換
 export const formatAmount = (amount) => { 
   const flooredAmount = Math.floor(amount); 
   return Number(flooredAmount);
+};
+
+//少数点以下切り捨て、3桁ごとに区切る
+export const formatAmountJp = (amount) => { 
+  const flooredAmount = Math.floor(amount); 
+  return flooredAmount.toLocaleString('ja-JP', { minimumFractionDigits: 0 }); 
 };

@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CostModal from './CostModal';
+import { fetchUserData, fetchExpensesData2, fetchProjectData, submitExpense } from '../../apiCall/apis';
+import { formatDate, formatAmountJp, formatAmount2, formatAmount3 } from '../../common/format';
 
 const CostPage = () => {
-  const id = localStorage.getItem('user');
+
+  const accounts_id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [items, setItems] = useState([]);
-  const [items2, setItems2] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [deleteImage, setdeleteImage] = useState([]);
   const [details, setDetails] = useState();
@@ -19,17 +20,12 @@ const CostPage = () => {
   const [appState , setAppState ] = useState(false);
   const [appUser , setAppUser ] = useState('');
   const [appDate , setAppDate ] = useState('');
-  const [appFlag , setAppFlag ] = useState('');
   const [registration, setRegistration] = useState('');
-  const [registrationDate, setregistrationDate] = useState('');
   const [approver, setApprover] = useState('');
   const [president, setPresident] = useState('');
   const [remarks, setRemarks] = useState('');
   const [appText , setAppText ] = useState('');
-  const [year2, setYear2] = useState(new Date().getFullYear());
-  const [month2, setMonth2] = useState(new Date().getMonth() + 1);
   const [day, setDay] = useState(new Date().getDate());
-  const currentDate = `${year2}/${month2}/${day}`;
   const [showImage, setShowImage] = useState(false); //画像の表示、非表示
   const [expenses, setExpenses] = useState([]);
   const [selectedImage, setSelectedImage] = useState(''); 
@@ -37,20 +33,31 @@ const CostPage = () => {
   const [projectId, setProjectId] = useState();
   const [errors, setErrors] = useState({});
 
-  //ユーザーの経費情報を取得
+  //ユーザー情報を取得
   useEffect(() => {
-    const fetchExpenses = async () => {
-      const accounts_id = localStorage.getItem('user');
+    const getUserData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
-        setExpenses(data)
-      } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        const data = await fetchUserData(accounts_id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
     };
-    fetchExpenses();
-  }, [year, month]);
+    getUserData();
+  }, [accounts_id]);
+
+  //経費情報を取得
+  useEffect(() => {
+    const fetchExpenses2 = async () => {
+      try {
+        const data = await fetchExpensesData2(accounts_id, year, month);
+        setExpenses(data);
+      } catch (error) {
+        console.error('Error fetching expenses data:', error);
+      }
+    };
+    fetchExpenses2();
+  }, [year, month, accounts_id]);
 
   const toggleImage = (filePath, index) => { 
     setShowImage(prevShowImage => ({ 
@@ -70,36 +77,18 @@ const CostPage = () => {
   }, [showImage, expenses]);
   
 
-  // ユーザー情報を取得
-  useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-          'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => setUserData(data))
-    .catch(err => console.log(err));
-  }, [id]);
-
-  //プロジェクト情報
+  //プロジェクト情報取得
   useEffect(() => {
     const fetchUser = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
-        setItems2(data);
+        const data = await fetchProjectData(accounts_id, year, month);
         setProjectId(data.id);
         setDetails(data.details);
         setCompany(data.company);
         setName(data.name);
         setDate(data.create_date);
         setAppDay(data.create_day);
-        setAppFlag(data.app_flag);
         setRegistration(data.registration);
-        setregistrationDate(data.registration_date);
         setApprover(data.approver);
         setPresident(data.president);
         setRemarks(data.remarks);
@@ -118,15 +107,12 @@ const CostPage = () => {
         }
       } catch (error) {
         console.error('Error fetching holiday data:', error);
-        setItems2();
         setDetails();
         setCompany();
         setName();
         setDate();
         setAppDay();
-        setAppFlag();
         setRegistration();
-        setregistrationDate();
         setApprover();
         setPresident();
         setRemarks();
@@ -134,7 +120,7 @@ const CostPage = () => {
       }
     };
     fetchUser();
-  }, [year, month]);
+  }, [year, month, accounts_id]);
 
   const handleCheckboxChange = (event, itemId, itemUrl) => {
     if (event.target.checked) {
@@ -145,11 +131,6 @@ const CostPage = () => {
     }
   };
 
-  const addItemToState = (item) => {
-    window.location.reload();
-    setItems(prevItems => [...prevItems, item]);
-  };
-
   const validateForm = () => {
     const newErrors = {};
     if (!company){newErrors.company = '所属社名を登録してください'};
@@ -158,51 +139,43 @@ const CostPage = () => {
     return newErrors;
   };
 
-  //プロジェクト情報登録
-  const putItems = async (e) => {
+  //経費申請
+const putItems = async (e) => {
+  e.preventDefault();
 
-    e.preventDefault();
+  const formErrors = validateForm();
+  if (Object.keys(formErrors).length > 0) {
+    setErrors(formErrors);
+    return;
+  }
 
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      return;
-    }
+  if (!total) {
+    alert('経費を登録してください');
+    return;
+  }
 
-    if (!total) {
-      alert('経費を登録してください');
-      return;
-    }
-    
-    let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
-    if (confirmDelete) {
-      const accounts_id = localStorage.getItem('user');
-      const create_day = `${year}/${month}/${day}`;
-      const data = {
-        accounts_id,
-        create_date: date,
-        create_day: create_day
-      };
-      try {
-        const response = await fetch('http://localhost:3000/projects_put', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
-          alert('経費を申請しました');
-          window.location.reload();
-        } else {
-          alert('経費の申請に失敗しました');
-        }
-      } catch (error) {
-        console.error('Error saving data:', error);
+  let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
+  if (confirmDelete) {
+    const create_day = `${year}/${month}/${day}`;
+    const data = {
+      accounts_id,
+      create_date: date,
+      create_day: create_day
+    };
+    try {
+      const response = await submitExpense(data);
+      if (response.ok) {
+        alert('経費を申請しました');
+        window.location.reload();
+      } else {
         alert('経費の申請に失敗しました');
       }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('経費の申請に失敗しました');
     }
-  };
+  }
+};
 
   const deleteItems = async () => {
     if (selectedItems.length === 0) {
@@ -217,7 +190,6 @@ const CostPage = () => {
     );
 
     if (!confirmDelete) return;
-  
     try {
       if (registration) {
         await deleteProject();
@@ -238,7 +210,7 @@ const CostPage = () => {
   };
   
   const deleteImages = async () => {
-    const deleteImagePromises = deleteImage.map(async (image) => {
+    deleteImage.map(async (image) => {
       if (image.length > 0) {
         const response = await fetch(`http://localhost:3000/uploads/${image}`, {
           method: 'DELETE',
@@ -255,7 +227,7 @@ const CostPage = () => {
   };
   
   const deleteSelectedItems = async () => {
-    const deleteItemPromises = selectedItems.map(async (itemId) => {
+    selectedItems.map(async (itemId) => {
       const response = await fetch('http://localhost:3000/cost_delete', {
         method: 'DELETE',
         headers: {
@@ -264,7 +236,6 @@ const CostPage = () => {
         body: JSON.stringify({ id: itemId }),
       });
       const result = await response.json();
-      setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
       return result;
     });
   };
@@ -284,27 +255,6 @@ const CostPage = () => {
       alert('経費の削除に失敗しました');
       throw new Error('Failed to delete project');
     }
-  };
-  
-  const formatDate = (dateString) => { 
-    const date = new Date(dateString); 
-    const year = date.getFullYear(); 
-    const month = String(date.getMonth() + 1).padStart(2, '0'); 
-    const day = String(date.getDate()).padStart(2, '0'); 
-    return `${year}/${month}/${day}`; 
-  };
-
-  const formatAmount = (amount) => { 
-    const flooredAmount = Math.floor(amount); 
-    return flooredAmount.toLocaleString('ja-JP', { minimumFractionDigits: 0 }); 
-  };
-
-  const formatAmount2 = (amount) => { 
-    return Math.floor(amount);
-  };
-
-  const formatAmount3 = (amount) => {
-    return amount.toLocaleString('ja-JP', { minimumFractionDigits: 0 });
   };
   
   useEffect(() => { // expensesが更新されるたびに合計金額を計算する 
@@ -361,7 +311,7 @@ const CostPage = () => {
         <div id='cost_box1'> 
           <div id='cost_button_area'> 
             <button className='cost_button' onClick={putItems}>申請</button> 
-            <CostModal buttonLabel="登録" addItemToState={addItemToState} /> 
+            <CostModal buttonLabel="登録"/> 
             <button className='cost_button' onClick={deleteItems}>削除</button> 
           </div> 
         </div> 
@@ -425,7 +375,7 @@ const CostPage = () => {
                     <td className='cost_empty'>{formatDate(item.date)}</td> 
                     <td className='cost_empty'>{item.category}</td> 
                     <td className='cost_empty'>{item.description}</td> 
-                    <td className='amount_td' style={{ textAlign: 'right' }}>{formatAmount(item.amount)}</td> 
+                    <td className='amount_td' style={{ textAlign: 'right' }}>{formatAmountJp(item.amount)}</td> 
                     <td className='cost_empty' style={{ textAlign: 'center' }}> 
                       {filePath && ( 
                         <span onClick={() => toggleImage(filePath, index)} id="image_text" style={{ cursor: 'pointer' }}> 
