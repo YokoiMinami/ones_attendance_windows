@@ -885,17 +885,35 @@ const passData = (req, res, db) => {
 
 //管理者パスワードを変更
 const passPut = async (req, res, db) => {
-  const { id, fullname, date, admin_password, } = req.body;
+  const { id, fullname, date, admin_password } = req.body;
+
+  console.log('Received data:', { id, fullname, date, admin_password });
 
   await db('passdata').where({ id }).update({ fullname, date, admin_password })
   .returning('*')
   .then(item => {
+    console.log('Database update successful:', item);
     res.json(item);
   })
-  .catch(err => res.status(400).json({
-    dbError: 'error'
-  }));
-}
+  .catch(err => {
+    console.error('Database update error:', err);
+    res.status(400).json({
+      dbError: 'error'
+    });
+  });
+};
+// const passPut = async (req, res, db) => {
+//   const { id, fullname, date, admin_password, } = req.body;
+
+//   await db('passdata').where({ id }).update({ fullname, date, admin_password })
+//   .returning('*')
+//   .then(item => {
+//     res.json(item);
+//   })
+//   .catch(err => res.status(400).json({
+//     dbError: 'error'
+//   }));
+// }
 
 //経費
 const projectsDelete = async (req, res, db) => {

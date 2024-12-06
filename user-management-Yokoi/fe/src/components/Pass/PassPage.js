@@ -2,31 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PassModal from './PassModal';
 import OnesLogo from '../../images/ones-logo.png';
+import { fetchUserData, fetchPassword } from '../../apiCall/apis';
 
 const PassPage = () => {
-  const id = localStorage.getItem('user');
+  const accounts_id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
   const [items, setItems] = useState([]);
 
-  // ユーザー情報を取得
+  //ユーザー情報を取得
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(accounts_id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => setUserData(data))
-    .catch(err => console.log(err));
-  }, [id]);
+    };
+    getUserData();
+  }, [accounts_id]);
 
   // 現在の管理者パスワードを取得
   useEffect(() => {
     const fetchPass = async () => {
       try {
-        const response = await fetch('http://localhost:3000/pass');
-        const data = await response.json();
+        const data = await fetchPassword();
         setItems(data);
       } catch (error) {
         console.error('Error fetching password data:', error);
@@ -34,7 +34,7 @@ const PassPage = () => {
     };
     fetchPass();
   }, []);
-
+  
   const addItemToState = (item) => {
     setItems(prevItems => [...prevItems, item]);
   };

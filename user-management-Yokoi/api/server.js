@@ -14,7 +14,7 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS', 'PUT'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
@@ -121,7 +121,7 @@ app.get('/holiday/:accounts_id', (req, res) => accountsController.holidayData(re
 app.delete('/holiday_delete', (req, res) => accountsController.delHolidayData(req, res, db));
 //管理者パスワード
 app.get('/pass', (req, res) => accountsController.passData(req, res, db));
-app.put('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
+app.post('/pass_edit', (req, res) => accountsController.passPut(req, res, db));
 //経費
 app.post('/api/expenses',upload.single('receipt_image'), (req, res) => accountsController.imagePost(req, res, db));
 app.get('/api/expenses2/:accounts_id/:year/:month', (req, res) => { 

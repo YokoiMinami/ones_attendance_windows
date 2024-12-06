@@ -241,3 +241,29 @@ export const deleteHoliday = async (itemId) => {
   });
   return await response.json();
 };
+
+//管理者パスワードを取得
+export const fetchPassword = async () => {
+  const response = await fetch('http://localhost:3000/pass');
+  if (!response.ok) {
+    throw new Error('Error fetching password data');
+  }
+  return response.json();
+};
+
+//管理者パスワードを変更
+export const editPassword = async (data) => {
+  const response = await fetch('http://localhost:3000/pass_edit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to save data');
+  }
+
+  return response.json();
+}
