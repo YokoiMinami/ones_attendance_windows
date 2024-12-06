@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './components/Login/LoginPage';
 import TopPage from './components/Top/TopPage';
-import Account from './components/Account';
 import ProtectedRoute from './ProtectedRoute';
 import { AuthProvider } from './AuthContext';
 import AttendanceTablePage from './components/Attendance/AttendanceTable';
@@ -16,6 +15,7 @@ import HolidayPage from './components/holiday/holiday';
 import PassPage from './components/Pass/PassPage';
 import CostPage from './components/Cost/CostPage';
 import MemberCost from './components/Member/MemberCost';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const AppContent = () => {
   return (
@@ -23,7 +23,6 @@ const AppContent = () => {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<ProtectedRoute component={TopPage} />} />
-        <Route path="/account" element={<ProtectedRoute component={Account} />} />
         <Route path="/attendance_table" element={<ProtectedRoute component={AttendanceTablePage} />} />
         <Route path="/pass" element={<ProtectedRoute component={PassPage} />} />
         <Route path="/expenses" element={<ProtectedRoute component={ExpensesPage} />} />
