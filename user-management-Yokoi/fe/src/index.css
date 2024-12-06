@@ -1119,8 +1119,6 @@ html {
   margin-top: 14px;
 }
 
-
-
 /* 交通費精算ページ */
 #expenses_page {
   width: 100%;
@@ -1219,10 +1217,6 @@ html {
 #grand_total_under {
   border-bottom: solid 2px;
 }
-
-
-
-
 
 /* 代休ページ */
 #h_table {

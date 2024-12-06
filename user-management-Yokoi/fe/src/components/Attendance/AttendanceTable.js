@@ -8,7 +8,7 @@ import UserModal from './UserModal';
 import TimeModal from './TimeModal';
 import { startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { fetchUserData, fetchAttendanceData, fetchExpensesData, fetchHolidayData, fetchProjectData, fetchExpensesData2, postRemarks, standardTime } from '../../apiCall/apis';
-import { isWeekend } from '../../constants/date';
+import { isWeekend, getDaysInMonth, getDayOfWeek } from '../../constants/date';
 import { attendanceFormatTime, formatRemarks, totalWorkHours, calculateNetWorkHours, convertTimeToMinutes, convertMinutesToTime, formatDate, formatAmount} from '../../common/format';
 
 const AttendanceTablePage = ( ) => {
@@ -205,22 +205,6 @@ const AttendanceTablePage = ( ) => {
   //表を出力
   //特定の月の日付を取得し、それをReactの状態に設定する
   useEffect(() => {
-    //指定された年と月のすべての日付を配列として返す
-    const getDaysInMonth = (year, month) => {
-      //指定された年と月の1日目の日付オブジェクトを作成
-      const date = new Date(Date.UTC(year, month, 1));
-      //日付を格納するための空の配列を作成
-      const days = [];
-      //dateの月が指定された月(month)と同じである限りループを続ける
-      while (date.getUTCMonth() === month) {
-        //現在の日付オブジェクトをdays配列に追加
-        days.push(new Date(date));
-        //dateオブジェクトの日付を1日進める
-        date.setUTCDate(date.getUTCDate() + 1);
-      }
-      return days; //すべての日付を含む配列を返す
-    };
-
     //getDaysInMonth関数を使用して、現在の年と指定された月のすべての日付を取得します。JavaScriptの月は0から始まるため、month - 1
     const days = getDaysInMonth(year, month - 1);
     const weekends = days.filter(isWeekend);
@@ -238,13 +222,6 @@ const AttendanceTablePage = ( ) => {
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
   }, [year, month, editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2]); 
-
-  //特定の日付の曜日を取得する関数
-  const getDayOfWeek = (date) => {
-    //渡された日付の曜日を日本語で取得
-    //dateオブジェクトを日本語のロケール（ja-JP）でフォーマットし、曜日を長い形式（例：月曜日、火曜日）で返す
-    return date.toLocaleDateString('ja-JP', { weekday: 'long' });
-  };
 
   // 勤怠情報を検索する関数
   const findAttendanceRecord = (date) => {
@@ -1542,7 +1519,7 @@ const AttendanceTablePage = ( ) => {
                           onBlur={() => handleRemarksSave(date)}
                         />
                       ) : (
-                        record ? formatRemarks(record.remarks2) : ''
+                        <div dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.remarks2) : '' }} />
                       )}
                     </td>
                     <td>{record ? attendanceFormatTime(record.check_out_time) : ''}</td>
@@ -1570,7 +1547,7 @@ const AttendanceTablePage = ( ) => {
                           onBlur={() => handleOutRemarksSave(date)}
                         />
                       ) : (
-                        record ? formatRemarks(record.out_remarks2) : ''
+                        <div dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.out_remarks2) : '' }} />
                       )}
                     </td>
                     <td>{record ? attendanceFormatTime(record.break_time) : ''}</td>

@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link } from 'react-router-dom';
+import { fetchUserData, fetchExpensesData, saveExpenses } from '../../apiCall/apis';
+import { isWeekend, getDaysInMonth, getDayOfWeek } from '../../constants/date';
+import { formatRemarks } from '../../common/format';
 
 const ExpensesPage = ( ) => {
 
-  const id = localStorage.getItem('user');
+  const accounts_id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -39,22 +42,16 @@ const ExpensesPage = ( ) => {
 
   //ユーザー情報を取得
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(accounts_id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => setUserData(data))
-    .catch(err => console.log(err));
-  }, [id]);
-
-  //土日を判定
-  const isWeekend = (date) => {
-    const day = date.getUTCDay();
-    return day === 0 || day === 6; // 日曜日 (0) または土曜日 (6)
-  };
+    };
+    getUserData();
+  }, [accounts_id]);
 
   //祝日を取得
   const getHolidaysInMonth = (year, month) => {
@@ -65,18 +62,16 @@ const ExpensesPage = ( ) => {
   //ユーザーの交通費情報を取得
   useEffect(() => {
     const fetchExpenses = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/expenses/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
+        const data = await fetchExpensesData(accounts_id, year, month);
         setExpensesData(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        console.error('Error fetching expenses data:', error);
         setExpensesData([]);
       }
     };
     fetchExpenses();
-  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks]);
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks, accounts_id]);
 
   // 交通費情報を検索する関数
   const findAttendanceRecord = useCallback((date) => {
@@ -94,59 +89,30 @@ const ExpensesPage = ( ) => {
   //表を出力
   //特定の月の日付を取得し、それをReactの状態に設定する
   useEffect(() => {
-    //指定された年と月のすべての日付を配列として返す
-    const getDaysInMonth = (year, month) => {
-      //指定された年と月の1日目の日付オブジェクトを作成
-      const date = new Date(Date.UTC(year, month, 1));
-      //日付を格納するための空の配列を作成
-      const days = [];
-      //dateの月が指定された月(month)と同じである限りループを続ける
-      while (date.getUTCMonth() === month) {
-        //現在の日付オブジェクトをdays配列に追加
-        days.push(new Date(date));
-        //dateオブジェクトの日付を1日進める
-        date.setUTCDate(date.getUTCDate() + 1);
-      }
-      return days; //すべての日付を含む配列を返す
-    };
-
     //getDaysInMonth関数を使用して、現在の年と指定された月のすべての日付を取得します。JavaScriptの月は0から始まるため、month - 1
     const days = getDaysInMonth(year, month - 1);
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
-  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks]); //monthが変更されるたびに実行する
-
-  //特定の日付の曜日を取得する関数
-  const getDayOfWeek = (date) => {
-    //渡された日付の曜日を日本語で取得
-    //dateオブジェクトを日本語のロケール（ja-JP）でフォーマットし、曜日を長い形式（例：月曜日、火曜日）で返す
-    return date.toLocaleDateString('ja-JP', { weekday: 'long' });
-  };
+  }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks]); 
 
   //経路の編集
   const handleRouteChange = (newOption) => {
     setDestination(newOption);
   };
-  
+
   const handleRouteSave = async (date) => {
-    const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
       route: destination
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingDestination(destination);
-      
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
@@ -162,7 +128,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -245,10 +210,9 @@ const ExpensesPage = ( ) => {
     setTrain(newOption);
   };
 
-  const handleTrainSave = async (date,bus,tax,aircraft,other,stay) => {
-    const accounts_id = localStorage.getItem('user');
+  const handleTrainSave = async (date, bus, tax, aircraft, other, stay) => {
     const currentDate = date.toISOString().split('T')[0];
-
+  
     const Train = parseFloat(train) || 0;
     const Bus = parseFloat(bus) || 0;
     const Tax = parseFloat(tax) || 0;
@@ -257,7 +221,7 @@ const ExpensesPage = ( ) => {
     const Stay = parseFloat(stay) || 0;
     const total = Train + Bus + Tax + Aircraft + Other;
     const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
-
+  
     const data = {
       accounts_id,
       date: currentDate,
@@ -267,13 +231,7 @@ const ExpensesPage = ( ) => {
     };
   
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingTrain({});
   
       if (response.ok) {
@@ -291,7 +249,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -313,10 +270,10 @@ const ExpensesPage = ( ) => {
     setBus(newOption);
   };
 
-  const handleBusSave = async (date,train,tax,aircraft,other,stay) => {
-    const accounts_id = localStorage.getItem('user');
-    const currentDate = date.toISOString().split('T')[0];
+  const handleBusSave = async (date, train, tax, aircraft, other, stay) => {
 
+    const currentDate = date.toISOString().split('T')[0];
+  
     const Train = parseFloat(train) || 0;
     const Bus = parseFloat(bus) || 0;
     const Tax = parseFloat(tax) || 0;
@@ -325,7 +282,7 @@ const ExpensesPage = ( ) => {
     const Stay = parseFloat(stay) || 0;
     const total = Train + Bus + Tax + Aircraft + Other;
     const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
-
+  
     const data = {
       accounts_id,
       date: currentDate,
@@ -333,16 +290,11 @@ const ExpensesPage = ( ) => {
       total: total,
       grand_total: grand_total
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingBus(bus);
-      
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
@@ -358,7 +310,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -380,10 +331,9 @@ const ExpensesPage = ( ) => {
     setTax(newOption);
   };
 
-  const handleTaxSave = async (date,train,bus,aircraft,other,stay) => {
-    const accounts_id = localStorage.getItem('user');
+  const handleTaxSave = async (date, train, bus, aircraft, other, stay) => {
     const currentDate = date.toISOString().split('T')[0];
-
+  
     const Train = parseFloat(train) || 0;
     const Bus = parseFloat(bus) || 0;
     const Tax = parseFloat(tax) || 0;
@@ -392,7 +342,7 @@ const ExpensesPage = ( ) => {
     const Stay = parseFloat(stay) || 0;
     const total = Train + Bus + Tax + Aircraft + Other;
     const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
-
+  
     const data = {
       accounts_id,
       date: currentDate,
@@ -400,16 +350,11 @@ const ExpensesPage = ( ) => {
       total: total,
       grand_total: grand_total
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingTax(tax);
-      
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
@@ -425,7 +370,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -447,10 +391,9 @@ const ExpensesPage = ( ) => {
     setAircraft(newOption);
   };
 
-  const handleAircraftSave = async (date,train,bus,tax,other,stay) => {
-    const accounts_id = localStorage.getItem('user');
+  const handleAircraftSave = async (date, train, bus, tax, other, stay) => {
     const currentDate = date.toISOString().split('T')[0];
-
+  
     const Train = parseFloat(train) || 0;
     const Bus = parseFloat(bus) || 0;
     const Tax = parseFloat(tax) || 0;
@@ -459,7 +402,7 @@ const ExpensesPage = ( ) => {
     const Stay = parseFloat(stay) || 0;
     const total = Train + Bus + Tax + Aircraft + Other;
     const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
-
+  
     const data = {
       accounts_id,
       date: currentDate,
@@ -467,16 +410,11 @@ const ExpensesPage = ( ) => {
       total: total,
       grand_total: grand_total
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingAircraft(aircraft);
-      
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
@@ -492,7 +430,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -514,10 +451,9 @@ const ExpensesPage = ( ) => {
     setOther(newOption);
   };
 
-  const handleOtherSave = async (date,train,bus,tax,aircraft,stay) => {
-    const accounts_id = localStorage.getItem('user');
+  const handleOtherSave = async (date, train, bus, tax, aircraft, stay) => {
     const currentDate = date.toISOString().split('T')[0];
-
+  
     const Train = parseFloat(train) || 0;
     const Bus = parseFloat(bus) || 0;
     const Tax = parseFloat(tax) || 0;
@@ -526,7 +462,7 @@ const ExpensesPage = ( ) => {
     const Stay = parseFloat(stay) || 0;
     const total = Train + Bus + Tax + Aircraft + Other;
     const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
-
+  
     const data = {
       accounts_id,
       date: currentDate,
@@ -534,16 +470,11 @@ const ExpensesPage = ( ) => {
       total: total,
       grand_total: grand_total
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingOther(other);
-      
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
@@ -559,7 +490,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -581,10 +511,9 @@ const ExpensesPage = ( ) => {
     setStay(newOption);
   };
 
-  const handleStaySave = async (date,train,bus,tax,aircraft,other) => {
-    const accounts_id = localStorage.getItem('user');
+  const handleStaySave = async (date, train, bus, tax, aircraft, other) => {
     const currentDate = date.toISOString().split('T')[0];
-
+  
     const Train = parseFloat(train) || 0;
     const Bus = parseFloat(bus) || 0;
     const Tax = parseFloat(tax) || 0;
@@ -592,23 +521,18 @@ const ExpensesPage = ( ) => {
     const Other = parseFloat(other) || 0;
     const Stay = parseFloat(stay) || 0;
     const grand_total = Train + Bus + Tax + Aircraft + Other + Stay;
-
+  
     const data = {
       accounts_id,
       date: currentDate,
       stay: stay,
       grand_total: grand_total
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingStay(stay);
-      
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
@@ -624,7 +548,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -647,23 +570,17 @@ const ExpensesPage = ( ) => {
   };
 
   const handleRemarksSave = async (date) => {
-    const accounts_id = localStorage.getItem('user');
     const currentDate = date.toISOString().split('T')[0];
     const data = {
       accounts_id,
       date: currentDate,
       expenses_remarks: expensesRemarks
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await saveExpenses(data);
       setEditingExpensesRemarks(expensesRemarks);
-      
+  
       if (response.ok) {
         setExpensesData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
@@ -679,7 +596,6 @@ const ExpensesPage = ( ) => {
         alert('データの保存に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('データの保存に失敗しました');
     }
   };
@@ -696,17 +612,11 @@ const ExpensesPage = ( ) => {
     }
   }, [editingExpensesRemarks])
 
-// 「。」を改行タグに置き換える関数
-const formatRemarks = (remarks) => {
-  if (!remarks) return '';
-  return remarks.split('。').join('。<br />');
-};
-
   const holidays = getHolidaysInMonth(year, month);
   return (
     <div id='expenses_page'>
       <div id='expenses_user_area'>
-        {userData && <p id='atUser'>ユーザー名: {userData.fullname} さん</p>}
+        {userData && <p id='atUser'>{userData.fullname} さん</p>}
       </div>
       <h1>交通費精算</h1>
       <div id='expenses_at_ym'>
@@ -783,7 +693,6 @@ const formatRemarks = (remarks) => {
                       ref={inputRef}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={destination}
                       onChange={(e) => handleRouteChange(e.target.value)}
@@ -791,7 +700,7 @@ const formatRemarks = (remarks) => {
                       onBlur={() => handleRouteSave(date)}
                     />
                   ) : (
-                    record ? formatRemarks(record.route) : ''
+                    <div dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.route) : '' }} />
                   )}
                 </td>
                 <td onClick={() => toggleEditing2(date)}>
@@ -800,7 +709,6 @@ const formatRemarks = (remarks) => {
                       ref={inputRef2}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={train}
                       onChange={(e) => handleTrainChange(e.target.value)}
@@ -817,7 +725,6 @@ const formatRemarks = (remarks) => {
                       ref={inputRef3}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={bus}
                       onChange={(e) => handleBusChange(e.target.value)}
@@ -834,7 +741,6 @@ const formatRemarks = (remarks) => {
                       ref={inputRef4}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={tax}
                       onChange={(e) => handleTaxChange(e.target.value)}
@@ -851,7 +757,6 @@ const formatRemarks = (remarks) => {
                       ref={inputRef5}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={aircraft}
                       onChange={(e) => handleAircraftChange(e.target.value)}
@@ -868,7 +773,6 @@ const formatRemarks = (remarks) => {
                       ref={inputRef6}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={other}
                       onChange={(e) => handleOtherChange(e.target.value)}
@@ -886,7 +790,6 @@ const formatRemarks = (remarks) => {
                       ref={inputRef7}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={stay}
                       onChange={(e) => handleStayChange(e.target.value)}
@@ -898,13 +801,12 @@ const formatRemarks = (remarks) => {
                   )}
                 </td>
                 <td>{grandTotal(record) > 0 ? grandTotal(record) : ''}</td>
-                <td onClick={() => toggleEditing8(date)}>
+                <td onClick={() => toggleEditing8(date)} style={{ textAlign: 'left' }}>
                   {isEditing8 ? (
                     <input
                       ref={inputRef8}
                       type="text"
                       placeholder=''
-                      className='remarks2-td'
                       style={{ textAlign: 'left', width:'100%', outline: 'none', border: '1px solid #808080'}}
                       value={expensesRemarks}
                       onChange={(e) => handleRemarksChange(e.target.value)}
@@ -912,7 +814,7 @@ const formatRemarks = (remarks) => {
                       onBlur={() => handleRemarksSave(date)}
                     />
                   ) : (
-                    record ? record.expenses_remarks : ''
+                    <div dangerouslySetInnerHTML={{ __html: record ? formatRemarks(record.expenses_remarks) : '' }} />
                   )}
                 </td>
               </tr>
