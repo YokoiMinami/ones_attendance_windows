@@ -735,6 +735,7 @@ const expensesData = async (req, res, db) => {
 const newExpenses = async (req, res, db) => {
   const { accounts_id, date, route, train, bus, tax, aircraft, other, total, stay, grand_total, expenses_remarks} = req.body;
   const expensesUser = await db('expenses').where({ accounts_id, date }).first();
+  
   if(expensesUser){
     if(route === ''){
       await db('expenses').where({ accounts_id, date }).del() 
@@ -742,7 +743,56 @@ const newExpenses = async (req, res, db) => {
       .catch(err => res.status(400).json({ 
         dbError: '削除エラー' 
       }));
-    }else{
+    }else if (grand_total === 0){
+      await db('expenses').where({ accounts_id, date }).update({ route, train:null, bus:null, tax:null, aircraft:null, other:null, total:null, stay:null, grand_total:null, expenses_remarks }) 
+      .then(() => { res.status(200).send('grand_totalデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }else if (total === 0){
+      await db('expenses').where({ accounts_id, date }).update({ route, train:null, bus:null, tax:null, aircraft:null, other:null, total:null, stay, grand_total, expenses_remarks }) 
+      .then(() => { res.status(200).send('totalデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }else if (train === ''){
+      await db('expenses').where({ accounts_id, date }).update({ route, train:null, bus, tax, aircraft, other, total, stay, grand_total, expenses_remarks }) // trainフィールドのみをnullに更新
+      .then(() => { res.status(200).send('trainデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }else if (bus === ''){
+      await db('expenses').where({ accounts_id, date }).update({ route, train, bus:null, tax, aircraft, other, total, stay, grand_total, expenses_remarks }) 
+      .then(() => { res.status(200).send('busデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }else if (tax === ''){
+      await db('expenses').where({ accounts_id, date }).update({ route, train, bus, tax:null, aircraft, other, total, stay, grand_total, expenses_remarks }) 
+      .then(() => { res.status(200).send('taxデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }else if (aircraft === ''){
+      await db('expenses').where({ accounts_id, date }).update({ route, train, bus, tax, aircraft:null, other, total, stay, grand_total, expenses_remarks }) 
+      .then(() => { res.status(200).send('aircraftデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }else if (other === ''){
+      await db('expenses').where({ accounts_id, date }).update({ route, train, bus, tax, aircraft, other:null, total, stay, grand_total, expenses_remarks }) 
+      .then(() => { res.status(200).send('otherデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }else if (stay === ''){
+      await db('expenses').where({ accounts_id, date }).update({ route, train, bus, tax, aircraft, other, total, stay:null, grand_total, expenses_remarks }) 
+      .then(() => { res.status(200).send('stayデータ削除完了'); })
+      .catch(err => res.status(400).json({ 
+        dbError: '削除エラー' 
+      }));
+    }
+    else{
       await db('expenses').where({ accounts_id, date }).update({ route, train, bus, tax, aircraft, other, total, stay, grand_total, expenses_remarks })
       .returning('*')
       .then(item => {

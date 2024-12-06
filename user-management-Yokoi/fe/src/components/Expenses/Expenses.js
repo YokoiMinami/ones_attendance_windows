@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { Link } from 'react-router-dom';
 
@@ -6,38 +6,26 @@ const ExpensesPage = ( ) => {
 
   const id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
-
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [daysInMonth, setDaysInMonth] = useState([]);
-  const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0);
-
   const [expensesData, setExpensesData] = useState([]); //交通費データ
-
   const [destination, setDestination] = useState(''); //経路
   const [editingDestination, setEditingDestination] = useState({}); //経路の編集モードを管理するステート
-
   const [train, setTrain] = useState(''); //電車
   const [editingTrain, setEditingTrain] = useState({}); //電車の編集モードを管理するステート
-
   const [bus, setBus] = useState(''); //バス
   const [editingBus, setEditingBus] = useState({}); //バスの編集モードを管理するステート
-
   const [tax, setTax] = useState(''); //タクシー
   const [editingTax, setEditingTax] = useState({}); //タクシーの編集モードを管理するステート
-
   const [aircraft, setAircraft] = useState(''); //航空機
   const [editingAircraft, setEditingAircraft] = useState({}); //航空機の編集モードを管理するステート
-
   const [other, setOther] = useState(''); //その他
   const [editingOther, setEditingOther] = useState({}); //その他の編集モードを管理するステート
-  
   const [stay, setStay] = useState(''); //宿泊費
   const [editingStay, setEditingStay] = useState({}); //宿泊費の編集モードを管理するステート
-
   const [expensesRemarks, setExpensesRemarks] = useState(''); //備考
   const [editingExpensesRemarks, setEditingExpensesRemarks] = useState({}); //備考の編集モードを管理するステート
-
   const [totals, setTotals] = useState({
     train: 0,
     bus: 0,
@@ -48,8 +36,6 @@ const ExpensesPage = ( ) => {
     total: 0,
     grand_total: 0
   }); //各項目の合計
-
-  const [totalExpenses, setTotalExpenses] = useState(0); //全ての合計
 
   //ユーザー情報を取得
   useEffect(() => {
@@ -63,7 +49,6 @@ const ExpensesPage = ( ) => {
     .then(data => setUserData(data))
     .catch(err => console.log(err));
   }, [id]);
-
 
   //土日を判定
   const isWeekend = (date) => {
@@ -93,9 +78,8 @@ const ExpensesPage = ( ) => {
     fetchExpenses();
   }, [year, month, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay, editingExpensesRemarks]);
 
-
   // 交通費情報を検索する関数
-  const findAttendanceRecord = (date) => {
+  const findAttendanceRecord = useCallback((date) => {
     // dateオブジェクトをローカルタイムゾーンのYYYY-MM-DD形式に変換
     const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA'はYYYY-MM-DD形式を返す
     // attendanceData配列内の各recordを検索し、条件に一致する最初の要素を返す
@@ -104,8 +88,8 @@ const ExpensesPage = ( ) => {
       const recordDate = new Date(record.date).toLocaleDateString('en-CA');
       // recordDateとformattedDateが一致するかどうかを比較し、一致する場合にそのrecordを返す
       return recordDate === formattedDate;
-    })|| { date: formattedDate, destination: '', train:'' }; // デフォルトの空の特記を返す;
-  };
+    }) || { date: formattedDate, destination: '', train: '' }; // デフォルトの空の特記を返す
+  }, [expensesData]); // useCallbackフックでラップし、依存関係にexpensesDataを追加
 
   //表を出力
   //特定の月の日付を取得し、それをReactの状態に設定する
@@ -128,17 +112,6 @@ const ExpensesPage = ( ) => {
 
     //getDaysInMonth関数を使用して、現在の年と指定された月のすべての日付を取得します。JavaScriptの月は0から始まるため、month - 1
     const days = getDaysInMonth(year, month - 1);
-    const weekends = days.filter(isWeekend);
-    const holidays = getHolidaysInMonth(year, month);
-
-    // 祝日が土日に含まれる場合、その日数を除外
-    const uniqueHolidays = holidays.filter(holiday => !weekends.some(weekend => weekend.getTime() === holiday.getTime()));
-    const holidaysAndWeekends = [...weekends, ...uniqueHolidays].sort((a, b) => a - b);
-
-    const workingDaysCount = days.length - holidaysAndWeekends.length;
-
-    // 土日祝日を引いた日数を状態に設定
-    setHolidaysAndWeekendsCount(workingDaysCount);
 
     //取得した日付の配列をReactの状態に設定
     setDaysInMonth(days);
@@ -216,18 +189,6 @@ const ExpensesPage = ( ) => {
     return train + bus + tax + aircraft + other;
   };
 
-  useEffect(() => {
-    const calculateTotalExpenses = async () => {
-      let total = 0;
-      expensesData.forEach(record => {
-        total += calculateTotal(record);
-      });
-    };
-    calculateTotalExpenses();
-  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
-
-
-
   //各項目の合計
   useEffect(() => {
     const calculateTotals = () => {
@@ -279,19 +240,6 @@ const ExpensesPage = ( ) => {
     return train + bus + tax + aircraft + other + stay;
   };
 
-  useEffect(() => {
-    const calculateGrandTotal = () => {
-      let total = 0;
-      expensesData.forEach(record => {
-        total += grandTotal(record);
-      });
-      setTotalExpenses(total);
-    };
-    calculateGrandTotal();
-  }, [expensesData, editingDestination, editingTrain, editingBus, editingTax, editingAircraft, editingOther, editingStay]);
-
-
-  
   //電車の編集
   const handleTrainChange = (newOption) => {
     setTrain(newOption);
@@ -972,14 +920,14 @@ const formatRemarks = (remarks) => {
             })}
             <tr>
               <td colSpan="3">合計</td>
-              <td>{totals.train}</td>
-              <td>{totals.bus}</td>
-              <td>{totals.tax}</td>
-              <td>{totals.aircraft}</td>
-              <td>{totals.other}</td>
-              <td>{totals.total}</td>
-              <td>{totals.stay}</td>
-              <td>{totals.grand_total}</td>
+              {totals.train > 0 ? <td>{totals.train}</td> : <td></td>}
+              {totals.bus > 0 ? <td>{totals.bus}</td> : <td></td>}
+              {totals.tax > 0 ? <td>{totals.tax}</td> : <td></td>}
+              {totals.aircraft > 0 ? <td>{totals.aircraft}</td> : <td></td>}
+              {totals.other > 0 ? <td>{totals.other}</td> : <td></td>}
+              {totals.total > 0 ? <td>{totals.total}</td> : <td></td>}
+              {totals.stay > 0 ? <td>{totals.stay}</td> : <td></td>}
+              {totals.grand_total > 0 ? <td>{totals.grand_total}</td> : <td></td>}
               <td></td>
             </tr>
           </tbody>

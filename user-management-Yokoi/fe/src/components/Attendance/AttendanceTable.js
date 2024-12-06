@@ -776,14 +776,14 @@ const AttendanceTablePage = ( ) => {
         date: date.toLocaleDateString('ja-JP').replace(/\//g, '/'),
         day: getDayOfWeek(date),
         route: record ? record.route : null,
-        train: record ? Number(record.train) : null,
-        bus: record ? Number(record.bus) : null,
-        tax: record ? Number(record.tax) : null,
-        aircraft: record ? Number(record.aircraft) : null,
-        other: record ? Number(record.other) : null,
-        total: record ? Number(record.total) : null,
-        stay: record ? Number(record.stay) : null,
-        grand_total: record ? Number(record.grand_total) : null,
+        train: record ? (record.train !== null ? Number(record.train) : null) : null,
+        bus: record ? (record.bus !== null ? Number(record.bus) : null) : null,
+        tax: record ? (record.tax !== null ? Number(record.tax) : null) : null,
+        aircraft: record ? (record.aircraft !== null ? Number(record.aircraft) : null) : null,
+        other: record ? (record.other !== null ? Number(record.other) : null) : null,
+        total: record ? (record.total !== null ? Number(record.total) : null) : null,
+        stay: record ? (record.stay !== null ? Number(record.stay) : null) : null,
+        grand_total: record ? (record.grand_total !== null ? Number(record.grand_total) : null) : null,
         expenses_remarks: record ? record.expenses_remarks : null
       });
     });
