@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import { Button, Form, FormGroup } from 'reactstrap';
 import { TextField, Autocomplete } from '@mui/material';
 import axios from 'axios';
-
-const options = [
-  { label: '通信費', value: '通信費' },
-  { label: '接待交際費', value: '接待交際費' },
-  { label: '消耗品費', value: '消耗品費' },
-  { label: '修繕費', value: '修繕費' },
-  { label: '雑費', value: '雑費' },
-  { label: '仮払金', value: '仮払金' },
-  { label: '交通費', value: '交通費' },
-  { label: '旅費交通費', value: '旅費交通費' },
-];
+import { costOptions } from '../../constants/selectForm';
+import { fetchProjectData } from '../../apiCall/apis';
 
 const CostForm = (props) => {
 
@@ -32,33 +23,29 @@ const CostForm = (props) => {
     id: '',
     registration:false
   });
-
   const [errors, setErrors] = useState({});
 
-  //プロジェクト情報
+  // プロジェクト情報取得
   useEffect(() => {
     const fetchUser = async () => {
-      const accounts_id = localStorage.getItem('user');
       try {
-        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
+        const data = await fetchProjectData(accounts_id, year, month);
         const Id = data.id;
-        if(Id){
+        if (Id) {
           setIdData(Id);
         }
-        
-        if(data.registration){
-          setRegistrationData(true)
+        if (data.registration) {
+          setRegistrationData(true);
         }
         setFormData(prevFormData => ({ ...prevFormData, accounts_id: accounts_id }));
       } catch (error) {
-        console.error('Error fetching holiday data:', error);
+        console.error('Error fetching project data:', error);
         setFormData(false);
         setFormData(prevFormData => ({ ...prevFormData, accounts_id: accounts_id }));
       }
     };
     fetchUser();
-  }, [year, month]);
+  }, [year, month, accounts_id]);
 
   useEffect(() => {
     if (props.item) {
@@ -67,21 +54,23 @@ const CostForm = (props) => {
     }
   }, [props.item]);
 
-  // const onChange = (e) => {
-  //   setFormData({ ...formData, [e.target.name]: e.target.value });
-  // };
-
   const onChange = (e) => {
     const { name, value } = e.target;
-    const accounts_id = localStorage.getItem('user');
-  
+    
     // 更新可能なフィールドのみを更新する
     if (name !== 'accounts_id' && name !== 'receipt_image' && name !== 'registration') {
       setFormData(prevFormData => ({ ...prevFormData, [e.target.name]: value, accounts_id: accounts_id,id:idData,registration:registrationData }));
     }
+
+    // 日付が変更された場合にコンソールに出力
+    if (name === 'date') {
+      const [year, month] = value.split('-');
+      const formattedMonth = parseInt(month, 10); // 月を数値に変換して0を消す
+      setYear(year);
+      setMonth(formattedMonth);
+    }
   };
   
-
   const validateForm = () => {
     const newErrors = {};
     const numericRegex = /^[0-9]*$/; // 数字のみを許可する正規表現
@@ -110,7 +99,6 @@ const CostForm = (props) => {
   };
 
   const submitFormAdd = (e) => {
-    console.log(formData);
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
@@ -154,43 +142,9 @@ const CostForm = (props) => {
     }
   };
 
-  const submitFormEdit = async (e) => {
-    e.preventDefault();
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      return;
-    }
-  try {
-    const response = await fetch('http://localhost:3000/put', {
-      method: 'put',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        id: formData.id,
-        date: formData.date,
-        category: formData.category,
-        amount: formData.amount,
-        description: formData.description,
-      })
-    });
-    const item = await response.json();
-    if (item) {
-      props.updateState(item);
-      props.toggle();
-      window.location.reload();
-    } else {
-      console.log('failure');
-    }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   return (
     <div>
-      <Form onSubmit={props.item ? submitFormEdit : submitFormAdd}>
+      <Form onSubmit={submitFormAdd} >
         <FormGroup>
           <label htmlFor="date" className='new_account_label2'>日付</label>
           <input type="date" name="date" id="date" className='new_account_input2' onChange={onChange} value={formData.date || ''}/>
@@ -202,12 +156,12 @@ const CostForm = (props) => {
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
             <label htmlFor="category" className='new_account_label' style={{ marginRight: '5px' }}>経費科目</label>
             <Autocomplete
-              options={options}
+              options={costOptions}
               getOptionLabel={(option) => option.label}
               onChange={(event, value) => {
                 setFormData({ ...formData, category: value ? value.label : '' });
               }}
-              value={options.find(option => option.label === formData.category) || null}
+              value={costOptions.find(option => option.label === formData.category) || null}
               renderInput={(params) => (
                 <TextField
                   {...params}

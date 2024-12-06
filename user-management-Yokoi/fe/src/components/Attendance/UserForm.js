@@ -9,17 +9,36 @@ const UserForm = (props) => {
   const [name, setName] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const currentDate = `${year}-${month}`;
 
   //プロジェクト情報取得
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const data = await fetchProjectData(accounts_id, year, month);
-        setProjects(data.project);
-        setDetails(data.details);
-        setCompany(data.company);
-        setName(data.name);
+        if (data.project) {
+          setProjects(data.project);
+        } else {
+          setProjects('');
+        }
+        
+        if (data.details) {
+          setDetails(data.details);
+        } else {
+          setDetails('');
+        }
+        
+        if (data.company) {
+          setCompany(data.company);
+        } else {
+          setCompany('');
+        }
+        
+        if (data.name) {
+          setName(data.name);
+        } else {
+          setName('');
+        }
+        
       } catch (error) {
         console.error('Error fetching project data:', error);
         setProjects('');
@@ -33,6 +52,7 @@ const UserForm = (props) => {
 
   //プロジェクト情報登録
   const submitFormAdd = async (e) => {
+    const currentDate = `${year}-${month}`;
     e.preventDefault();
     
     const data = {

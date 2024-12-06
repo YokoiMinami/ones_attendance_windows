@@ -284,3 +284,14 @@ export const timeOptions = [
   { value: '08:30', label: '08:30' },
   { value: '08:45', label: '08:45' },
 ];
+
+export const costOptions = [
+  { label: '通信費', value: '通信費' },
+  { label: '接待交際費', value: '接待交際費' },
+  { label: '消耗品費', value: '消耗品費' },
+  { label: '修繕費', value: '修繕費' },
+  { label: '雑費', value: '雑費' },
+  { label: '仮払金', value: '仮払金' },
+  { label: '交通費', value: '交通費' },
+  { label: '旅費交通費', value: '旅費交通費' },
+];
