@@ -42,6 +42,13 @@ export const attendanceFormatTime = (timeString) => {
   return `${formattedHours}:${formattedMinutes}`;
 };
 
+//分単位を時間にフォーマット
+export const convertMinutesToTime = (minutes) => {
+  const hours = Math.floor(minutes / 60).toString().padStart(2, '0');
+  const mins = (minutes % 60).toString().padStart(2, '0');
+  return `${hours}:${mins}`;
+};
+
 //時間フォーマット
 export const formatTime2 = (date) => {
   return date.toTimeString().split(' ')[0].slice(0, 5);
@@ -127,13 +134,6 @@ export const convertTimeToMinutes = (timeString) => {
   if (!timeString) return 0; // または適切なデフォルト値
   const [hours, minutes] = timeString.split(':').map(Number);
   return hours * 60 + minutes;
-};
-
-//分単位を時間にフォーマット
-export const convertMinutesToTime = (minutes) => {
-  const hours = Math.floor(minutes / 60).toString().padStart(2, '0');
-  const mins = (minutes % 60).toString().padStart(2, '0');
-  return `${hours}:${mins}`;
 };
 
 //小数点以下切り捨て

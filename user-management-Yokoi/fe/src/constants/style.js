@@ -35,3 +35,14 @@ export const breakStyles = {
     display: 'none', // 矢印自体を非表示
   }),
 };
+
+export const getTextColor = (status) => {
+  switch (status) {
+    case '承認待ち':
+    return 'crimson';
+    case '承認済み':
+    return '#266ebd';
+    default:
+    return '#808080';
+  }
+};

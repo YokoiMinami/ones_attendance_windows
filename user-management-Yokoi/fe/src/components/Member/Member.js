@@ -4,9 +4,13 @@ import OnesLogo from '../../images/ones-logo.png';
 import MemberModal from './MemberModal';
 import holidayJp from '@holiday-jp/holiday_jp';
 import { startOfWeek, endOfWeek, subWeeks } from 'date-fns';
+import { fetchUserData, getItems, todayAttendanceData, fetchCostData, fetchTotalHours, deleteItem } from '../../apiCall/apis';
+import { getDaysInMonth, isWeekend } from '../../constants/date';
+import { formatDate2, attendanceFormatTime, convertMinutesToTime } from '../../common/format';
+import { getTextColor } from '../../constants/style' ;
 
 const Member = () => {
-  const id = localStorage.getItem('user');
+  const accounts_id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -24,29 +28,33 @@ const Member = () => {
   const month = today.getMonth() + 1;
   const [holidaysAndWeekendsCount, setHolidaysAndWeekendsCount] = useState(0); //今月の規定勤務日数
   
+  //ユーザー情報を取得
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(accounts_id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => {
-      setUserData(data);
-    })
-    .catch(err => console.log(err));
-  }, [id]);
+    };
+    getUserData();
+  }, [accounts_id]);
 
-  const getItems = () => {
-    fetch('http://localhost:3000/get')
-    .then(response => response.json())
-    .then(items => {
-      setItems(items);
-      setFilteredItems(items);
-    })
-    .catch(err => console.log(err));
-  };
+  //メンバーデータを全て取得
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const items = await getItems();
+        setItems(items);
+        setFilteredItems(items);
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const now = new Date();
   // 1週間前の同じ曜日の日付を取得
@@ -60,16 +68,8 @@ const Member = () => {
   lastMonday.setHours(0, 0, 0, 0);
   lastSunday.setHours(23, 59, 59, 999);
 
-  const year2 = now.getFullYear();
-  const month2 = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-  const day = String(now.getDate()).padStart(2, '0'); // 日付
-  const date = `${year2}-${month2}-${day}`;
-
-  //土日を判定
-  const isWeekend = (date) => {
-    const day = date.getUTCDay();
-    return day === 0 || day === 6; // 日曜日 (0) または土曜日 (6)
-  };
+  //今日の日付
+  const date = formatDate2(now);
 
   //祝日を取得
   const getHolidaysInMonth = (year, month) => {
@@ -79,22 +79,6 @@ const Member = () => {
 
   //特定の月の日付を取得し、それをReactの状態に設定する
   useEffect(() => {
-    //指定された年と月のすべての日付を配列として返す
-    const getDaysInMonth = (year, month) => {
-      //指定された年と月の1日目の日付オブジェクトを作成
-      const date = new Date(Date.UTC(year, month, 1));
-      //日付を格納するための空の配列を作成
-      const days = [];
-      //dateの月が指定された月(month)と同じである限りループを続ける
-      while (date.getUTCMonth() === month) {
-        //現在の日付オブジェクトをdays配列に追加
-        days.push(new Date(date));
-        //dateオブジェクトの日付を1日進める
-        date.setUTCDate(date.getUTCDate() + 1);
-      }
-      return days; //すべての日付を含む配列を返す
-    };
-
     //getDaysInMonth関数を使用して、現在の年と指定された月のすべての日付を取得します。JavaScriptの月は0から始まるため、month - 1
     const days = getDaysInMonth(year, month - 1);
     const weekends = days.filter(isWeekend);
@@ -110,104 +94,86 @@ const Member = () => {
 
   }, [year,month]); //monthが変更されるたびに実行する
 
-  //出勤時間と退勤時間をフォーマット
-  const formatTime = (timeString) => {
-    if (!timeString) return '';
-    const [hours, minutes] = timeString.split(':');
-    return `${hours}:${minutes}`;
-  };
-
   //各メンバーの出勤、退勤時間を取得
   useEffect(() => {
-    const fetchAttendanceData = async (accounts_id) => {
+    const fetchAllAttendanceData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/attendance/attendance/${accounts_id}/${date}`);
-        const data = await response.json();
-        setAttendanceData(prevData => ({
-          ...prevData,
-          [accounts_id]: data || [] 
-        }));
+        const promises = filteredItems.map(item => todayAttendanceData(item.id, date));
+        const results = await Promise.all(promises);
+        const newAttendanceData = results.reduce((acc, data, index) => {
+          acc[filteredItems[index].id] = data || [];
+          return acc;
+        }, {});
+        setAttendanceData(newAttendanceData);
       } catch (error) {
         console.error('Error fetching attendance data:', error);
       }
     };
-    filteredItems.forEach(item => {
-      fetchAttendanceData(item.id);
-    });
+
+    if (filteredItems.length > 0) {
+      fetchAllAttendanceData();
+    }
   }, [filteredItems, date]);
 
-  //各メンバーの経費申請状況を取得
   useEffect(() => {
-    const fetchCostData = async (accounts_id) => {
+    const fetchAllCostData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
-        const registration_date  = data.registration_date;
-        const app_flag = data.app_flag;
-
-        if(app_flag){
-          setCostState(prevData => ({
-            ...prevData,
-            [accounts_id]: '承認待ち' || [] 
-          }));
-        }else if(!app_flag && registration_date){
-          setCostState(prevData => ({
-            ...prevData,
-            [accounts_id]: '承認済み' || [] 
-          }));
-        }else{
-          setCostState(prevData => ({
-            ...prevData,
-            [accounts_id]: '未申請' || [] 
-          }));
-        }
+        const promises = filteredItems.map(item => fetchCostData(item.id, year, month));
+        const results = await Promise.all(promises);
+        const newCostState = results.reduce((acc, data, index) => {
+          const { registration_date, app_flag } = data;
+          let status = '未申請';
+          if (app_flag) {
+            status = '承認待ち';
+          } else if (!app_flag && registration_date) {
+            status = '承認済み';
+          }
+          acc[filteredItems[index].id] = status;
+          return acc;
+        }, {});
+        setCostState(newCostState);
       } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        console.error('Error fetching cost data:', error);
       }
     };
-    filteredItems.forEach(item => {
-      fetchCostData(item.id);
-    });
+
+    if (filteredItems.length > 0) {
+      fetchAllCostData();
+    }
   }, [filteredItems, month, year]);
 
   useEffect(() => {
-    const formattedMonth = month.toString().padStart(2, '0');
-
-    const fetchTotalHours = async (accounts_id) => {
+    const fetchAllTotalHours = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${formattedMonth}/${lastMonday}/${lastSunday}`);
-        const data = await response.json();
-      console.log(data);
-        const monthAverage = data.average_time_per_day;
-        const weekAverage = data.week_average_time_per_day;
-        if (monthAverage) {
-          // 月勤務時間の分数
-          const multipliedWorkHoursInMinutes = monthAverage * holidaysAndWeekendsCount;
-          const multipliedWorkHoursInMinutes2 = weekAverage * holidaysAndWeekendsCount;
-          
-          // 月の残業判定
-          setIsOvertime(prevState => {
-            const newState = { ...prevState, [accounts_id]: multipliedWorkHoursInMinutes > 12000 };
-            return JSON.stringify(prevState) !== JSON.stringify(newState) ? newState : prevState;
-          });
+        const promises = filteredItems.map(item => fetchTotalHours(item.id, year, month, lastMonday, lastSunday));
+        const results = await Promise.all(promises);
+        results.forEach((data, index) => {
+          const accounts_id = filteredItems[index].id;
+          const monthAverage = data.average_time_per_day;
+          const weekAverage = data.week_average_time_per_day;
+          if (monthAverage) {
+            // 月勤務時間の分数
+            const multipliedWorkHoursInMinutes = monthAverage * holidaysAndWeekendsCount;
+            const multipliedWorkHoursInMinutes2 = weekAverage * holidaysAndWeekendsCount;
 
-          // 週の残業判定
-          setIsOvertime2(prevState => {
-            const newState = { ...prevState, [accounts_id]: multipliedWorkHoursInMinutes2 > 12000 };
-            return JSON.stringify(prevState) !== JSON.stringify(newState) ? newState : prevState;
-          });
+            // 月の残業判定
+            setIsOvertime(prevState => {
+              const newState = { ...prevState, [accounts_id]: multipliedWorkHoursInMinutes > 12000 };
+              return JSON.stringify(prevState) !== JSON.stringify(newState) ? newState : prevState;
+            });
 
-          // 月予測勤務時間をhh:mm形式に変換
-          const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
-          const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
-          const multipliedWorkHours = `${hours}:${minutes}`;
-  
-          // 週予測勤務時間をhh:mm形式に変換
-          const hours2 = Math.floor(multipliedWorkHoursInMinutes2 / 60).toString().padStart(2, '0');
-          const minutes2 = (multipliedWorkHoursInMinutes2 % 60).toString().padStart(2, '0');
-          const multipliedWorkHours2 = `${hours2}:${minutes2}`;
+            // 週の残業判定
+            setIsOvertime2(prevState => {
+              const newState = { ...prevState, [accounts_id]: multipliedWorkHoursInMinutes2 > 12000 };
+              return JSON.stringify(prevState) !== JSON.stringify(newState) ? newState : prevState;
+            });
 
-          if (response.ok) {
+            // 月予測勤務時間をhh:mm形式に変換
+            const multipliedWorkHours = convertMinutesToTime(multipliedWorkHoursInMinutes);
+
+            // 週予測勤務時間をhh:mm形式に変換
+            const multipliedWorkHours2 = convertMinutesToTime(multipliedWorkHoursInMinutes2);
+
             setTotalHours(prevData => {
               const newState = { ...prevData, [accounts_id]: data.total_hours };
               return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
@@ -221,10 +187,6 @@ const Member = () => {
               return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
             });
           } else {
-            throw new Error(data.error);
-          }
-        } else {
-          if (response.ok) {
             setTotalHours(prevData => {
               const newState = { ...prevData, [accounts_id]: data.total_hours };
               return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
@@ -237,24 +199,19 @@ const Member = () => {
               const newState = { ...prevData, [accounts_id]: '' };
               return JSON.stringify(prevData) !== JSON.stringify(newState) ? newState : prevData;
             });
-          } else {
-            throw new Error(data.error);
           }
-        }
+        });
       } catch (error) {
         console.error('Error fetching total hours:', error);
       }
     };
-  
-    const fetchAllTotalHours = async () => {
-      const promises = filteredItems.map(item => fetchTotalHours(item.id));
-      await Promise.all(promises);
-    };
-  
-    fetchAllTotalHours();
-  }, [filteredItems, holidaysAndWeekendsCount, lastMonday, lastSunday, month, year]);
-  
 
+    if (filteredItems.length > 0) {
+      fetchAllTotalHours();
+    }
+  }, [filteredItems, holidaysAndWeekendsCount, lastMonday, lastSunday, month, year]);
+
+  //アカウントを削除
   const deleteItems = () => {
     if (selectedItems.length === 0) {
       alert('アカウントが選択されていません');
@@ -262,24 +219,18 @@ const Member = () => {
     }
     let confirmDelete = window.confirm('チェックしたメンバーを削除しますか？');
     if (confirmDelete) {
-      selectedItems.forEach(itemId => {
-        fetch('http://localhost:3000/delete', {
-          method: 'delete',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ id: itemId })
-        })
-        .then(response => response.json())
-        .then(() => {
+      selectedItems.forEach(async (itemId) => {
+        try {
+          await deleteItem(itemId);
           setItems(prevItems => prevItems.filter(item => item.id !== itemId));
           setFilteredItems(prevItems => prevItems.filter(item => item.id !== itemId));
-        })
-        .catch(err => console.log(err));
+        } catch (err) {
+          console.error('Error deleting item:', err);
+        }
       });
     }
   };
-
+  
   const handleCheckboxChange = (event, itemId) => {
     if (event.target.checked) {
       setSelectedItems(prevSelected => [...prevSelected, itemId]);
@@ -305,17 +256,6 @@ const Member = () => {
     getItems();
   }, []);
 
-  const getTextColor = (status) => {
-    switch (status) {
-      case '承認待ち':
-      return 'crimson';
-      case '承認済み':
-      return '#266ebd';
-      default:
-      return '#808080';
-    }
-  };
-console.log('テスト');
   return (
     <div id='member_page'>
       <div id='member_top'>
@@ -373,12 +313,12 @@ console.log('テスト');
               <td>{item.kananame}</td>
               <td>
                 {attendanceData[item.id] && Array.isArray(attendanceData[item.id])
-                  ? attendanceData[item.id].map(att => formatTime(att.check_in_time)).join(', ')
+                  ? attendanceData[item.id].map(att => attendanceFormatTime(att.check_in_time)).join(', ')
                   : ''}
               </td>
               <td>
                 {attendanceData[item.id] && Array.isArray(attendanceData[item.id]) && attendanceData[item.id].some(att => att.check_out_time)
-                  ? attendanceData[item.id].map(att => formatTime(att.check_out_time)).join(', ')
+                  ? attendanceData[item.id].map(att => attendanceFormatTime(att.check_out_time)).join(', ')
                   : ''}
               </td>
               <td>

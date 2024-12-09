@@ -267,3 +267,84 @@ export const editPassword = async (data) => {
 
   return response.json();
 }
+
+//メンバー一覧を取得
+export const getItems = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/get');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const items = await response.json();
+    return items;
+  } catch (error) {
+    console.error('Error fetching items:', error);
+    throw error;
+  }
+};
+
+//メンバーの今日の出勤状況を取得
+export const todayAttendanceData = async (accounts_id, date) => {
+  try {
+    const response = await fetch(`http://localhost:3000/attendance/attendance/${accounts_id}/${date}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching attendance data:', error);
+    throw error;
+  }
+};
+
+//経費の申請状況を取得
+export const fetchCostData = async (accounts_id, year, month) => {
+  try {
+    const response = await fetch(`http://localhost:3000/projects/${accounts_id}/${year}/${month}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching cost data:', error);
+    throw error;
+  }
+};
+
+//メンバー一覧の勤務時間を取得
+export const fetchTotalHours = async (accounts_id, year, month, lastMonday, lastSunday) => {
+  try {
+    const response = await fetch(`http://localhost:3000/attendance/total_hours/${accounts_id}/${year}/${month}/${lastMonday}/${lastSunday}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching total hours:', error);
+    throw error;
+  }
+};
+
+//メンバーを削除
+export const deleteItem = async (itemId) => {
+  try {
+    const response = await fetch('http://localhost:3000/delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id: itemId })
+    });
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    throw error;
+  }
+};

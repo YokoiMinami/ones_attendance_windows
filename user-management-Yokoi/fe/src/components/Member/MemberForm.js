@@ -1,60 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup } from 'reactstrap';
 import { TextField, Autocomplete } from '@mui/material';
-
-const options = [
-  { label: 'OBM', value: 'OBM' },
-  { label: 'OCF', value: 'OCF' },
-  { label: 'QFW', value: 'QFW' },
-  { label: 'QAT', value: 'QAT' },
-  { label: 'QTR', value: 'QTR' },
-  { label: 'QRL', value: 'QRL' },
-  { label: 'VQT', value: 'VQT' },
-  { label: 'QON', value: 'QON' },
-  { label: 'QFL', value: 'QFL' },
-  { label: 'QCT', value: 'QCT' },
-];
-
-const teamOptions = [
-  { label: 'ST/FT管理', value: 'ST/FT管理' },
-  { label: '総務/営業', value: '総務/営業' },
-  { label: 'FT実施', value: 'FT実施' },
-  { label: 'アフター', value: 'アフター' },
-  { label: '取説', value: '取説' },
-  { label: 'CTS', value: 'CTS' },
-  { label: '使い込み', value: '使い込み' },
-  { label: 'ST主管', value: 'ST主管' },
-  { label: 'ST実施', value: 'ST実施' },
-  { label: 'SI', value: 'SI' },
-  { label: '開発', value: '開発' },
-  { label: '構成管理', value: '構成管理' },
-  { label: '作業効率化', value: '作業効率化' },
-];
+import { companyOptions, teamOptions } from '../../constants/selectForm';
+import { useParams } from 'react-router-dom';
 
 const MemberForm = (props) => {
 
-  const [state, setState] = useState({
-    id: 0,
-    company: '',
-    fullname: '',
-    kananame: '',
-    email: '',
-    team: '',
-    authority: ''
-  });
-
+  const { id } = useParams();
   const [companyState, setCompanyState] = useState({ company: '' });
   const [teamState, setTeamState] = useState({ team: '' });
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (props.item) {
-      const { id,company, fullname,kananame, email, team,authority } = props.item;
-      setState({ id,company, fullname,kananame, email, team, authority });
-      setCompanyState({ company });
-      setTeamState({ team });
-    }
-  }, [props.item]);
+  const [state, setState] = useState({
+    fullname: '',
+    kananame: '',
+    email: '',
+    authority: ''
+  });
 
   const onChange = (e) => {
     setState({ ...state, [e.target.name]: e.target.value });
@@ -94,43 +55,34 @@ const MemberForm = (props) => {
     return newErrors;
   };
 
-  const submitFormAdd = (e) => {
-    e.preventDefault();
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      return;
-    }
-    fetch('http://localhost:3000/post', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        company: companyState.company,
-        fullname: state.fullname,
-        kananame: state.kananame,
-        email: state.email,
-        team: teamState.team,
-        password: state.password,
-        authority: state.authority
-      })
-    })
-      .then(response => response.json())
-      .then(item => {
-        if (item.dbError) {
-          if (item.dbError.includes('メールアドレス')) {
-            setErrors({ email: 'このメールアドレスは既に登録されています' });
-          }
-        } else if (item) {
-          props.addItemToState(item[0]);
-          props.toggle();
-        } else {
-          console.log('failure');
-        }
-      })
-    .catch(err => console.log(err));
-  };
+  // const submitFormEdit = async (e) => {
+  //   e.preventDefault();
+  
+  //   const formErrors = validateForm();
+  //   if (Object.keys(formErrors).length > 0) {
+  //     setErrors(formErrors);
+  //     return;
+  //   }
+  
+  //   const currentDate = new Date().toISOString().split('T')[0];
+  //   const formattedDate = formatDate(currentDate);
+  
+  //   const data = {
+  //     id: 1,
+  //     fullname: name,
+  //     date: formattedDate,
+  //     admin_password: pass,
+  //   };
+  
+  //   try {
+  //     await editPassword(data);
+  //     alert('データを保存しました');
+  //     window.location.reload();
+  //   } catch (err) {
+  //     console.log(err);
+  //     alert('データの保存に失敗しました');
+  //   }
+  // };
 
   const submitFormEdit = async (e) => {
     e.preventDefault();
@@ -139,6 +91,7 @@ const MemberForm = (props) => {
       setErrors(formErrors);
       return;
     }
+  
     try {
       const response = await fetch('http://localhost:3000/put', {
         method: 'put',
@@ -146,7 +99,7 @@ const MemberForm = (props) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          id: state.id,
+          id: id,
           company: companyState.company,
           fullname: state.fullname,
           kananame: state.kananame,
@@ -155,9 +108,9 @@ const MemberForm = (props) => {
           authority: state.authority
         })
       });
-
+      
       const item = await response.json();
-
+      console.log(item);
       if (item) {
         props.updateState(item);
         props.toggle();
@@ -170,13 +123,12 @@ const MemberForm = (props) => {
     }
   };
   
-
   return (
-    <Form onSubmit={props.item ? submitFormEdit : submitFormAdd}>
+    <Form onSubmit={submitFormEdit}>
       <FormGroup>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '5vh' }}>
           <label htmlFor="company" className='new_account_label' style={{ marginRight: '5px' }}>会社名</label>
-          <Autocomplete options={options} getOptionLabel={(option) => option.label} onChange={companyOnChange} value={options.find(option => option.label === companyState.company) || null}
+          <Autocomplete options={companyOptions} getOptionLabel={(option) => option.label} onChange={companyOnChange} value={companyOptions.find(option => option.label === companyState.company) || null}
           renderInput={(params) => (
           <TextField {...params} name="company" id="company" label="その他の場合はテキストを入力" onChange={onChange}
           sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#808080', // ボーダーを透明に設定
@@ -248,15 +200,6 @@ const MemberForm = (props) => {
           {errors.team && <p className="error">{errors.team}</p>}
         </div>
       </FormGroup>
-      {!props.item && ( 
-        <FormGroup>
-          <label htmlFor="password" className='new_account_label2'>パスワード</label>
-          <input type="text" name="password" id="password" className='new_account_input2' onChange={onChange} value={state.password || ''} />
-          <div className='new_error' id='pass_error'>
-            {errors.password && <p className="error">{errors.password}</p>}
-          </div>
-        </FormGroup>
-      )}
       <FormGroup>
         <label htmlFor="authority" className='new_account_label2'>利用権限</label>
         <input type="text" name="authority" placeholder='管理者のみ入力' id="authority" className='new_account_input2' onChange={onChange} />

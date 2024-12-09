@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MemberModal from './MemberModal';
 
 const MemberTable = (props) => {
+  const [items, setItems] = useState([]);
   const navigate = useNavigate();
+
   const deleteItem = id => {
     let confirmDelete = window.confirm('メンバーを削除しますか？');
     if (confirmDelete) {
@@ -30,10 +32,15 @@ const MemberTable = (props) => {
 
   const item = props.items;
 
+  const addItemToState = (item) => {
+    setItems(prevItems => [...prevItems, item]);
+  };
+
   return (
     <div id='member_data_page_table'>
       <div id='member_data_button_area'>
-        <MemberModal buttonLabel="編集" id='member_data_eddit_button' item={item} updateState={props.updateState} />
+        <MemberModal buttonLabel="編集" addItemToState={addItemToState} />
+        {/* <MemberModal buttonLabel="編集" item={item} updateState={props.updateState} /> */}
         <button id='member_data_delete_button' className='all_button' onClick={() => deleteItem(item.id)}>削除</button>
       </div>
       <div id='member_data_table_box'>
