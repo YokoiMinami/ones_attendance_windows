@@ -1,31 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import MemberModal from './MemberModal';
 import MemberTable from './MemberTable';
-import MemberForm from './MemberForm';
 import OnesLogo from '../../images/ones-logo.png';
+import { fetchUserData } from '../../apiCall/apis';
 
 const MemberData = () => {
-  const [userData, setUserData] = useState(null);
   const [authorityData, setAuthorityData] = useState(false);
   const [items, setItems] = useState({});
   const { id } = useParams();
 
-  const getItems = () => {
-    fetch(`http://localhost:3000/user/${id}`)
-      .then(response => response.json())
-      .then(data => {
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const data = await fetchUserData(id);
         if (data) {
           setItems(data);
           if (data.authority === true) {
             setAuthorityData(true);
           }
-        } else {
-          console.error('Expected an array but got:', data);
         }
-      })
-      .catch(err => console.log(err));
-  };
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchItems();
+  }, [id]);
 
   const updateState = (item) => {
     setItems({
@@ -38,10 +38,6 @@ const MemberData = () => {
     const { [id]: _, ...newItems } = items;
     setItems(newItems);
   };
-
-  useEffect(() => {
-    getItems();
-  }, []);
 
   return (
     <div id='member_data_page'>

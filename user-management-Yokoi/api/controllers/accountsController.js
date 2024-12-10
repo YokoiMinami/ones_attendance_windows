@@ -33,13 +33,19 @@ const postData = async (req, res, db) => {
 const putData = async (req, res, db) => {
   const { id, company, fullname, kananame, email, team, authority } = req.body;
 
+  // メールアドレスが既に存在するか確認
+  const emailUser = await db('accounts').where({ email }).andWhereNot({ id }).first();
+  if (emailUser) {
+    return res.status(400).json({ dbError: 'このメールアドレスは既に登録されています' });
+  }
+
   // 管理者パスワードを取得 
   const passData = await db('passdata').select('admin_password').first(); 
   const adminPassword = passData.admin_password;
 
-  if(authority === adminPassword){
-    const authorityTrue = true;
-    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, authority:authorityTrue })
+  const authorityValue = authority === adminPassword ? true : false;
+
+  await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, authority: authorityValue })
     .returning('*')
     .then(item => {
       res.json(item);
@@ -47,18 +53,36 @@ const putData = async (req, res, db) => {
     .catch(err => res.status(400).json({
       dbError: 'error'
     }));
-  }else {
-    const authorityFalse = false;
-    await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, authority:authorityFalse })
-    .returning('*')
-    .then(item => {
-      res.json(item);
-    })
-    .catch(err => res.status(400).json({
-      dbError: 'error'
-  }));
-  }
-}
+};
+// const putData = async (req, res, db) => {
+//   const { id, company, fullname, kananame, email, team, authority } = req.body;
+
+//   // 管理者パスワードを取得 
+//   const passData = await db('passdata').select('admin_password').first(); 
+//   const adminPassword = passData.admin_password;
+
+//   if(authority === adminPassword){
+//     const authorityTrue = true;
+//     await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, authority:authorityTrue })
+//     .returning('*')
+//     .then(item => {
+//       res.json(item);
+//     })
+//     .catch(err => res.status(400).json({
+//       dbError: 'error'
+//     }));
+//   }else {
+//     const authorityFalse = false;
+//     await db('accounts').where({ id }).update({ company, fullname, kananame, email, team, authority:authorityFalse })
+//     .returning('*')
+//     .then(item => {
+//       res.json(item);
+//     })
+//     .catch(err => res.status(400).json({
+//       dbError: 'error'
+//   }));
+//   }
+// }
 
 //アカウント登録後ページ
 const newData = async (req, res, db) => {

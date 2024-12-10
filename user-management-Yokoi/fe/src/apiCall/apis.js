@@ -348,3 +348,34 @@ export const deleteItem = async (itemId) => {
     throw error;
   }
 };
+
+//メンバー詳細から削除
+export const deleteUser = async (id) => {
+  try {
+    const response = await fetch('http://localhost:3000/delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id })
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete item');
+    }
+    return await response.json();
+  } catch (err) {
+    console.error('Error deleting item:', err);
+    throw err;
+  }
+};
+
+//メンバーの詳細を編集
+export const updateUser = async (data) => {
+    const response = await fetch('http://localhost:3000/put', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return response.json();
+};
+
