@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MemberModal from './MemberModal';
+import MemberForm from './MemberForm';
 
 const MemberTable = (props) => {
-  const [items, setItems] = useState([]);
   const navigate = useNavigate();
-
   const deleteItem = id => {
-    let confirmDelete = window.confirm('メンバーを削除しますか？');
+    let confirmDelete = window.confirm('削除しますか？');
     if (confirmDelete) {
       fetch('http://localhost:3000/delete', {
         method: 'delete',
@@ -16,12 +15,12 @@ const MemberTable = (props) => {
         },
         body: JSON.stringify({ id })
       })
-      .then(response => response.json())
-      .then(item => {
-        props.deleteItemFromState(id);
-        navigate('/member');
-      })
-      .catch(err => console.log(err));
+        .then(response => response.json())
+        .then(item => {
+          props.deleteItemFromState(id);
+          navigate('/member');
+        })
+        .catch(err => console.log(err));
     }
   }
 
@@ -32,15 +31,10 @@ const MemberTable = (props) => {
 
   const item = props.items;
 
-  const addItemToState = (item) => {
-    setItems(prevItems => [...prevItems, item]);
-  };
-
   return (
     <div id='member_data_page_table'>
       <div id='member_data_button_area'>
-        <MemberModal buttonLabel="編集" addItemToState={addItemToState} />
-        {/* <MemberModal buttonLabel="編集" item={item} updateState={props.updateState} /> */}
+        <MemberModal buttonLabel="編集" id='member_data_eddit_button' item={item} updateState={props.updateState} />
         <button id='member_data_delete_button' className='all_button' onClick={() => deleteItem(item.id)}>削除</button>
       </div>
       <div id='member_data_table_box'>
@@ -78,6 +72,41 @@ const MemberTable = (props) => {
         </table>
       </div>
   </div>
+
+
+
+
+
+
+
+    // <table id='account_table'>
+    //   <thead id='account_thead'>
+    //     <tr>
+    //       <th className='ac_1'>ID</th>
+    //       <th className='ac_2'>氏名</th>
+    //       <th className='ac_3'>Email</th>
+    //       <th className='ac_4'>電話番号</th>
+    //       <th className='ac_5'>パスワード</th>
+    //       <th className='ac_6'></th>
+    //     </tr>
+    //   </thead>
+    //   <tbody>
+    //     <tr key={item.id}>
+    //       <td>{item.id}</td>
+    //       <td>{item.fullname}</td>
+    //       <td>{item.email}</td>
+    //       <td></td>
+    //       <td>****</td>
+    //       <td className='ac_6'>
+    //         <div id='account_button_area'>
+    //           <MemberModal buttonLabel="編集" item={item} updateState={props.updateState} />
+    //           {' '}
+    //           <Button id='account_delete_button' onClick={() => deleteItem(item.id)}>削除</Button>
+    //         </div>
+    //       </td>
+    //     </tr>
+    //   </tbody>
+    // </table>
   );
 }
 

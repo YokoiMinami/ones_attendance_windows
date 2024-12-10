@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import MemberModal from './MemberModal';
 import MemberTable from './MemberTable';
+import MemberForm from './MemberForm';
 import OnesLogo from '../../images/ones-logo.png';
 
 const MemberData = () => {
+  const [userData, setUserData] = useState(null);
   const [authorityData, setAuthorityData] = useState(false);
   const [items, setItems] = useState({});
   const { id } = useParams();
 
-  useEffect(() => {
-    const getItems = () => {
-      fetch(`http://localhost:3000/user/${id}`)
+  const getItems = () => {
+    fetch(`http://localhost:3000/user/${id}`)
       .then(response => response.json())
       .then(data => {
         if (data) {
@@ -23,10 +25,7 @@ const MemberData = () => {
         }
       })
       .catch(err => console.log(err));
-    };
-  
-    getItems();
-  }, [id]); 
+  };
 
   const updateState = (item) => {
     setItems({
@@ -40,6 +39,10 @@ const MemberData = () => {
     setItems(newItems);
   };
 
+  useEffect(() => {
+    getItems();
+  }, []);
+
   return (
     <div id='member_data_page'>
       <h1 id='member_data_h1'>メンバー詳細</h1>
@@ -49,9 +52,9 @@ const MemberData = () => {
       <div id='member_data_page_logo'>
         <img src={OnesLogo} alt="Ones" />
       </div>
-      <div id='member_data_link_area'>
+    <div id='member_data_link_area'>
         <Link to="/member" id='member_data_link'>← メンバー管理ページ</Link>
-      </div>
+    </div>
     </div>
   );
 };
