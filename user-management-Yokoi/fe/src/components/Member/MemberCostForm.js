@@ -100,48 +100,6 @@ const MemberCostForm = (props) => {
       alert('経費の承認に失敗しました');
     }
   };
-  // const submitFormAdd = async (e) => {
-  //   e.preventDefault();
-
-  //   const formErrors = validateForm();
-  //   if (Object.keys(formErrors).length > 0) {
-  //     setErrors(formErrors);
-  //     return;
-  //   }
-
-  //   if (!expenses.length) {
-  //     alert('承認月は経費が登録されていません');
-  //     return;
-  //   }
-
-  //   const registration =userData.fullname;
-  //   const data = {
-  //     id: projectId,
-  //     registration: registration,
-  //     registration_date: currentDate2,
-  //     approver: approver,
-  //     president: president,
-  //     remarks: remarks
-  //   };
-  //   try {
-  //     const response = await fetch('http://localhost:3000/projects_flag', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify(data)
-  //     });
-  //     if (response.ok) {
-  //       alert('経費を承認しました');
-  //       window.location.reload();
-  //     } else {
-  //       alert('経費の承認に失敗しました');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error saving data:', error);
-  //     alert('経費の承認に失敗しました');
-  //   }
-  // };
 
   return (
     <div>
