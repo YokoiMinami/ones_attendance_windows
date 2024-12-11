@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { fetchUserData, fetchProjectData, fetchExpensesData2, approveExpense } from '../../apiCall/apis';
 
 const MemberCostForm = (props) => {
   const { id } = useParams();
@@ -17,47 +18,42 @@ const MemberCostForm = (props) => {
 
   // ユーザー情報を取得
   useEffect(() => {
-    const id = localStorage.getItem('user');
-    fetch(`http://localhost:3000/user/${id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => setUserData(data))
-    .catch(err => console.log(err));
+    };
+    getUserData();
   }, [id]);
 
-  //プロジェクト情報
+  // プロジェクト情報取得
   useEffect(() => {
     const fetchUser = async () => {
-    try {
-      const response = await fetch(`http://localhost:3000/projects/${id}/${year}/${month}`);
-      const data = await response.json();
-      console.log(data);
-      setprojectId(data.id);
-    } catch (error) {
-      console.error('Error fetching holiday data:', error);
-      setprojectId();
-    }
+      try {
+        const data = await fetchProjectData(id, year, month);
+        setprojectId(data.id);
+      } catch (error) {
+        console.error('Error fetching project data:', error);
+        setprojectId();
+      }
     };
     fetchUser();
   }, [year, month, id]);
 
   //ユーザーの経費情報を取得
   useEffect(() => {
-    const fetchExpenses = async () => {
-      const accounts_id = id;
+    const fetchExpenses2 = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/expenses2/${accounts_id}/${year}/${month}`);
-        const data = await response.json();
-        setExpenses(data)
+        const data = await fetchExpensesData2(id, year, month);
+        setExpenses(data);
       } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        console.error('Error fetching expenses data:', error);
       }
     };
-    fetchExpenses();
+    fetchExpenses2();
   }, [year, month, id]);
 
   const validateForm = () => {
@@ -70,19 +66,19 @@ const MemberCostForm = (props) => {
   //経費承認
   const submitFormAdd = async (e) => {
     e.preventDefault();
-
+  
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-
+  
     if (!expenses.length) {
       alert('承認月は経費が登録されていません');
       return;
     }
-
-    const registration =userData.fullname;
+  
+    const registration = userData.fullname;
     const data = {
       id: projectId,
       registration: registration,
@@ -91,25 +87,61 @@ const MemberCostForm = (props) => {
       president: president,
       remarks: remarks
     };
+  
     try {
-      const response = await fetch('http://localhost:3000/projects_flag', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-      });
-      if (response.ok) {
+      const success = await approveExpense(data);
+      if (success) {
         alert('経費を承認しました');
         window.location.reload();
       } else {
         alert('経費の承認に失敗しました');
       }
     } catch (error) {
-      console.error('Error saving data:', error);
       alert('経費の承認に失敗しました');
     }
   };
+  // const submitFormAdd = async (e) => {
+  //   e.preventDefault();
+
+  //   const formErrors = validateForm();
+  //   if (Object.keys(formErrors).length > 0) {
+  //     setErrors(formErrors);
+  //     return;
+  //   }
+
+  //   if (!expenses.length) {
+  //     alert('承認月は経費が登録されていません');
+  //     return;
+  //   }
+
+  //   const registration =userData.fullname;
+  //   const data = {
+  //     id: projectId,
+  //     registration: registration,
+  //     registration_date: currentDate2,
+  //     approver: approver,
+  //     president: president,
+  //     remarks: remarks
+  //   };
+  //   try {
+  //     const response = await fetch('http://localhost:3000/projects_flag', {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     },
+  //     body: JSON.stringify(data)
+  //     });
+  //     if (response.ok) {
+  //       alert('経費を承認しました');
+  //       window.location.reload();
+  //     } else {
+  //       alert('経費の承認に失敗しました');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error saving data:', error);
+  //     alert('経費の承認に失敗しました');
+  //   }
+  // };
 
   return (
     <div>

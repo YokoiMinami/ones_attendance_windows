@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import MemberCostModal from './MemberCostModal';
+import { fetchExpensesData2, fetchUserData, fetchProjectData, deleteExpenseApproval } from '../../apiCall/apis';
+import { formatDate, formatAmountJp, formatAmount2, formatAmount3 } from '../../common/format';
 
 const MemberCost = () => {
   const { id } = useParams();
+  const accounts_id = localStorage.getItem('user');
   const [userData, setUserData] = useState(null);
   const [appUserData, setAppUserData] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -28,16 +31,15 @@ const MemberCost = () => {
 
   //ユーザーの経費情報を取得
   useEffect(() => {
-    const fetchExpenses = async () => {
+    const fetchExpenses2 = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/expenses2/${id}/${year}/${month}`);
-        const data = await response.json();
-        setExpenses(data)
+        const data = await fetchExpensesData2(id, year, month);
+        setExpenses(data);
       } catch (error) {
-        console.error('Error fetching attendance data:', error);
+        console.error('Error fetching expenses data:', error);
       }
     };
-    fetchExpenses();
+    fetchExpenses2();
   }, [year, month, id]);
 
   const toggleImage = (filePath, index) => { 
@@ -60,37 +62,35 @@ const MemberCost = () => {
 
   // 経費のユーザー情報を取得
   useEffect(() => {
-    fetch(`http://localhost:3000/user/${id}`, {
-    method: 'get',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-    })
-    .then(response => response.json())
-    .then(data => setUserData(data))
-    .catch(err => console.log(err));
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(id);
+        setUserData(data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getUserData();
   }, [id]);
 
   // 経費承認ユーザー情報を取得
   useEffect(() => {
-    const accounts_id = localStorage.getItem('user');
-    fetch(`http://localhost:3000/user/${accounts_id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getUserData = async () => {
+      try {
+        const data = await fetchUserData(accounts_id);
+        setAppUserData(data);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => setAppUserData(data))
-    .catch(err => console.log(err));
-  }, [id]);
+    };
+    getUserData();
+  }, [accounts_id]);
 
-  //プロジェクト情報
+  //プロジェクト情報取得
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/projects/${id}/${year}/${month}`);
-        const data = await response.json();
+        const data = await fetchProjectData(id, year, month);
         setProjectId(data.id);
         setDetails(data.details);
         setCompany(data.company);
@@ -100,13 +100,10 @@ const MemberCost = () => {
         setPresident(data.president);
         setRemarks(data.remarks);
 
-        const app_flag = data.app_flag;
-        const registration_date  = data.registration_date;
-        if(app_flag){
+        if(data.app_flag){
           setAppText('承認待ち');
           setAppState(true);
-        }
-        else if(!app_flag && registration_date){
+        }else if(data.create_day && !data.app_flag){
           setAppText('承認済み');
           setAppState(true);
           setAppUser(data.registration);
@@ -132,12 +129,11 @@ const MemberCost = () => {
 
   //経費承認取り消し
   const putItems = async (e) => {
-
     e.preventDefault();
-    
+  
     let confirmDelete = window.confirm('経費の承認を取り消しますか？');
     if (confirmDelete) {
-      const registration = appUserData.fullname
+      const registration = appUserData.fullname;
       const registration_date = `${year}/${month}/${day}`;
       const id = projectId;
       const data = {
@@ -145,46 +141,19 @@ const MemberCost = () => {
         registration_date: registration_date,
         id: id
       };
+  
       try {
-        const response = await fetch('http://localhost:3000/app_delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-        });
-        if (response.ok) {
+        const success = await deleteExpenseApproval(data);
+        if (success) {
           alert('経費の承認を取り消しました');
           window.location.reload();
         } else {
           alert('経費の承認取り消しに失敗しました');
         }
       } catch (error) {
-        console.error('Error saving data:', error);
         alert('経費の承認取り消しに失敗しました');
       }
     }
-  };
-
-  const formatDate = (dateString) => { 
-    const date = new Date(dateString); 
-    const year = date.getFullYear(); 
-    const month = String(date.getMonth() + 1).padStart(2, '0'); 
-    const day = String(date.getDate()).padStart(2, '0'); 
-    return `${year}/${month}/${day}`; 
-  };
-
-  const formatAmount = (amount) => { 
-    const flooredAmount = Math.floor(amount); 
-    return flooredAmount.toLocaleString('ja-JP', { minimumFractionDigits: 0 }); 
-  };
-
-  const formatAmount2 = (amount) => { 
-    return Math.floor(amount);
-  };
-
-  const formatAmount3 = (amount) => {
-    return amount.toLocaleString('ja-JP', { minimumFractionDigits: 0 });
   };
   
   useEffect(() => { // expensesが更新されるたびに合計金額を計算する 
@@ -290,7 +259,7 @@ const MemberCost = () => {
                   <td className='cost_empty'>{formatDate(item.date)}</td> 
                   <td className='cost_empty'>{item.category}</td> 
                   <td className='cost_empty'>{item.description}</td> 
-                  <td className='amount_td' style={{ textAlign: 'right' }}>{formatAmount(item.amount)}</td> 
+                  <td className='amount_td' style={{ textAlign: 'right' }}>{formatAmountJp(item.amount)}</td> 
                   <td className='cost_empty' style={{ textAlign: 'center' }}> 
                     {filePath && ( 
                       <span onClick={() => toggleImage(filePath, index)} id="image_text" style={{ cursor: 'pointer' }}> 
