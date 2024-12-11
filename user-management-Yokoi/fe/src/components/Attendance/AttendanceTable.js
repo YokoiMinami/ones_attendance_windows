@@ -239,6 +239,7 @@ const AttendanceTablePage = ( ) => {
   //出勤特記の編集
   const handleRemarksChange1 = async (date, newOption) => {
     const currentDate = date.toISOString().split('T')[0];
+
     const data = {
       accounts_id,
       date: currentDate,
@@ -460,9 +461,7 @@ const AttendanceTablePage = ( ) => {
       const multipliedWorkHoursInMinutes2 = totalWorkHours / workHoursCount;
       const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2 * 10) / 10;
       // 分単位の時間をhh:mm形式に変換
-      const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
-      const multipliedWorkHours2 = `${hours2}:${minutes2}`;
+      const multipliedWorkHours2 = convertMinutesToTime(flooredNumber);
       //1日平均勤務時間
       setDayAverage(multipliedWorkHours2);
 

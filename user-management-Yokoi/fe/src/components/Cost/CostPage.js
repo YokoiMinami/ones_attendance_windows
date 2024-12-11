@@ -76,7 +76,6 @@ const CostPage = () => {
     }
   }, [showImage, expenses]);
   
-
   //プロジェクト情報取得
   useEffect(() => {
     const fetchUser = async () => {
@@ -140,42 +139,42 @@ const CostPage = () => {
   };
 
   //経費申請
-const putItems = async (e) => {
-  e.preventDefault();
+  const putItems = async (e) => {
+    e.preventDefault();
 
-  const formErrors = validateForm();
-  if (Object.keys(formErrors).length > 0) {
-    setErrors(formErrors);
-    return;
-  }
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
 
-  if (!total) {
-    alert('経費を登録してください');
-    return;
-  }
+    if (!total) {
+      alert('経費を登録してください');
+      return;
+    }
 
-  let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
-  if (confirmDelete) {
-    const create_day = `${year}/${month}/${day}`;
-    const data = {
-      accounts_id,
-      create_date: date,
-      create_day: create_day
-    };
-    try {
-      const response = await submitExpense(data);
-      if (response.ok) {
-        alert('経費を申請しました');
-        window.location.reload();
-      } else {
+    let confirmDelete = window.confirm('入力した内容で経費を申請しますか？');
+    if (confirmDelete) {
+      const create_day = `${year}/${month}/${day}`;
+      const data = {
+        accounts_id,
+        create_date: date,
+        create_day: create_day
+      };
+      try {
+        const response = await submitExpense(data);
+        if (response.ok) {
+          alert('経費を申請しました');
+          window.location.reload();
+        } else {
+          alert('経費の申請に失敗しました');
+        }
+      } catch (error) {
+        console.error('Error saving data:', error);
         alert('経費の申請に失敗しました');
       }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('経費の申請に失敗しました');
     }
-  }
-};
+  };
 
   const deleteItems = async () => {
     if (selectedItems.length === 0) {
