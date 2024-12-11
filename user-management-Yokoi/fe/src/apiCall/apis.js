@@ -379,3 +379,17 @@ export const updateUser = async (data) => {
     return response.json();
 };
 
+//メンバーの勤怠時間を修正
+export const saveTimeData = async (data) => {
+  const response = await fetch('http://localhost:3000/time', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.text();
+};
