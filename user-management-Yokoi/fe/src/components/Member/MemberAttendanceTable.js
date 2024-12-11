@@ -6,9 +6,9 @@ import Time from '../Attendance/TimePull';
 import BreakPull from '../Attendance/BreakPull';
 import 'react-datepicker/dist/react-datepicker.css';
 import { startOfWeek, endOfWeek, subWeeks } from 'date-fns';
-import { fetchUserData, fetchAttendanceData, saveTimeData } from '../../apiCall/apis';
+import { fetchUserData, fetchAttendanceData, saveTimeData, postRemarks, standardTime } from '../../apiCall/apis';
 import { isWeekend, getDaysInMonth, getDayOfWeek } from '../../constants/date';
-import { attendanceFormatTime, formatRemarks, formatDate2, totalWorkHours, calculateNetWorkHours } from '../../common/format';
+import { attendanceFormatTime, formatRemarks, formatDate2, totalWorkHours, calculateNetWorkHours, convertTimeToMinutes, convertMinutesToTime } from '../../common/format';
 
 const MemberAttendanceTable = ( ) => {
 
@@ -70,8 +70,8 @@ const MemberAttendanceTable = ( ) => {
       }
     };
     fetchAttendance();
-  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut,editingBreak, id]);
-  
+  }, [year,month,editingRemarks, editingRemarks2, editingOutRemarks, editingOutRemarks2, editingCheckIn, editingCheckOut,editingBreak, id, formattedMonth]);
+
   //勤怠情報の日付を修正
   useEffect(() => {
     if (userWorkHours.length){
@@ -305,10 +305,7 @@ const MemberAttendanceTable = ( ) => {
 
     if(newOption === ''){
       const accounts_id = id;
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-      const day = String(date.getDate()).padStart(2, '0'); // 日付
-      const currentDate = `${year}-${month}-${day}`;
+      const currentDate = formatDate2(date);
 
       const data = {
         accounts_id,
@@ -317,14 +314,8 @@ const MemberAttendanceTable = ( ) => {
       };
 
       try {
-        const response = await fetch('http://localhost:3000/time', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
+        const response = await saveTimeData(data);
+        if (response) {
           // 編集モードを解除
           setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
           // 新しいデータを追加
@@ -349,40 +340,13 @@ const MemberAttendanceTable = ( ) => {
     }else{
       if(check_in_time.length && breakTime.length){
         //勤務時間の合計を再計算
-        const startDate = new Date(`1970-01-01T${check_in_time}`);
-        const endDate = new Date(`1970-01-01T${newOption}`);
+        const all_work_time = totalWorkHours(check_in_time, newOption);
 
-        // 退勤時間が出勤時間よりも前の場合、日付が変わったと見なす 
-        if (endDate < startDate) { 
-          endDate.setDate(endDate.getDate() + 1); 
-        }
-
-        const diff = endDate - startDate;
-        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-        const all_work_time = `${hours}:${minutes}`;
-  
-        //勤務時間の合計から休憩時間を引く
-        const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
-        const checkBreakTime = new Date(`1970-01-01T${breakTime}`);
-  
-        // 日付の有効性をチェック
-        const isValidDate = (date) => date instanceof Date && !isNaN(date);
-        if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-          return '計算できませんでした';
-        }
-  
-        // 時間の差を計算
-        const diff2 =  checkOllTime - checkBreakTime;
-        const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
-        const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
-        const edit_work =  `${hours2}:${minutes2}`;
+        // //勤務時間の合計から休憩時間を引く
+        const edit_work =  calculateNetWorkHours(all_work_time, breakTime);
         const accounts_id = id;
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-        const day = String(date.getDate()).padStart(2, '0'); // 日付
-        const currentDate = `${year}-${month}-${day}`;
-  
+        const currentDate = formatDate2(date);
+
         const data = {
           accounts_id,
           date: currentDate,
@@ -391,14 +355,8 @@ const MemberAttendanceTable = ( ) => {
         };
         
         try {
-          const response = await fetch('http://localhost:3000/time', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-          if (response.ok) {
+          const response = await saveTimeData(data);
+          if (response) {
             // 編集モードを解除
             setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
             // 新しいデータを追加
@@ -422,24 +380,10 @@ const MemberAttendanceTable = ( ) => {
         }
       }else if(check_in_time.length){
         //勤務時間の合計を再計算
-        const startDate = new Date(`1970-01-01T${check_in_time}`);
-        const endDate = new Date(`1970-01-01T${newOption}`);
-
-        // 退勤時間が出勤時間よりも前の場合、日付が変わったと見なす 
-        if (endDate < startDate) { 
-          endDate.setDate(endDate.getDate() + 1); 
-        }
-
-        const diff = endDate - startDate;
-        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-        const all_work_time = `${hours}:${minutes}`;
+        const all_work_time = totalWorkHours(check_in_time, newOption);
         const accounts_id = id;
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-        const day = String(date.getDate()).padStart(2, '0'); // 日付
-        const currentDate = `${year}-${month}-${day}`;
-  
+        const currentDate = formatDate2(date);
+
         const data = {
           accounts_id,
           date: currentDate,
@@ -448,14 +392,8 @@ const MemberAttendanceTable = ( ) => {
         };
         
         try {
-          const response = await fetch('http://localhost:3000/time', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-          if (response.ok) {
+          const response = await saveTimeData(data);
+          if (response) {
             // 編集モードを解除
             setEditingCheckOut(prev => ({ ...prev, [date.toISOString()]: false }));
             // 新しいデータを追加
@@ -490,10 +428,7 @@ const MemberAttendanceTable = ( ) => {
 
     if(newOption === ''){
       const accounts_id = id;
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-      const day = String(date.getDate()).padStart(2, '0'); // 日付
-      const currentDate = `${year}-${month}-${day}`;
+      const currentDate = formatDate2(date);
 
       const data = {
         accounts_id,
@@ -502,14 +437,8 @@ const MemberAttendanceTable = ( ) => {
       };
       
       try {
-        const response = await fetch('http://localhost:3000/time', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
+        const response = await saveTimeData(data);
+        if (response) {
           // 編集モードを解除
           setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
           // 新しいデータを追加
@@ -532,42 +461,15 @@ const MemberAttendanceTable = ( ) => {
         alert('データの保存に失敗しました');
       }
     }else{
-      if(work_hours.length ){
+      if(work_hours.length){
 
         //勤務時間の合計を再計算
-        const startDate = new Date(`1970-01-01T${check_in_time}`);
-        const endDate = new Date(`1970-01-01T${check_out_time}`);
-
-        // 退勤時間が出勤時間よりも前の場合、日付が変わったと見なす 
-        if (endDate < startDate) { 
-          endDate.setDate(endDate.getDate() + 1); 
-        }
-        
-        const diff = endDate - startDate;
-        const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-        const all_work_time = `${hours}:${minutes}`;
+        const all_work_time = totalWorkHours(check_in_time, check_out_time);
   
         //勤務時間の合計から休憩時間を引く
-        const checkOllTime = new Date(`1970-01-01T${all_work_time}`);
-        const checkBreakTime = new Date(`1970-01-01T${newOption}`);
-  
-        // 日付の有効性をチェック
-        const isValidDate = (date) => date instanceof Date && !isNaN(date);
-        if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-          return '計算できませんでした';
-        }
-  
-        // 時間の差を計算
-        const diff2 =  checkOllTime - checkBreakTime;
-        const hours2 = Math.floor(diff2 / 1000 / 60 / 60).toString().padStart(2, '0');;
-        const minutes2 = Math.floor((diff2 / 1000 / 60) % 60).toString().padStart(2, '0');;
-        const edit_work =  `${hours2}:${minutes2}`;
+        const edit_work =  calculateNetWorkHours(all_work_time, newOption);
         const accounts_id = id;
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-        const day = String(date.getDate()).padStart(2, '0'); // 日付
-        const currentDate = `${year}-${month}-${day}`;
+        const currentDate = formatDate2(date);
   
         const data = {
           accounts_id,
@@ -577,14 +479,8 @@ const MemberAttendanceTable = ( ) => {
         };
         
         try {
-          const response = await fetch('http://localhost:3000/time', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-          if (response.ok) {
+          const response = await saveTimeData(data);
+          if (response) {
             // 編集モードを解除
             setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
             // 新しいデータを追加
@@ -607,10 +503,7 @@ const MemberAttendanceTable = ( ) => {
         }
       }if(check_in_time.length ){
         const accounts_id = id;
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-        const day = String(date.getDate()).padStart(2, '0'); // 日付
-        const currentDate = `${year}-${month}-${day}`;
+        const currentDate = formatDate2(date);
 
         const data = {
           accounts_id,
@@ -619,14 +512,8 @@ const MemberAttendanceTable = ( ) => {
         };
         
         try {
-          const response = await fetch('http://localhost:3000/time', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-          if (response.ok) {
+          const response = await saveTimeData(data);
+          if (response) {
             // 編集モードを解除
             setEditingBreak(prev => ({ ...prev, [date.toISOString()]: false }));
             // 新しいデータを追加
@@ -659,10 +546,7 @@ const MemberAttendanceTable = ( ) => {
   //出勤特記の編集
   const handleRemarksChange1 = async (date, newOption) => {
     const accounts_id = id;
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-    const day = String(date.getDate()).padStart(2, '0'); // 日付
-    const currentDate = `${year}-${month}-${day}`;
+    const currentDate = formatDate2(date);
 
     const data = {
       accounts_id,
@@ -670,14 +554,8 @@ const MemberAttendanceTable = ( ) => {
       remarks1: newOption
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
+      const response = await postRemarks(data);
+      if (response) {
         // 編集モードを解除
         setEditingRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         // 新しいデータを追加
@@ -707,10 +585,7 @@ const MemberAttendanceTable = ( ) => {
   //退勤特記の編集
   const handleOutRemarksChange1 = async (date, newOption) => {
     const accounts_id = id;
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-    const day = String(date.getDate()).padStart(2, '0'); // 日付
-    const currentDate = `${year}-${month}-${day}`;
+    const currentDate = formatDate2(date);
 
     const data = {
       accounts_id,
@@ -718,14 +593,8 @@ const MemberAttendanceTable = ( ) => {
       out_remarks1: newOption
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
+      const response = await postRemarks(data);
+      if (response) {
         // 編集モードを解除
         setEditingOutRemarks(prev => ({ ...prev, [date.toISOString()]: false }));
         // 新しいデータを追加
@@ -759,10 +628,7 @@ const MemberAttendanceTable = ( ) => {
   
   const handleRemarksSave = async (date) => {
     const accounts_id = id;
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-    const day = String(date.getDate()).padStart(2, '0'); // 日付
-    const currentDate = `${year}-${month}-${day}`;
+    const currentDate = formatDate2(date);
 
     const data = {
       accounts_id,
@@ -770,15 +636,9 @@ const MemberAttendanceTable = ( ) => {
       remarks2: remarks2
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await postRemarks(data);
       setEditingRemarks2(remarks2);
-      if (response.ok) {
+      if (response) {
         setAttendanceData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
@@ -817,10 +677,7 @@ const MemberAttendanceTable = ( ) => {
   
   const handleOutRemarksSave = async (date) => {
     const accounts_id = id;
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1
-    const day = String(date.getDate()).padStart(2, '0'); // 日付
-    const currentDate = `${year}-${month}-${day}`;
+    const currentDate = formatDate2(date);
 
     const data = {
       accounts_id,
@@ -828,15 +685,9 @@ const MemberAttendanceTable = ( ) => {
       out_remarks2: out_set_remarks2
     };
     try {
-      const response = await fetch('http://localhost:3000/remarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await postRemarks(data);
       setEditingOutRemarks2(out_set_remarks2);
-      if (response.ok) {
+      if (response) {
         setAttendanceData(prev => {
           const existingRecordIndex = prev.findIndex(record => record.date === currentDate);
           if (existingRecordIndex !== -1) {
@@ -869,71 +720,27 @@ const MemberAttendanceTable = ( ) => {
   }, [editingOutRemarks2]);
 
   //通常勤怠情報の処理
-  //ユーザーIDをもとに残業情報を取得、データがあればインプットにデフォルト表示
+  //ユーザーIDをもとに標準勤務時間を取得
   useEffect(() => {
-    const accounts_id = id;
-    fetch(`http://localhost:3000/overuser/${accounts_id}`, {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
+    const getstandardTime = async () => {
+      try {
+        const data = await standardTime(id);
+        if (data.start_time) setStartTime(data.start_time);
+        if (data.end_time) setEndTime(data.end_time);
+        if (data.break_time) setBreakTime(data.break_time);
+      } catch (err) {
+        console.log(err);
       }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.start_time) setStartTime(data.start_time);
-      if (data.end_time) setEndTime(data.end_time);
-      if (data.break_time) setBreakTime(data.break_time);
-    })
-    .catch(err => console.log(err));
+    };
+    getstandardTime();
   }, [id]);
 
-  const calculateWorkHours = (start, end) => {
-    const startDate = new Date(`1970-01-01T${start}`);
-    const endDate = new Date(`1970-01-01T${end}`);
-    const diff = endDate - startDate;
-    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
-    return `${hours}:${minutes}`;
-  };
-
-  const work_hours = calculateWorkHours(startTime, endTime);
-
-  // 勤務時間を計算
-  const CalculateWorkHours2 = (checkOllTimeString, checkBreakTimeString ) => {
-    // 時間文字列をDateオブジェクトに変換
-    const checkOllTime = new Date(`1970-01-01T${checkOllTimeString}`);
-    const checkBreakTime = new Date(`1970-01-01T${checkBreakTimeString}`);
-    
-    // 日付の有効性をチェック
-    const isValidDate = (date) => date instanceof Date && !isNaN(date);
-    if (!isValidDate(checkOllTime) || !isValidDate(checkBreakTime)) {
-      return '計算できませんでした';
-    }
-
-    // 時間の差を計算
-    const diff =  checkOllTime - checkBreakTime;
-    const hours = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');;
-    const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');;
-    return `${hours}:${minutes}`;
-  };
+  const work_hours = totalWorkHours(startTime, endTime);
 
   //残業時間を計算
-  //日数計算するために分単位に変換
-  const convertTimeToMinutes = (timeString) => {
-    if (!timeString) return 0; // または適切なデフォルト値
-    const [hours, minutes] = timeString.split(':').map(Number);
-    return hours * 60 + minutes;
-  };
-
-  const convertMinutesToTime = (minutes) => {
-    const hours = Math.floor(minutes / 60).toString().padStart(2, '0');
-    const mins = (minutes % 60).toString().padStart(2, '0');
-    return `${hours}:${mins}`;
-  };
-
   useEffect(() => {
     if (startTime && endTime && breakTime) { //標準勤務時間
-      const WorkHours = CalculateWorkHours2(work_hours, breakTime);
+      const WorkHours = calculateNetWorkHours(work_hours, breakTime);
       setWorkHours(WorkHours);
 
       // workHoursを分単位に変換し、勤務日数を掛ける
@@ -942,9 +749,7 @@ const MemberAttendanceTable = ( ) => {
       const multipliedWorkHoursInMinutes = workHoursInMinutes * holidaysAndWeekendsCount;
 
       // 分単位の時間をhh:mm形式に変換
-      const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
-      const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
-      const multipliedWorkHours = `${hours}:${minutes}`;
+      const multipliedWorkHours = convertMinutesToTime(multipliedWorkHoursInMinutes);
       
       //一か月の規定勤務時間
       setProvisions(multipliedWorkHours);
@@ -969,9 +774,7 @@ const MemberAttendanceTable = ( ) => {
       const multipliedWorkHoursInMinutes2 = totalWorkHours / workHoursCount;
       const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2 * 10) / 10;
       // 分単位の時間をhh:mm形式に変換
-      const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
-      const multipliedWorkHours2 = `${hours2}:${minutes2}`;
+      const multipliedWorkHours2 = convertMinutesToTime(flooredNumber);
       //1日平均勤務時間
       setDayAverage(multipliedWorkHours2);
 
@@ -987,9 +790,7 @@ const MemberAttendanceTable = ( ) => {
       } 
 
       // 分単位の時間をhh:mm形式に変換
-      const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
-      const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
-      const multipliedWorkHours = `${hours}:${minutes}`;
+      const multipliedWorkHours = convertMinutesToTime(multipliedWorkHoursInMinutes)
       //月予測勤務時間
       setMonthAverage(multipliedWorkHours);
       
@@ -1045,9 +846,7 @@ const MemberAttendanceTable = ( ) => {
       const flooredNumber = Math.floor(multipliedWorkHoursInMinutes2 * 10) / 10;
       
       // 分単位の時間をhh:mm形式に変換
-      const hours2 = Math.floor(flooredNumber / 60).toString().padStart(2, '0');
-      const minutes2 = Math.floor(flooredNumber % 60).toString().padStart(2, '0'); 
-      const multipliedWorkHours2 = `${hours2}:${minutes2}`;
+      const multipliedWorkHours2 = convertMinutesToTime(flooredNumber);
       
       //先週の1日平均勤務時間
       setWeekAverage(multipliedWorkHours2);
@@ -1063,9 +862,7 @@ const MemberAttendanceTable = ( ) => {
       } 
 
       // 分単位の時間をhh:mm形式に変換
-      const hours = Math.floor(multipliedWorkHoursInMinutes / 60).toString().padStart(2, '0');
-      const minutes = (multipliedWorkHoursInMinutes % 60).toString().padStart(2, '0');
-      const multipliedWorkHours = `${hours}:${minutes}`;
+      const multipliedWorkHours = convertMinutesToTime(multipliedWorkHoursInMinutes);
       //直近月予測勤務時間
       setWeekMonthAverage(multipliedWorkHours);
       convertMinutesToTime(totalMinutes); 

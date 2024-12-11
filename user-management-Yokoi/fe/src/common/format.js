@@ -98,6 +98,12 @@ export const calculateWorkHours = (checkInDate, checkInTime, checkOutDate, check
 export const totalWorkHours = (start, end) => {
   const startDate = new Date(`1970-01-01T${start}`);
   const endDate = new Date(`1970-01-01T${end}`);
+
+  // 退勤時間が出勤時間よりも前の場合、日付が変わったと見なす 
+  if (endDate < startDate) { 
+    endDate.setDate(endDate.getDate() + 1); 
+  }
+
   const diff = endDate - startDate;
   const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');;
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');;
