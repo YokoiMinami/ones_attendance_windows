@@ -61,44 +61,6 @@ const PassForm = (props) => {
     }
   };
 
-  // const submitFormEdit = async (e) => {
-  //   e.preventDefault();
-
-  //   const formErrors = validateForm();
-  //   if (Object.keys(formErrors).length > 0) {
-  //     setErrors(formErrors);
-  //     return;
-  //   }
-
-  //   const currentDate = new Date().toISOString().split('T')[0];
-  //   const formattedDate = formatDate(currentDate);
-  //   const data = {
-  //     id:1,
-  //     fullname:name,
-  //     date: formattedDate,
-  //     admin_password: pass,
-  //   };
-
-  //   try {
-  //     const response = await fetch('http://localhost:3000/pass_edit', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify(data)
-  //     });
-
-  //     if (response.ok) {
-  //       alert('データを保存しました');
-  //       window.location.reload();
-  //     } else {
-  //       alert('データの保存に失敗しました');
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // };
-
   return (
     <form onSubmit={submitFormEdit}>
       <div className='admin_area'>

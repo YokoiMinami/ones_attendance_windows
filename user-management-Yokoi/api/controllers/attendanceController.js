@@ -1,7 +1,8 @@
+const { getTotalHours, getWeeklyTotalHours, formatTime, getDaysWithWorkHours } = require('../common/utils');
+
 //勤怠登録
 const attData = async (req, res, db) => {
   const { accounts_id, date, check_in_time, check_out_time, break_time, work_hours, remarks1, remarks2, out_remarks1, out_remarks2, is_checked_in, mid_flag } = req.body;
-
   try {
     const userAttendance = await db('attendance').where({ accounts_id, date }).first();
 
@@ -125,59 +126,27 @@ const getMonthlyTotalHours = async (req, res, db) => {
     const endDate = `${yearStr}-${monthStr}-${new Date(year, month, 0).getDate()}`;
 
     // 月の合計勤務時間のクエリ
-    const totalHoursResult = await db('attendance')
-      .where('accounts_id', accounts_id)
-      .andWhere('date', '>=', startDate)
-      .andWhere('date', '<=', endDate)
-      .whereNotNull('check_in_time')
-      .whereNotNull('check_out_time')
-      .select(db.raw(`
-        SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as total_hours
-      `)).first();
-
-    // totalHoursResultが存在しない場合の処理
+    const totalHoursResult = await getTotalHours(db, accounts_id, startDate, endDate);
     const totalTime = totalHoursResult && totalHoursResult.total_hours ? parseFloat(totalHoursResult.total_hours).toFixed(2) : '';
 
     // 先週の合計勤務時間のクエリ
-    const weeklyTotalHoursResult = await db('attendance')
-      .where('accounts_id', accounts_id)
-      .andWhere('date', '>=', new Date(lastMonday))
-      .andWhere('date', '<=', new Date(lastSunday))
-      .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
-      .whereNotNull('work_hours')
-      .select(db.raw(`SUM(EXTRACT(EPOCH FROM work_hours) / 3600) as week_hours`)).first();
-
+    const weeklyTotalHoursResult = await getWeeklyTotalHours(db, accounts_id, lastMonday, lastSunday, month);
     const weeklyTotalTime = weeklyTotalHoursResult && weeklyTotalHoursResult.week_hours ? parseFloat(weeklyTotalHoursResult.week_hours).toFixed(2) : '0.00';
 
     // 月の時間と分の取得とフォーマット
-    const hours = totalTime ? Math.floor(totalTime) : 0;
-    const minutes = totalTime ? Math.round((totalTime - hours) * 60) : 0;
-    const formattedTime = totalTime ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}` : '';
+    const formattedTime = formatTime(totalTime);
 
     // 先週の時間と分を取得してフォーマット
-    const weeklyHours = Math.floor(weeklyTotalTime);
-    const weeklyMinutes = Math.round((weeklyTotalTime - weeklyHours) * 60);
-    const formattedWeeklyTime = `${String(weeklyHours).padStart(2, '0')}:${String(weeklyMinutes).padStart(2, '0')}`;
+    const formattedWeeklyTime = formatTime(weeklyTotalTime);
 
     // 月の勤務時間を分に変換し、勤務日数で割る
-    const totalMinutes = hours * 60 + minutes;
-    const daysWithWorkHoursResult = await db('attendance')
-      .where('accounts_id', accounts_id)
-      .andWhere('date', '>=', startDate)
-      .andWhere('date', '<=', endDate)
-      .whereNotNull('work_hours')
-      .count('id as count').first();
+    const totalMinutes = totalTime ? Math.floor(totalTime) * 60 + Math.round((totalTime - Math.floor(totalTime)) * 60) : 0;
+    const daysWithWorkHoursResult = await getDaysWithWorkHours(db, accounts_id, startDate, endDate);
     const averageMinutes = totalMinutes / (daysWithWorkHoursResult.count || 1); // 0で割るのを防ぐために1をデフォルト値に
 
     // 週の勤務時間を分に変換し、勤務日数で割る
-    const weekMinutes = weeklyHours * 60 + weeklyMinutes;
-    const weekWithWorkHoursResult = await db('attendance')
-      .where('accounts_id', accounts_id)
-      .andWhere('date', '>=', new Date(lastMonday))
-      .andWhere('date', '<=', new Date(lastSunday))
-      .andWhere(db.raw(`EXTRACT(MONTH FROM date) = ?`, [month]))
-      .whereNotNull('work_hours')
-      .count('id as count').first();
+    const weekMinutes = weeklyTotalTime ? Math.floor(weeklyTotalTime) * 60 + Math.round((weeklyTotalTime - Math.floor(weeklyTotalTime)) * 60) : 0;
+    const weekWithWorkHoursResult = await getDaysWithWorkHours(db, accounts_id, new Date(lastMonday), new Date(lastSunday));
     const weekAverageMinutes = weekMinutes / (weekWithWorkHoursResult.count || 1); // 0で割るのを防ぐために1をデフォルト値に
 
     // レスポンスに返す

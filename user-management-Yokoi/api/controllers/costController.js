@@ -2,7 +2,6 @@
 const memberCostData = async (req, res, db) => {
   const { accounts_id, date2 } = req.params;
   const numericAccountsId = parseInt(accounts_id, 10); 
-  
   try {
     const memberCost = await db('projectdata').where({ accounts_id: numericAccountsId, create_date: date2 });
     if (memberCost.length > 0) {
